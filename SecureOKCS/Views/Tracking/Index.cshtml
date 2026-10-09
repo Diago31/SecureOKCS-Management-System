@@ -1,0 +1,780 @@
+﻿@model SecureOKCS.ViewModels.RepairTrackingSearchViewModel
+
+@{
+    ViewData["Title"] = "Track Repair";
+}
+
+<style>
+    .tracking-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 85px 0;
+        overflow: hidden;
+    }
+
+        .tracking-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -3;
+            content: "";
+            background: radial-gradient( circle at 18% 25%, rgba(0, 229, 255, 0.13), transparent 32%), radial-gradient( circle at 85% 75%, rgba(139, 92, 246, 0.12), transparent 32%), #050b14;
+        }
+
+    .tracking-grid {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        opacity: 0.17;
+        background-image: linear-gradient( rgba(0, 229, 255, 0.11) 1px, transparent 1px), linear-gradient( 90deg, rgba(0, 229, 255, 0.11) 1px, transparent 1px);
+        background-size: 52px 52px;
+        mask-image: linear-gradient( to bottom, black, transparent 92%);
+    }
+
+    .tracking-header {
+        max-width: 760px;
+        margin: 0 auto 46px;
+        text-align: center;
+    }
+
+    .tracking-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 17px;
+        color: #67e8f9;
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+        .tracking-eyebrow::before {
+            width: 8px;
+            height: 8px;
+            content: "";
+            border-radius: 50%;
+            background: #00e5ff;
+            box-shadow: 0 0 13px #00e5ff;
+        }
+
+    .tracking-title {
+        margin-bottom: 18px;
+        color: #f8fafc;
+        font-size: clamp(2.4rem, 5vw, 4.3rem);
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: -0.05em;
+    }
+
+    .tracking-gradient {
+        color: transparent;
+        background: linear-gradient( 90deg, #00e5ff, #60a5fa, #a78bfa);
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+
+    .tracking-description {
+        max-width: 650px;
+        margin: auto;
+        color: #94a3b8;
+        font-size: 1rem;
+        line-height: 1.8;
+    }
+
+    .tracking-shell {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        border-radius: 22px;
+        background: rgba(9, 17, 30, 0.95);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.42), 0 0 65px rgba(0, 229, 255, 0.05);
+        backdrop-filter: blur(17px);
+    }
+
+    .tracking-information {
+        position: relative;
+        height: 100%;
+        min-height: 530px;
+        padding: 43px;
+        overflow: hidden;
+        border-right: 1px solid rgba(148, 163, 184, 0.12);
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.97), rgba(12, 31, 55, 0.92));
+    }
+
+        .tracking-information::after {
+            position: absolute;
+            width: 270px;
+            height: 270px;
+            right: -145px;
+            bottom: -145px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.17);
+            filter: blur(55px);
+        }
+
+    .tracking-console-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 42px;
+    }
+
+    .tracking-console-title {
+        color: #dbe7f5;
+        font-family: monospace;
+        font-size: 0.77rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .tracking-console-status {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: #86efac;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+        .tracking-console-status::before {
+            width: 7px;
+            height: 7px;
+            content: "";
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 11px #22c55e;
+        }
+
+    .tracking-process {
+        position: relative;
+        display: grid;
+        gap: 0;
+    }
+
+    .tracking-process-item {
+        position: relative;
+        display: grid;
+        min-height: 75px;
+        grid-template-columns: 35px 1fr;
+        gap: 14px;
+    }
+
+        .tracking-process-item:not(:last-child)::after {
+            position: absolute;
+            width: 1px;
+            height: calc(100% - 27px);
+            top: 31px;
+            left: 17px;
+            content: "";
+            background: linear-gradient( to bottom, rgba(0, 229, 255, 0.48), rgba(37, 99, 235, 0.13));
+        }
+
+    .tracking-process-marker {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        width: 35px;
+        height: 35px;
+        place-items: center;
+        color: #031019;
+        font-family: monospace;
+        font-size: 0.7rem;
+        font-weight: 900;
+        border-radius: 50%;
+        background: linear-gradient( 135deg, #00e5ff, #60a5fa);
+        box-shadow: 0 0 17px rgba(0, 229, 255, 0.2);
+    }
+
+    .tracking-process-content h3 {
+        margin: 2px 0 4px;
+        color: #e2e8f0;
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .tracking-process-content p {
+        margin: 0;
+        color: #718096;
+        font-size: 0.76rem;
+        line-height: 1.5;
+    }
+
+    .tracking-information-note {
+        position: relative;
+        z-index: 1;
+        margin-top: 25px;
+        padding: 13px 14px;
+        color: #8291a7;
+        font-size: 0.75rem;
+        line-height: 1.55;
+        border: 1px solid rgba(0, 229, 255, 0.14);
+        border-radius: 10px;
+        background: rgba(0, 229, 255, 0.04);
+    }
+
+    .tracking-form-area {
+        display: flex;
+        min-height: 530px;
+        align-items: center;
+        padding: 43px;
+        background: linear-gradient( 145deg, rgba(7, 14, 25, 0.98), rgba(5, 11, 20, 0.98));
+    }
+
+    .tracking-form-container {
+        width: 100%;
+        max-width: 440px;
+        margin: auto;
+    }
+
+    .tracking-form-eyebrow {
+        margin-bottom: 10px;
+        color: #00e5ff;
+        font-size: 0.71rem;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .tracking-form-title {
+        margin-bottom: 10px;
+        color: #f8fafc;
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .tracking-form-description {
+        margin-bottom: 27px;
+        color: #8291a7;
+        font-size: 0.86rem;
+        line-height: 1.65;
+    }
+
+    .tracking-validation {
+        margin-bottom: 20px;
+        padding: 13px 15px;
+        color: #fecaca;
+        font-size: 0.82rem;
+        border: 1px solid rgba(239, 68, 68, 0.27);
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.08);
+    }
+
+        .tracking-validation:empty,
+        .tracking-validation.validation-summary-valid {
+            display: none;
+        }
+
+        .tracking-validation ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+    .tracking-field {
+        margin-bottom: 20px;
+    }
+
+    .tracking-label {
+        margin-bottom: 8px;
+        color: #dbe7f5;
+        font-size: 0.84rem;
+        font-weight: 700;
+    }
+
+    .tracking-required {
+        color: #67e8f9;
+    }
+
+    .tracking-input-group {
+        position: relative;
+    }
+
+    .tracking-input-prefix {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 13px;
+        color: #00e5ff;
+        font-family: monospace;
+        font-size: 0.69rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+    }
+
+    .tracking-input {
+        min-height: 51px;
+        padding-left: 53px;
+        color: #f8fafc !important;
+        font-family: monospace;
+        font-size: 0.87rem;
+        letter-spacing: 0.035em;
+        text-transform: uppercase;
+        border: 1px solid #263449;
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.75) !important;
+    }
+
+        .tracking-input::placeholder {
+            color: #58677d;
+            text-transform: none;
+        }
+
+        .tracking-input:focus {
+            color: #ffffff;
+            border-color: #00e5ff;
+            background: rgba(15, 23, 42, 0.95);
+            box-shadow: 0 0 0 0.2rem rgba(0, 229, 255, 0.11);
+        }
+
+    .tracking-field-error {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.77rem;
+    }
+
+    .tracking-help {
+        display: block;
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 0.72rem;
+        line-height: 1.5;
+    }
+
+    .tracking-submit {
+        width: 100%;
+        min-height: 52px;
+        margin-top: 3px;
+        color: #031019;
+        font-weight: 800;
+        border: 1px solid #00e5ff;
+        border-radius: 10px;
+        background: linear-gradient( 135deg, #00e5ff, #60a5fa);
+        box-shadow: 0 0 27px rgba(0, 229, 255, 0.17);
+    }
+
+        .tracking-submit:hover {
+            color: #031019;
+            border-color: #67e8f9;
+            box-shadow: 0 0 36px rgba(0, 229, 255, 0.29);
+        }
+
+    .tracking-security {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-top: 20px;
+        padding: 12px 13px;
+        color: #7f8ea4;
+        font-size: 0.73rem;
+        line-height: 1.55;
+        border: 1px solid rgba(148, 163, 184, 0.11);
+        border-radius: 9px;
+        background: rgba(15, 23, 42, 0.4);
+    }
+
+    .tracking-security-icon {
+        display: grid;
+        width: 25px;
+        height: 25px;
+        flex: 0 0 25px;
+        place-items: center;
+        color: #67e8f9;
+        font-size: 0.66rem;
+        font-weight: 900;
+        border: 1px solid rgba(0, 229, 255, 0.22);
+        border-radius: 7px;
+    }
+
+    .tracking-home-link {
+        display: block;
+        margin-top: 20px;
+        color: #64748b;
+        font-size: 0.77rem;
+        text-align: center;
+        text-decoration: none;
+    }
+
+        .tracking-home-link:hover {
+            color: #7dd3fc;
+        }
+
+    @@media (max-width: 991px) {
+        .tracking-page {
+            padding: 60px 0;
+        }
+
+        .tracking-information {
+            min-height: auto;
+            border-right: 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .tracking-form-area {
+            min-height: auto;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .tracking-page {
+            padding: 45px 0;
+        }
+
+        .tracking-title {
+            font-size: 2.5rem;
+        }
+
+        .tracking-shell {
+            border-radius: 17px;
+        }
+
+        .tracking-information,
+        .tracking-form-area {
+            padding: 28px 22px;
+        }
+
+        .tracking-console-header {
+            margin-bottom: 30px;
+        }
+    }
+</style>
+
+<section class="tracking-page">
+
+    <div class="tracking-grid"
+         aria-hidden="true">
+    </div>
+
+    <div class="container">
+
+        <!-- PAGE HEADER -->
+        <div class="tracking-header">
+
+            <div class="tracking-eyebrow">
+                Secure Repair Tracking
+            </div>
+
+            <h1 class="tracking-title">
+
+                Follow your repair.
+
+                <span class="tracking-gradient">
+                    Stay informed.
+                </span>
+
+            </h1>
+
+            <p class="tracking-description">
+
+                Enter the tracking code provided during
+                registration together with your repair ticket
+                number to view the latest device status.
+
+            </p>
+
+        </div>
+
+        <div class="tracking-shell">
+
+            <div class="row g-0">
+
+                <!-- REPAIR PROCESS INFORMATION -->
+                <div class="col-lg-6">
+
+                    <div class="tracking-information">
+
+                        <div class="tracking-console-header">
+
+                            <div class="tracking-console-title">
+                                Repair Status Protocol
+                            </div>
+
+                            <div class="tracking-console-status">
+                                Online
+                            </div>
+
+                        </div>
+
+                        <div class="tracking-process">
+
+                            <div class="tracking-process-item">
+
+                                <div class="tracking-process-marker">
+                                    01
+                                </div>
+
+                                <div class="tracking-process-content">
+
+                                    <h3>Device Received</h3>
+
+                                    <p>
+                                        The device and reported issue
+                                        are registered securely.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <div class="tracking-process-item">
+
+                                <div class="tracking-process-marker">
+                                    02
+                                </div>
+
+                                <div class="tracking-process-content">
+
+                                    <h3>Technical Inspection</h3>
+
+                                    <p>
+                                        A technician identifies the
+                                        cause of the reported issue.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <div class="tracking-process-item">
+
+                                <div class="tracking-process-marker">
+                                    03
+                                </div>
+
+                                <div class="tracking-process-content">
+
+                                    <h3>Repair in Progress</h3>
+
+                                    <p>
+                                        Approved repair work and
+                                        component replacement begin.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <div class="tracking-process-item">
+
+                                <div class="tracking-process-marker">
+                                    04
+                                </div>
+
+                                <div class="tracking-process-content">
+
+                                    <h3>Quality Check</h3>
+
+                                    <p>
+                                        The device is tested before
+                                        the repair is completed.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <div class="tracking-process-item">
+
+                                <div class="tracking-process-marker">
+                                    05
+                                </div>
+
+                                <div class="tracking-process-content">
+
+                                    <h3>Ready for Pickup</h3>
+
+                                    <p>
+                                        The repaired device is ready
+                                        to be collected.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="tracking-information-note">
+
+                            Repair progress is displayed from the
+                            latest information recorded by authorised
+                            Secure OKCS staff.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- TRACKING FORM -->
+                <div class="col-lg-6">
+
+                    <div class="tracking-form-area">
+
+                        <div class="tracking-form-container">
+
+                            <div class="tracking-form-eyebrow">
+                                Customer Verification
+                            </div>
+
+                            <h2 class="tracking-form-title">
+                                Check repair status
+                            </h2>
+
+                            <p class="tracking-form-description">
+
+                                Both values are required to protect
+                                your repair information from
+                                unauthorised access.
+
+                            </p>
+
+                            <form asp-controller="Tracking"
+                                  asp-action="Index"
+                                  method="post">
+
+                                <div asp-validation-summary="ModelOnly"
+                                     class="tracking-validation"
+                                     role="alert">
+                                </div>
+
+                                <!-- TRACKING CODE -->
+                                <div class="tracking-field">
+
+                                    <label asp-for="TrackingCode"
+                                           class="tracking-label">
+
+                                        Tracking Code
+
+                                        <span class="tracking-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <div class="tracking-input-group">
+
+                                        <span class="tracking-input-prefix">
+                                            TC
+                                        </span>
+
+                                        <input asp-for="TrackingCode"
+                                               class="form-control
+                                        tracking-input"
+                                               placeholder="Example: OKCS-AB12345678"
+                                               autocomplete="off"
+                                               spellcheck="false"
+                                               autofocus />
+
+                                    </div>
+
+                                    <span asp-validation-for="TrackingCode"
+                                          class="text-danger
+                                        tracking-field-error">
+                                    </span>
+
+                                    <span class="tracking-help">
+                                        The tracking code is available
+                                        in your customer record.
+                                    </span>
+
+                                </div>
+
+                                <!-- TICKET NUMBER -->
+                                <div class="tracking-field">
+
+                                    <label asp-for="TicketNumber"
+                                           class="tracking-label">
+
+                                        Repair Ticket Number
+
+                                        <span class="tracking-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <div class="tracking-input-group">
+
+                                        <span class="tracking-input-prefix">
+                                            ID
+                                        </span>
+
+                                        <input asp-for="TicketNumber"
+                                               class="form-control
+                                        tracking-input"
+                                               placeholder="Example: RPR-2026-AB123456"
+                                               autocomplete="off"
+                                               spellcheck="false" />
+
+                                    </div>
+
+                                    <span asp-validation-for="TicketNumber"
+                                          class="text-danger
+                                        tracking-field-error">
+                                    </span>
+
+                                    <span class="tracking-help">
+                                        Enter the complete ticket number
+                                        exactly as provided.
+                                    </span>
+
+                                </div>
+
+                                <button type="submit"
+                                        class="btn tracking-submit">
+
+                                    Check Repair Status
+
+                                    <span class="ms-1"
+                                          aria-hidden="true">
+                                        →
+                                    </span>
+
+                                </button>
+
+                            </form>
+
+                            <div class="tracking-security">
+
+                                <div class="tracking-security-icon">
+                                    ✓
+                                </div>
+
+                                <div>
+                                    Your tracking information is used
+                                    only to verify and display the
+                                    related repair record.
+                                </div>
+
+                            </div>
+
+                            <a asp-controller="Home"
+                               asp-action="Index"
+                               class="tracking-home-link">
+
+                                ← Return to homepage
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

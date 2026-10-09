@@ -1,0 +1,1056 @@
+﻿@model SecureOKCS.ViewModels.RepairStatusUpdateViewModel
+
+@{
+    ViewData["Title"] = "Update Repair Status";
+
+    string currentStatus =
+        Model.CurrentStatus?.Trim() ?? "Unknown";
+
+    string currentStatusClass =
+        currentStatus.ToLowerInvariant() switch
+        {
+            "received" => "update-status-received",
+            "inspecting" => "update-status-inspecting",
+            "waiting for parts" => "update-status-waiting",
+            "repairing" => "update-status-repairing",
+            "quality check" => "update-status-quality",
+            "ready for pickup" => "update-status-ready",
+            "collected" => "update-status-collected",
+            "cancelled" => "update-status-cancelled",
+            _ => "update-status-default"
+        };
+}
+
+<style>
+    .status-update-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 45px 0 75px;
+    }
+
+        .status-update-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 13% 18%, rgba(34, 197, 94, 0.08), transparent 28%), radial-gradient( circle at 88% 78%, rgba(0, 229, 255, 0.08), transparent 29%);
+        }
+
+    .status-update-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 21px;
+    }
+
+    .status-update-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        font-size: 0.81rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .status-update-back:hover {
+            color: #5eead4;
+        }
+
+    .status-update-route {
+        color: #58677d;
+        font-family: monospace;
+        font-size: 0.68rem;
+    }
+
+    .status-update-shell {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 21px;
+        background: rgba(9, 17, 30, 0.95);
+        box-shadow: 0 27px 72px rgba(0, 0, 0, 0.36), 0 0 55px rgba(34, 197, 94, 0.04);
+    }
+
+    .status-update-information {
+        position: relative;
+        display: flex;
+        min-height: 760px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 43px;
+        overflow: hidden;
+        border-right: 1px solid rgba(148, 163, 184, 0.12);
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.97), rgba(10, 43, 44, 0.91));
+    }
+
+        .status-update-information::after {
+            position: absolute;
+            width: 290px;
+            height: 290px;
+            right: -155px;
+            bottom: -145px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(34, 197, 94, 0.15);
+            filter: blur(57px);
+        }
+
+    .status-update-info-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .status-update-eyebrow {
+        margin-bottom: 12px;
+        color: #5eead4;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .status-update-information h1 {
+        max-width: 470px;
+        margin-bottom: 16px;
+        color: #f8fafc;
+        font-size: clamp(2rem, 4vw, 3.05rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+    }
+
+    .status-update-gradient {
+        color: transparent;
+        background: linear-gradient( 90deg, #34d399, #22d3ee);
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+
+    .status-update-description {
+        max-width: 460px;
+        color: #8fa0b7;
+        font-size: 0.86rem;
+        line-height: 1.75;
+    }
+
+    .current-repair-panel {
+        margin-top: 35px;
+        padding: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 13px;
+        background: rgba(5, 11, 20, 0.45);
+    }
+
+    .current-repair-label {
+        margin-bottom: 7px;
+        color: #64748b;
+        font-size: 0.64rem;
+        font-weight: 800;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+    }
+
+    .current-repair-ticket {
+        margin-bottom: 17px;
+        color: #7dd3fc;
+        font-family: monospace;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+    .current-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 11px;
+        font-size: 0.67rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        border: 1px solid;
+        border-radius: 8px;
+    }
+
+        .current-status-badge::before {
+            width: 7px;
+            height: 7px;
+            content: "";
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 9px currentColor;
+        }
+
+    .update-status-received {
+        color: #7dd3fc;
+        border-color: rgba(56, 189, 248, 0.26);
+        background: rgba(56, 189, 248, 0.08);
+    }
+
+    .update-status-inspecting {
+        color: #c4b5fd;
+        border-color: rgba(167, 139, 250, 0.26);
+        background: rgba(139, 92, 246, 0.08);
+    }
+
+    .update-status-waiting {
+        color: #fde68a;
+        border-color: rgba(250, 204, 21, 0.26);
+        background: rgba(250, 204, 21, 0.08);
+    }
+
+    .update-status-repairing {
+        color: #67e8f9;
+        border-color: rgba(0, 229, 255, 0.27);
+        background: rgba(0, 229, 255, 0.08);
+    }
+
+    .update-status-quality {
+        color: #93c5fd;
+        border-color: rgba(96, 165, 250, 0.26);
+        background: rgba(37, 99, 235, 0.08);
+    }
+
+    .update-status-ready,
+    .update-status-collected {
+        color: #86efac;
+        border-color: rgba(34, 197, 94, 0.26);
+        background: rgba(34, 197, 94, 0.08);
+    }
+
+    .update-status-cancelled {
+        color: #fda4af;
+        border-color: rgba(244, 63, 94, 0.26);
+        background: rgba(244, 63, 94, 0.08);
+    }
+
+    .update-status-default {
+        color: #cbd5e1;
+        border-color: rgba(148, 163, 184, 0.23);
+        background: rgba(148, 163, 184, 0.07);
+    }
+
+    .status-change-effects {
+        display: grid;
+        gap: 13px;
+        margin-top: 28px;
+    }
+
+    .status-effect {
+        display: grid;
+        grid-template-columns: 35px 1fr;
+        gap: 11px;
+        align-items: start;
+    }
+
+    .status-effect-icon {
+        display: grid;
+        width: 35px;
+        height: 35px;
+        place-items: center;
+        color: #5eead4;
+        font-family: monospace;
+        font-size: 0.59rem;
+        font-weight: 900;
+        border: 1px solid rgba(52, 211, 153, 0.22);
+        border-radius: 8px;
+        background: rgba(34, 197, 94, 0.05);
+    }
+
+    .status-effect h3 {
+        margin: 1px 0 3px;
+        color: #dbe7f5;
+        font-size: 0.78rem;
+        font-weight: 750;
+    }
+
+    .status-effect p {
+        margin: 0;
+        color: #718096;
+        font-size: 0.7rem;
+        line-height: 1.5;
+    }
+
+    .status-update-state {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #86efac;
+        font-family: monospace;
+        font-size: 0.69rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+        .status-update-state::before {
+            width: 8px;
+            height: 8px;
+            content: "";
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 11px #22c55e;
+        }
+
+    .status-update-form-area {
+        min-height: 760px;
+        padding: 43px;
+        background: linear-gradient( 145deg, rgba(7, 14, 25, 0.98), rgba(5, 11, 20, 0.98));
+    }
+
+    .status-form-eyebrow {
+        margin-bottom: 8px;
+        color: #5eead4;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .status-form-title {
+        margin-bottom: 8px;
+        color: #f8fafc;
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .status-form-description {
+        margin-bottom: 25px;
+        color: #8291a7;
+        font-size: 0.82rem;
+        line-height: 1.65;
+    }
+
+    .status-validation {
+        margin-bottom: 20px;
+        padding: 13px 15px;
+        color: #fecaca;
+        font-size: 0.8rem;
+        border: 1px solid rgba(239, 68, 68, 0.27);
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.08);
+    }
+
+        .status-validation:empty,
+        .status-validation.validation-summary-valid {
+            display: none;
+        }
+
+        .status-validation ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+    .status-field {
+        margin-bottom: 19px;
+    }
+
+    .status-label {
+        margin-bottom: 8px;
+        color: #cbd5e1;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .status-required {
+        color: #5eead4;
+    }
+
+    .status-optional {
+        margin-left: 5px;
+        color: #58677d;
+        font-size: 0.68rem;
+        font-weight: 500;
+    }
+
+    .status-input,
+    .status-select {
+        min-height: 49px;
+        color: #f8fafc !important;
+        border: 1px solid #263449;
+        border-radius: 9px;
+        background-color: rgba(15, 23, 42, 0.78) !important;
+    }
+
+    textarea.status-input {
+        min-height: 105px;
+        resize: vertical;
+    }
+
+    .status-input::placeholder {
+        color: #5f6f85;
+    }
+
+    .status-input:focus,
+    .status-select:focus {
+        color: #ffffff;
+        border-color: #34d399;
+        background-color: rgba(15, 23, 42, 0.97) !important;
+        box-shadow: 0 0 0 0.2rem rgba(34, 197, 94, 0.09);
+    }
+
+    .status-select option {
+        color: #e2e8f0;
+        background: #0b1422;
+    }
+
+    .status-error {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.75rem;
+    }
+
+    .status-help {
+        display: block;
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 0.69rem;
+        line-height: 1.5;
+    }
+
+    .status-money-field {
+        position: relative;
+    }
+
+    .status-money-prefix {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 13px;
+        color: #86efac;
+        font-family: monospace;
+        font-size: 0.71rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+    }
+
+    .status-money-field .status-input {
+        padding-left: 48px;
+    }
+
+    .status-preview {
+        margin-bottom: 21px;
+        padding: 14px;
+        border: 1px solid rgba(0, 229, 255, 0.15);
+        border-radius: 10px;
+        background: rgba(0, 229, 255, 0.04);
+    }
+
+    .status-preview-label {
+        margin-bottom: 6px;
+        color: #64748b;
+        font-size: 0.63rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .status-preview-value {
+        color: #67e8f9;
+        font-family: monospace;
+        font-size: 0.8rem;
+        font-weight: 800;
+    }
+
+    .status-important-notice {
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        gap: 11px;
+        margin-bottom: 22px;
+        padding: 13px;
+        border: 1px solid rgba(250, 204, 21, 0.18);
+        border-radius: 10px;
+        background: rgba(250, 204, 21, 0.045);
+    }
+
+    .status-notice-icon {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.58rem;
+        font-weight: 900;
+        border: 1px solid rgba(250, 204, 21, 0.22);
+        border-radius: 8px;
+    }
+
+    .status-important-notice strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #fef3c7;
+        font-size: 0.76rem;
+    }
+
+    .status-important-notice p {
+        margin: 0;
+        color: #8f876b;
+        font-size: 0.69rem;
+        line-height: 1.5;
+    }
+
+    .status-update-actions {
+        display: flex;
+        gap: 11px;
+    }
+
+    .status-submit,
+    .status-cancel {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 17px;
+        font-size: 0.76rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 9px;
+    }
+
+    .status-submit {
+        flex: 1;
+        color: #03140f;
+        border: 1px solid #34d399;
+        background: linear-gradient( 135deg, #34d399, #22d3ee);
+        box-shadow: 0 0 25px rgba(34, 197, 94, 0.14);
+    }
+
+        .status-submit:hover {
+            color: #03140f;
+            box-shadow: 0 0 32px rgba(34, 197, 94, 0.26);
+        }
+
+    .status-cancel {
+        color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, 0.21);
+        background: rgba(15, 23, 42, 0.6);
+    }
+
+        .status-cancel:hover {
+            color: #5eead4;
+            border-color: rgba(52, 211, 153, 0.3);
+        }
+
+    @@media (max-width: 991px) {
+        .status-update-information {
+            min-height: auto;
+            border-right: 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .status-update-form-area {
+            min-height: auto;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .status-update-page {
+            padding: 27px 0 60px;
+        }
+
+        .status-update-route {
+            display: none;
+        }
+
+        .status-update-information,
+        .status-update-form-area {
+            padding: 28px 22px;
+        }
+
+            .status-update-information h1 {
+                font-size: 2.1rem;
+            }
+
+        .status-update-actions {
+            display: grid;
+        }
+
+        .status-submit,
+        .status-cancel {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="status-update-page">
+
+    <div class="container">
+
+        <!-- NAVIGATION -->
+        <div class="status-update-navigation">
+
+            <a asp-controller="Repairs"
+               asp-action="Details"
+               asp-route-id="@Model.RepairId"
+               class="status-update-back">
+
+                ← Back to repair details
+
+            </a>
+
+            <span class="status-update-route">
+
+                OPERATIONS / REPAIRS /
+                @Model.RepairId / UPDATE
+
+            </span>
+
+        </div>
+
+        <div class="status-update-shell">
+
+            <div class="row g-0">
+
+                <!-- INFORMATION PANEL -->
+                <div class="col-lg-5">
+
+                    <div class="status-update-information">
+
+                        <div class="status-update-info-content">
+
+                            <div class="status-update-eyebrow">
+                                Repair Workflow Control
+                            </div>
+
+                            <h1>
+
+                                Record the latest
+
+                                <span class="status-update-gradient">
+                                    repair progress.
+                                </span>
+
+                            </h1>
+
+                            <p class="status-update-description">
+
+                                Update the repair stage, technician
+                                information and final service cost.
+                                Every status change is recorded in
+                                the repair history.
+
+                            </p>
+
+                            <div class="current-repair-panel">
+
+                                <div class="current-repair-label">
+                                    Repair Ticket
+                                </div>
+
+                                <div class="current-repair-ticket">
+                                    @Model.TicketNumber
+                                </div>
+
+                                <div class="current-repair-label">
+                                    Current Status
+                                </div>
+
+                                <span class="current-status-badge
+                                    @currentStatusClass">
+
+                                    @currentStatus
+
+                                </span>
+
+                            </div>
+
+                            <div class="status-change-effects">
+
+                                <div class="status-effect">
+
+                                    <div class="status-effect-icon">
+                                        HIS
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Status History</h3>
+
+                                        <p>
+                                            The previous and new status
+                                            will be recorded automatically.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="status-effect">
+
+                                    <div class="status-effect-icon">
+                                        TRK
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Customer Tracking</h3>
+
+                                        <p>
+                                            The customer tracking page
+                                            will display the new status.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="status-effect">
+
+                                    <div class="status-effect-icon">
+                                        LOG
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Audit Record</h3>
+
+                                        <p>
+                                            The authorised user and
+                                            update activity are recorded.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="status-update-state">
+                            Repair update service active
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- UPDATE FORM -->
+                <div class="col-lg-7">
+
+                    <div class="status-update-form-area">
+
+                        <div class="status-form-eyebrow">
+                            Status Update Form
+                        </div>
+
+                        <h2 class="status-form-title">
+                            Update repair information
+                        </h2>
+
+                        <p class="status-form-description">
+
+                            Select the latest repair status and
+                            record any relevant technician notes.
+
+                        </p>
+
+                        <form asp-controller="Repairs"
+                              asp-action="UpdateStatus"
+                              method="post">
+
+                            <input asp-for="RepairId"
+                                   type="hidden" />
+
+                            <div asp-validation-summary="ModelOnly"
+                                 class="status-validation"
+                                 role="alert">
+                            </div>
+
+                            <!-- NEW STATUS -->
+                            <div class="status-field">
+
+                                <label asp-for="NewStatus"
+                                       class="status-label">
+
+                                    New Repair Status
+
+                                    <span class="status-required">
+                                        *
+                                    </span>
+
+                                </label>
+
+                                <select asp-for="NewStatus"
+                                        id="newRepairStatus"
+                                        class="form-select
+                                    status-select">
+
+                                    <option value="">
+                                        Select the latest status
+                                    </option>
+
+                                    <option value="Received">
+                                        Received
+                                    </option>
+
+                                    <option value="Inspecting">
+                                        Inspecting
+                                    </option>
+
+                                    <option value="Waiting For Parts">
+                                        Waiting For Parts
+                                    </option>
+
+                                    <option value="Repairing">
+                                        Repairing
+                                    </option>
+
+                                    <option value="Quality Check">
+                                        Quality Check
+                                    </option>
+
+                                    <option value="Ready For Pickup">
+                                        Ready For Pickup
+                                    </option>
+
+                                    <option value="Collected">
+                                        Collected
+                                    </option>
+
+                                    <option value="Cancelled">
+                                        Cancelled
+                                    </option>
+
+                                </select>
+
+                                <span asp-validation-for="NewStatus"
+                                      class="text-danger
+                                    status-error">
+                                </span>
+
+                            </div>
+
+                            <div class="status-preview">
+
+                                <div class="status-preview-label">
+                                    Status Change Preview
+                                </div>
+
+                                <div class="status-preview-value"
+                                     id="statusPreview">
+
+                                    @currentStatus →
+                                    Select a new status
+
+                                </div>
+
+                            </div>
+
+                            <!-- TECHNICIAN NOTES -->
+                            <div class="status-field">
+
+                                <label asp-for="TechnicianNotes"
+                                       class="status-label">
+
+                                    Technician Notes
+
+                                    <span class="status-optional">
+                                        Optional
+                                    </span>
+
+                                </label>
+
+                                <textarea asp-for="TechnicianNotes"
+                                          class="form-control
+                                status-input"
+                                          placeholder="Record technical findings, completed work or parts used">
+                                </textarea>
+
+                                <span asp-validation-for="TechnicianNotes"
+                                      class="text-danger
+                                    status-error">
+                                </span>
+
+                                <span class="status-help">
+
+                                    These notes are displayed in the
+                                    internal repair details page.
+
+                                </span>
+
+                            </div>
+
+                            <!-- CUSTOMER STATUS NOTES -->
+                            <div class="status-field">
+
+                                <label asp-for="StatusNotes"
+                                       class="status-label">
+
+                                    Status History Notes
+
+                                    <span class="status-optional">
+                                        Optional
+                                    </span>
+
+                                </label>
+
+                                <textarea asp-for="StatusNotes"
+                                          class="form-control
+                                status-input"
+                                          placeholder="Add a clear update for the customer repair timeline">
+                                </textarea>
+
+                                <span asp-validation-for="StatusNotes"
+                                      class="text-danger
+                                    status-error">
+                                </span>
+
+                                <span class="status-help">
+
+                                    These notes may appear on the
+                                    customer tracking timeline.
+                                    Do not include sensitive internal
+                                    information.
+
+                                </span>
+
+                            </div>
+
+                            <!-- FINAL COST -->
+                            <div class="status-field">
+
+                                <label asp-for="FinalCost"
+                                       class="status-label">
+
+                                    Final Repair Cost
+
+                                    <span class="status-required">
+                                        *
+                                    </span>
+
+                                </label>
+
+                                <div class="status-money-field">
+
+                                    <span class="status-money-prefix">
+                                        RM
+                                    </span>
+
+                                    <input asp-for="FinalCost"
+                                           type="number"
+                                           min="0"
+                                           step="0.01"
+                                           class="form-control
+                                    status-input"
+                                           placeholder="0.00" />
+
+                                </div>
+
+                                <span asp-validation-for="FinalCost"
+                                      class="text-danger
+                                    status-error">
+                                </span>
+
+                                <span class="status-help">
+
+                                    Enter zero if the final cost has
+                                    not been confirmed.
+
+                                </span>
+
+                            </div>
+
+                            <div class="status-important-notice">
+
+                                <div class="status-notice-icon">
+                                    INFO
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        Customer Status Update
+                                    </strong>
+
+                                    <p>
+                                        Saving this form immediately
+                                        updates the customer tracking
+                                        page. Email delivery only occurs
+                                        when the email service is enabled.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <div class="status-update-actions">
+
+                                <button type="submit"
+                                        class="btn status-submit">
+
+                                    Save Status Update →
+
+                                </button>
+
+                                <a asp-controller="Repairs"
+                                   asp-action="Details"
+                                   asp-route-id="@Model.RepairId"
+                                   class="status-cancel">
+
+                                    Cancel
+
+                                </a>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+            const statusSelect =
+                document.getElementById(
+                    "newRepairStatus");
+
+            const statusPreview =
+                document.getElementById(
+                    "statusPreview");
+
+            const currentStatus =
+                        @Html.Raw(
+                                System.Text.Json.JsonSerializer
+                                        .Serialize(currentStatus));
+
+            if (!statusSelect ||
+                !statusPreview) {
+                return;
+            }
+
+            function updatePreview() {
+                const newStatus =
+                    statusSelect.value;
+
+                statusPreview.textContent =
+                    newStatus
+                        ? `${currentStatus} → ${newStatus}`
+                        : `${currentStatus} → ` +
+                        "Select a new status";
+            }
+
+            statusSelect.addEventListener(
+                "change",
+                updatePreview);
+
+            updatePreview();
+        })();
+    </script>
+}

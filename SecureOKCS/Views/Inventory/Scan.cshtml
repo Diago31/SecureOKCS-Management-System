@@ -1,0 +1,1168 @@
+﻿@model SecureOKCS.ViewModels.InventoryScanViewModel
+
+@{
+    ViewData["Title"] = "Barcode Scanner";
+
+    string? scanSuccess =
+        TempData["ScanSuccess"]?.ToString();
+
+    string? scanWarning =
+        TempData["Warning"]?.ToString();
+
+    string? scanError =
+        TempData["Error"]?.ToString();
+
+    string? scannedItemName =
+        TempData["ScannedItemName"]?.ToString();
+
+    string? scannedItemCode =
+        TempData["ScannedItemCode"]?.ToString();
+
+    string? scannedBarcode =
+        TempData["ScannedBarcode"]?.ToString();
+
+    string? scannedBalance =
+        TempData["ScannedBalance"]?.ToString();
+}
+
+<style>
+    .scanner-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 55px 0 80px;
+        overflow: hidden;
+    }
+
+        .scanner-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -3;
+            content: "";
+            background: radial-gradient( circle at 15% 20%, rgba(250, 204, 21, 0.09), transparent 29%), radial-gradient( circle at 86% 78%, rgba(0, 229, 255, 0.1), transparent 31%), #050b14;
+        }
+
+    .scanner-grid {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        opacity: 0.16;
+        background-image: linear-gradient( rgba(0, 229, 255, 0.11) 1px, transparent 1px), linear-gradient( 90deg, rgba(0, 229, 255, 0.11) 1px, transparent 1px);
+        background-size: 52px 52px;
+        mask-image: linear-gradient( to bottom, black, transparent 92%);
+    }
+
+    .scanner-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 22px;
+    }
+
+    .scanner-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        font-size: 0.81rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .scanner-back:hover {
+            color: #fde68a;
+        }
+
+    .scanner-route {
+        color: #58677d;
+        font-family: monospace;
+        font-size: 0.68rem;
+    }
+
+    .scanner-header {
+        max-width: 730px;
+        margin: 0 auto 38px;
+        text-align: center;
+    }
+
+    .scanner-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 14px;
+        color: #fde68a;
+        font-size: 0.71rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+        .scanner-eyebrow::before {
+            width: 8px;
+            height: 8px;
+            content: "";
+            border-radius: 50%;
+            background: #facc15;
+            box-shadow: 0 0 12px #facc15;
+        }
+
+    .scanner-title {
+        margin-bottom: 14px;
+        color: #f8fafc;
+        font-size: clamp(2.2rem, 5vw, 3.8rem);
+        font-weight: 800;
+        letter-spacing: -0.05em;
+    }
+
+    .scanner-gradient {
+        color: transparent;
+        background: linear-gradient( 90deg, #facc15, #22d3ee);
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+
+    .scanner-description {
+        max-width: 610px;
+        margin: auto;
+        color: #8fa0b7;
+        font-size: 0.88rem;
+        line-height: 1.75;
+    }
+
+    .scanner-shell {
+        max-width: 1000px;
+        margin: auto;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 21px;
+        background: rgba(9, 17, 30, 0.95);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4), 0 0 65px rgba(0, 229, 255, 0.05);
+    }
+
+    .scanner-terminal {
+        position: relative;
+        display: flex;
+        min-height: 500px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 39px;
+        overflow: hidden;
+        border-right: 1px solid rgba(148, 163, 184, 0.12);
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.97), rgba(51, 42, 13, 0.74));
+    }
+
+        .scanner-terminal::after {
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            right: -145px;
+            bottom: -130px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(250, 204, 21, 0.13);
+            filter: blur(52px);
+        }
+
+    .scanner-terminal-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .scanner-terminal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 40px;
+    }
+
+    .scanner-terminal-title {
+        color: #dbe7f5;
+        font-family: monospace;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .scanner-terminal-state {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: #86efac;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+    }
+
+        .scanner-terminal-state::before {
+            width: 7px;
+            height: 7px;
+            content: "";
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 10px #22c55e;
+        }
+
+    .scanner-visual {
+        position: relative;
+        display: grid;
+        width: 235px;
+        height: 175px;
+        margin: 0 auto 35px;
+        place-items: center;
+        overflow: hidden;
+        border: 1px solid rgba(250, 204, 21, 0.22);
+        border-radius: 16px;
+        background: rgba(5, 11, 20, 0.58);
+    }
+
+    .scanner-corners::before,
+    .scanner-corners::after {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        content: "";
+        border-color: #facc15;
+        border-style: solid;
+    }
+
+    .scanner-corners::before {
+        top: 18px;
+        left: 18px;
+        border-width: 2px 0 0 2px;
+    }
+
+    .scanner-corners::after {
+        right: 18px;
+        bottom: 18px;
+        border-width: 0 2px 2px 0;
+    }
+
+    .scanner-bars {
+        display: flex;
+        height: 80px;
+        align-items: stretch;
+        gap: 4px;
+    }
+
+    .scanner-bar {
+        display: block;
+        width: 3px;
+        background: #cbd5e1;
+        opacity: 0.76;
+    }
+
+        .scanner-bar:nth-child(2n) {
+            width: 6px;
+        }
+
+        .scanner-bar:nth-child(3n) {
+            width: 2px;
+        }
+
+    .scanner-line {
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        height: 2px;
+        top: 30px;
+        background: linear-gradient( 90deg, transparent, #00e5ff, transparent);
+        box-shadow: 0 0 15px #00e5ff;
+        animation: scannerMovement 2.2s ease-in-out infinite;
+    }
+
+    .scanner-terminal-message {
+        color: #718096;
+        font-family: monospace;
+        font-size: 0.7rem;
+        line-height: 1.7;
+        text-align: center;
+    }
+
+    .scanner-terminal-footer {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #7dd3fc;
+        font-family: monospace;
+        font-size: 0.67rem;
+    }
+
+        .scanner-terminal-footer::before {
+            content: ">";
+            color: #facc15;
+            font-weight: 900;
+        }
+
+    .scanner-form-area {
+        display: flex;
+        min-height: 500px;
+        align-items: center;
+        padding: 39px;
+        background: linear-gradient( 145deg, rgba(7, 14, 25, 0.98), rgba(5, 11, 20, 0.98));
+    }
+
+    .scanner-form-container {
+        width: 100%;
+        max-width: 410px;
+        margin: auto;
+    }
+
+    .scanner-form-eyebrow {
+        margin-bottom: 8px;
+        color: #fde68a;
+        font-size: 0.67rem;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .scanner-form-title {
+        margin-bottom: 8px;
+        color: #f8fafc;
+        font-size: 1.65rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .scanner-form-description {
+        margin-bottom: 24px;
+        color: #8291a7;
+        font-size: 0.81rem;
+        line-height: 1.65;
+    }
+
+    .scanner-validation {
+        margin-bottom: 19px;
+        padding: 13px 15px;
+        color: #fecaca;
+        font-size: 0.79rem;
+        border: 1px solid rgba(239, 68, 68, 0.27);
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.08);
+    }
+
+        .scanner-validation:empty,
+        .scanner-validation.validation-summary-valid {
+            display: none;
+        }
+
+        .scanner-validation ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+    .scanner-alert {
+        margin-bottom: 18px;
+        padding: 13px 15px;
+        border-radius: 10px;
+        font-size: 0.76rem;
+        line-height: 1.55;
+    }
+
+    .scanner-alert-success {
+        color: #bbf7d0;
+        border: 1px solid rgba(34, 197, 94, 0.28);
+        background: rgba(34, 197, 94, 0.09);
+    }
+
+    .scanner-alert-warning {
+        color: #fde68a;
+        border: 1px solid rgba(250, 204, 21, 0.28);
+        background: rgba(250, 204, 21, 0.08);
+    }
+
+    .scanner-alert-error {
+        color: #fecaca;
+        border: 1px solid rgba(239, 68, 68, 0.28);
+        background: rgba(239, 68, 68, 0.08);
+    }
+
+    .scanner-field {
+        margin-bottom: 20px;
+    }
+
+    .scanner-label {
+        margin-bottom: 8px;
+        color: #cbd5e1;
+        font-size: 0.79rem;
+        font-weight: 700;
+    }
+
+    .scanner-required {
+        color: #fde68a;
+    }
+
+    .scanner-input-wrapper {
+        position: relative;
+    }
+
+    .scanner-input-prefix {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 13px;
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.62rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+    }
+
+    .scanner-input {
+        min-height: 54px;
+        padding-left: 61px;
+        color: #f8fafc !important;
+        font-family: monospace;
+        font-size: 0.91rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        border: 1px solid #334155;
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.78) !important;
+    }
+
+        .scanner-input::placeholder {
+            color: #58677d;
+            font-family: inherit;
+            letter-spacing: normal;
+            text-transform: none;
+        }
+
+        .scanner-input:focus {
+            border-color: #facc15;
+            background: rgba(15, 23, 42, 0.97) !important;
+            box-shadow: 0 0 0 0.2rem rgba(250, 204, 21, 0.08);
+        }
+
+        .scanner-input.active {
+            border-color: #00e5ff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 229, 255, 0.09);
+        }
+
+    .scanner-error {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.74rem;
+    }
+
+    .scanner-help {
+        margin-top: 7px;
+        color: #64748b;
+        font-size: 0.69rem;
+        line-height: 1.5;
+    }
+
+    .scanner-input-state {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 10px;
+        color: #86efac;
+        font-family: monospace;
+        font-size: 0.66rem;
+    }
+
+        .scanner-input-state::before {
+            width: 6px;
+            height: 6px;
+            content: "";
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+        }
+
+    .scanner-submit {
+        width: 100%;
+        min-height: 49px;
+        color: #171403;
+        font-size: 0.77rem;
+        font-weight: 800;
+        border: 1px solid #facc15;
+        border-radius: 9px;
+        background: linear-gradient( 135deg, #facc15, #f59e0b);
+        box-shadow: 0 0 24px rgba(250, 204, 21, 0.13);
+    }
+
+        .scanner-submit:hover {
+            color: #171403;
+            box-shadow: 0 0 31px rgba(250, 204, 21, 0.24);
+        }
+
+    .scanner-instructions {
+        display: grid;
+        gap: 10px;
+        margin-top: 23px;
+        padding-top: 21px;
+        border-top: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .scanner-result {
+        margin-top: 22px;
+        padding: 17px;
+        border: 1px solid rgba(34, 197, 94, 0.24);
+        border-radius: 12px;
+        background: rgba(34, 197, 94, 0.06);
+    }
+
+    .scanner-result-label {
+        margin-bottom: 11px;
+        color: #86efac;
+        font-size: 0.64rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .scanner-result-name {
+        margin-bottom: 4px;
+        color: #f8fafc;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+    .scanner-result-meta {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+        margin-top: 13px;
+    }
+
+    .scanner-result-cell {
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(5, 11, 20, 0.48);
+    }
+
+        .scanner-result-cell span {
+            display: block;
+            margin-bottom: 3px;
+            color: #64748b;
+            font-size: 0.57rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .scanner-result-cell strong {
+            color: #dbeafe;
+            font-family: monospace;
+            font-size: 0.72rem;
+            overflow-wrap: anywhere;
+        }
+
+    .scanner-result-balance strong {
+        color: #86efac;
+        font-size: 1rem;
+    }
+
+    .scanner-submit:disabled {
+        cursor: wait;
+        opacity: 0.7;
+        transform: none !important;
+    }
+
+    .scanner-instruction {
+        display: grid;
+        grid-template-columns: 25px 1fr;
+        gap: 9px;
+        align-items: start;
+        color: #718096;
+        font-size: 0.69rem;
+        line-height: 1.5;
+    }
+
+    .scanner-instruction-number {
+        display: grid;
+        width: 25px;
+        height: 25px;
+        place-items: center;
+        color: #7dd3fc;
+        font-family: monospace;
+        font-size: 0.58rem;
+        font-weight: 900;
+        border: 1px solid rgba(0, 229, 255, 0.18);
+        border-radius: 6px;
+    }
+
+    @@keyframes scannerMovement {
+        0%,
+        100% {
+            top: 30px;
+            opacity: 0.45;
+        }
+
+        50% {
+            top: 142px;
+            opacity: 1;
+        }
+    }
+
+    @@media (max-width: 991px) {
+        .scanner-terminal {
+            min-height: auto;
+            border-right: 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .scanner-form-area {
+            min-height: auto;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .scanner-page {
+            padding: 35px 0 60px;
+        }
+
+        .scanner-route {
+            display: none;
+        }
+
+        .scanner-title {
+            font-size: 2.4rem;
+        }
+
+        .scanner-terminal,
+        .scanner-form-area {
+            padding: 28px 22px;
+        }
+    }
+</style>
+
+<section class="scanner-page">
+
+    <div class="scanner-grid"
+         aria-hidden="true">
+    </div>
+
+    <div class="container">
+
+        <!-- NAVIGATION -->
+        <div class="scanner-navigation">
+
+            <a asp-controller="Inventory"
+               asp-action="Index"
+               class="scanner-back">
+
+                ← Back to inventory
+
+            </a>
+
+            <span class="scanner-route">
+                OPERATIONS / INVENTORY / SCANNER
+            </span>
+
+        </div>
+
+        <!-- PAGE HEADER -->
+        <header class="scanner-header">
+
+            <div class="scanner-eyebrow">
+                Inventory Identification Terminal
+            </div>
+
+            <h1 class="scanner-title">
+
+                Scan. Identify.
+
+                <span class="scanner-gradient">
+                    Update stock.
+                </span>
+
+            </h1>
+
+            <p class="scanner-description">
+
+                Scan an existing inventory barcode to add
+                one unit immediately. New barcodes will open
+                the Add Item page for registration.
+
+            </p>
+
+        </header>
+
+        <div class="scanner-shell">
+
+            <div class="row g-0">
+
+                <!-- SCANNER VISUAL -->
+                <div class="col-lg-6">
+
+                    <div class="scanner-terminal">
+
+                        <div class="scanner-terminal-content">
+
+                            <div class="scanner-terminal-header">
+
+                                <div class="scanner-terminal-title">
+                                    Secure OKCS Scanner
+                                </div>
+
+                                <div class="scanner-terminal-state">
+                                    Ready
+                                </div>
+
+                            </div>
+
+                            <div class="scanner-visual"
+                                 aria-hidden="true">
+
+                                <div class="scanner-corners">
+                                </div>
+
+                                <div class="scanner-bars">
+
+                                    @for (int bar = 0;
+                                        bar < 22;
+                                        bar++)
+                                    {
+                                        <span class="scanner-bar">
+                                        </span>
+                                    }
+
+                                </div>
+
+                                <div class="scanner-line">
+                                </div>
+
+                            </div>
+
+                            <div class="scanner-terminal-message">
+
+                                WAITING FOR BARCODE INPUT
+                                <br />
+                                USB_SCANNER_STATUS: CONNECTED
+                                <br />
+                                MANUAL_ENTRY_STATUS: ENABLED
+
+                            </div>
+
+                        </div>
+
+                        <div class="scanner-terminal-footer"
+                             id="terminalMessage">
+
+                            Input field ready for scanning.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- SCANNER FORM -->
+                <div class="col-lg-6">
+
+                    <div class="scanner-form-area">
+
+                        <div class="scanner-form-container">
+
+                            <div class="scanner-form-eyebrow">
+                                Barcode Input
+                            </div>
+
+                            <h2 class="scanner-form-title">
+                                Quick stock-in
+                            </h2>
+
+                            <p class="scanner-form-description">
+
+                                Each successful scan adds exactly
+                                one unit and prepares the terminal
+                                for the next barcode.
+
+                            </p>
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                scanError))
+                            {
+                                <div class="scanner-alert
+                                    scanner-alert-error"
+                                     role="alert">
+
+                                    @scanError
+
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                scanWarning))
+                            {
+                                <div class="scanner-alert
+                                    scanner-alert-warning"
+                                     role="alert">
+
+                                    @scanWarning
+
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                scanSuccess))
+                            {
+                                <div class="scanner-alert
+                                    scanner-alert-success"
+                                     role="status">
+
+                                    @scanSuccess
+
+                                </div>
+                            }
+
+                            <form asp-controller="Inventory"
+                                  asp-action="Scan"
+                                  method="post"
+                                  id="scannerForm">
+
+                                <div asp-validation-summary="ModelOnly"
+                                     class="scanner-validation"
+                                     role="alert">
+                                </div>
+
+                                <div class="scanner-field">
+
+                                    <label asp-for="ScannedCode"
+                                           class="scanner-label">
+
+                                        Barcode or Item Code
+
+                                        <span class="scanner-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <div class="scanner-input-wrapper">
+
+                                        <span class="scanner-input-prefix">
+                                            SCAN
+                                        </span>
+
+                                        <input asp-for="ScannedCode"
+                                               id="scannedCodeInput"
+                                               class="form-control
+                                        scanner-input"
+                                               placeholder="Scan barcode or enter item code"
+                                               autocomplete="off"
+                                               spellcheck="false"
+                                               autofocus />
+
+                                    </div>
+
+                                    <span asp-validation-for="ScannedCode"
+                                          class="text-danger
+                                        scanner-error">
+                                    </span>
+
+                                    <div class="scanner-input-state"
+                                         id="scannerInputState">
+
+                                        Scanner input is ready
+
+                                    </div>
+
+                                </div>
+
+                                <button type="submit"
+                                        id="scannerSubmitButton"
+                                        class="btn scanner-submit">
+
+                                    Add 1 Unit →
+
+                                </button>
+
+                            </form>
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                scannedItemName))
+                            {
+                                <div class="scanner-result">
+
+                                    <div class="scanner-result-label">
+                                        Last Successful Scan
+                                    </div>
+
+                                    <div class="scanner-result-name">
+                                        @scannedItemName
+                                    </div>
+
+                                    <div class="scanner-result-meta">
+
+                                        <div class="scanner-result-cell">
+                                            <span>Item Code</span>
+                                            <strong>
+                                                @(scannedItemCode ?? "-")
+                                            </strong>
+                                        </div>
+
+                                        <div class="scanner-result-cell">
+                                            <span>Barcode</span>
+                                            <strong>
+                                                @(scannedBarcode ?? "-")
+                                            </strong>
+                                        </div>
+
+                                        <div class="scanner-result-cell
+                                            scanner-result-balance">
+                                            <span>New Quantity</span>
+                                            <strong>
+                                                @(scannedBalance ?? "0")
+                                            </strong>
+                                        </div>
+
+                                        <div class="scanner-result-cell">
+                                            <span>Change</span>
+                                            <strong>+1 unit</strong>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            }
+
+                            <div class="scanner-instructions">
+
+                                <div class="scanner-instruction">
+
+                                    <div class="scanner-instruction-number">
+                                        01
+                                    </div>
+
+                                    <div>
+                                        Connect the USB barcode scanner
+                                        to the computer.
+                                    </div>
+
+                                </div>
+
+                                <div class="scanner-instruction">
+
+                                    <div class="scanner-instruction-number">
+                                        02
+                                    </div>
+
+                                    <div>
+                                        Ensure the barcode input field
+                                        is selected.
+                                    </div>
+
+                                </div>
+
+                                <div class="scanner-instruction">
+
+                                    <div class="scanner-instruction-number">
+                                        03
+                                    </div>
+
+                                    <div>
+                                        Scan the item barcode or type
+                                        the item code manually.
+                                    </div>
+
+                                </div>
+
+                                <div class="scanner-instruction">
+
+                                    <div class="scanner-instruction-number">
+                                        04
+                                    </div>
+
+                                    <div>
+                                        Existing items increase by one.
+                                        New barcodes open Add Item.
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+            const scannerForm =
+                document.getElementById(
+                    "scannerForm");
+
+            const scannerInput =
+                document.getElementById(
+                    "scannedCodeInput");
+
+            const submitButton =
+                document.getElementById(
+                    "scannerSubmitButton");
+
+            const scannerState =
+                document.getElementById(
+                    "scannerInputState");
+
+            const terminalMessage =
+                document.getElementById(
+                    "terminalMessage");
+
+            if (!scannerForm ||
+                !scannerInput ||
+                !submitButton) {
+                return;
+            }
+
+            let isSubmitting =
+                false;
+
+            function focusScannerInput() {
+                if (isSubmitting) {
+                    return;
+                }
+
+                scannerInput.readOnly =
+                    false;
+
+                scannerInput.focus();
+                scannerInput.select();
+            }
+
+            scannerInput.addEventListener(
+                "focus",
+                () => {
+                    scannerInput.classList
+                        .add("active");
+
+                    if (scannerState) {
+                        scannerState.textContent =
+                            "Scanner input is active";
+                    }
+                });
+
+            scannerInput.addEventListener(
+                "blur",
+                () => {
+                    scannerInput.classList
+                        .remove("active");
+
+                    if (scannerState) {
+                        scannerState.textContent =
+                            isSubmitting
+                                ? "Processing barcode..."
+                                : "Click the input to resume scanning";
+                    }
+                });
+
+            scannerInput.addEventListener(
+                "input",
+                () => {
+                    const code =
+                        scannerInput.value.trim();
+
+                    if (terminalMessage) {
+                        terminalMessage.textContent =
+                            code
+                                ? `Code detected: ${code}`
+                                : "Input field ready for scanning.";
+                    }
+                });
+
+            scannerInput.addEventListener(
+                "keydown",
+                event => {
+                    if (event.key !== "Enter") {
+                        return;
+                    }
+
+                    event.preventDefault();
+
+                    if (isSubmitting) {
+                        return;
+                    }
+
+                    scannerInput.value =
+                        scannerInput.value.trim();
+
+                    if (!scannerInput.value) {
+                        focusScannerInput();
+                        return;
+                    }
+
+                    scannerForm.requestSubmit();
+                });
+
+            scannerForm.addEventListener(
+                "submit",
+                event => {
+                    scannerInput.value =
+                        scannerInput.value
+                            .trim()
+                            .toUpperCase();
+
+                    if (!scannerInput.value) {
+                        event.preventDefault();
+                        focusScannerInput();
+                        return;
+                    }
+
+                    if (isSubmitting) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    isSubmitting =
+                        true;
+
+                    scannerInput.readOnly =
+                        true;
+
+                    submitButton.disabled =
+                        true;
+
+                    submitButton.textContent =
+                        "Updating Stock...";
+
+                    if (scannerState) {
+                        scannerState.textContent =
+                            "Processing barcode...";
+                    }
+
+                    if (terminalMessage) {
+                        terminalMessage.textContent =
+                            `Adding 1 unit for: ${scannerInput.value}`;
+                    }
+                });
+
+            window.addEventListener(
+                "pageshow",
+                () => {
+                    isSubmitting =
+                        false;
+
+                    submitButton.disabled =
+                        false;
+
+                    submitButton.textContent =
+                        "Add 1 Unit →";
+
+                    focusScannerInput();
+                });
+
+            focusScannerInput();
+        })();
+    </script>
+}

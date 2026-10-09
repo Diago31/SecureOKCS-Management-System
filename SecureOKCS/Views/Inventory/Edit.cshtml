@@ -1,0 +1,1004 @@
+﻿@model SecureOKCS.ViewModels.InventoryEditViewModel
+
+@{
+    ViewData["Title"] = "Edit Inventory Item";
+}
+
+<style>
+    .inventory-edit-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 45px 0 75px;
+    }
+
+        .inventory-edit-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 13% 18%, rgba(250, 204, 21, 0.08), transparent 28%), radial-gradient( circle at 88% 78%, rgba(0, 229, 255, 0.07), transparent 29%);
+        }
+
+    .edit-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 21px;
+    }
+
+    .edit-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        font-size: 0.81rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .edit-back:hover {
+            color: #fde68a;
+        }
+
+    .edit-route {
+        color: #58677d;
+        font-family: monospace;
+        font-size: 0.68rem;
+    }
+
+    .edit-shell {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 21px;
+        background: rgba(9, 17, 30, 0.95);
+        box-shadow: 0 27px 72px rgba(0, 0, 0, 0.36), 0 0 55px rgba(250, 204, 21, 0.04);
+    }
+
+    .edit-information {
+        position: relative;
+        display: flex;
+        min-height: 700px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 43px;
+        overflow: hidden;
+        border-right: 1px solid rgba(148, 163, 184, 0.12);
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.97), rgba(54, 44, 12, 0.77));
+    }
+
+        .edit-information::after {
+            position: absolute;
+            width: 290px;
+            height: 290px;
+            right: -155px;
+            bottom: -145px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(250, 204, 21, 0.14);
+            filter: blur(57px);
+        }
+
+    .edit-info-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .edit-eyebrow {
+        margin-bottom: 12px;
+        color: #fde68a;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .edit-information h1 {
+        max-width: 465px;
+        margin-bottom: 16px;
+        color: #f8fafc;
+        font-size: clamp(2rem, 4vw, 3.05rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+    }
+
+    .edit-gradient {
+        color: transparent;
+        background: linear-gradient( 90deg, #facc15, #22d3ee);
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+
+    .edit-description {
+        max-width: 455px;
+        color: #8fa0b7;
+        font-size: 0.85rem;
+        line-height: 1.75;
+    }
+
+    .edit-item-panel {
+        margin-top: 34px;
+        padding: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 13px;
+        background: rgba(5, 11, 20, 0.45);
+    }
+
+    .edit-item-label {
+        margin-bottom: 7px;
+        color: #64748b;
+        font-size: 0.63rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .edit-item-code {
+        margin-bottom: 7px;
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.94rem;
+        font-weight: 900;
+    }
+
+    .edit-item-name {
+        color: #e2e8f0;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+    .edit-rules {
+        display: grid;
+        gap: 13px;
+        margin-top: 26px;
+    }
+
+    .edit-rule {
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 11px;
+        align-items: start;
+    }
+
+    .edit-rule-icon {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.58rem;
+        font-weight: 900;
+        border: 1px solid rgba(250, 204, 21, 0.22);
+        border-radius: 8px;
+    }
+
+    .edit-rule h3 {
+        margin: 1px 0 3px;
+        color: #dbe7f5;
+        font-size: 0.77rem;
+        font-weight: 750;
+    }
+
+    .edit-rule p {
+        margin: 0;
+        color: #718096;
+        font-size: 0.69rem;
+        line-height: 1.5;
+    }
+
+    .edit-service-state {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+        .edit-service-state::before {
+            width: 8px;
+            height: 8px;
+            content: "";
+            border-radius: 50%;
+            background: #facc15;
+            box-shadow: 0 0 11px #facc15;
+        }
+
+    .edit-form-area {
+        min-height: 700px;
+        padding: 43px;
+        background: linear-gradient( 145deg, rgba(7, 14, 25, 0.98), rgba(5, 11, 20, 0.98));
+    }
+
+    .edit-form-eyebrow {
+        margin-bottom: 8px;
+        color: #fde68a;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .edit-form-title {
+        margin-bottom: 8px;
+        color: #f8fafc;
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .edit-form-description {
+        margin-bottom: 25px;
+        color: #8291a7;
+        font-size: 0.82rem;
+        line-height: 1.65;
+    }
+
+    .edit-validation {
+        margin-bottom: 20px;
+        padding: 13px 15px;
+        color: #fecaca;
+        font-size: 0.8rem;
+        border: 1px solid rgba(239, 68, 68, 0.27);
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.08);
+    }
+
+        .edit-validation:empty,
+        .edit-validation.validation-summary-valid {
+            display: none;
+        }
+
+        .edit-validation ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+    .edit-field {
+        margin-bottom: 18px;
+    }
+
+    .edit-label {
+        margin-bottom: 8px;
+        color: #cbd5e1;
+        font-size: 0.79rem;
+        font-weight: 700;
+    }
+
+    .edit-required {
+        color: #fde68a;
+    }
+
+    .edit-optional {
+        margin-left: 5px;
+        color: #58677d;
+        font-size: 0.68rem;
+        font-weight: 500;
+    }
+
+    .edit-input {
+        min-height: 48px;
+        color: #f8fafc !important;
+        border: 1px solid #263449;
+        border-radius: 9px;
+        background-color: rgba(15, 23, 42, 0.78) !important;
+    }
+
+    textarea.edit-input {
+        min-height: 105px;
+        resize: vertical;
+    }
+
+    .edit-input::placeholder {
+        color: #5f6f85;
+    }
+
+    .edit-input:focus {
+        color: #ffffff;
+        border-color: #facc15;
+        background-color: rgba(15, 23, 42, 0.97) !important;
+        box-shadow: 0 0 0 0.2rem rgba(250, 204, 21, 0.08);
+    }
+
+    .edit-error {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.74rem;
+    }
+
+    .edit-help {
+        display: block;
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 0.68rem;
+        line-height: 1.5;
+    }
+
+    .edit-barcode-field,
+    .edit-money-field {
+        position: relative;
+    }
+
+    .edit-field-prefix {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 13px;
+        font-family: monospace;
+        font-size: 0.61rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+    }
+
+    .edit-barcode-field
+    .edit-field-prefix {
+        color: #67e8f9;
+    }
+
+    .edit-money-field
+    .edit-field-prefix {
+        color: #86efac;
+    }
+
+    .edit-barcode-field .edit-input {
+        padding-left: 57px;
+        font-family: monospace;
+        text-transform: uppercase;
+    }
+
+    .edit-money-field .edit-input {
+        padding-left: 48px;
+    }
+
+    .edit-stock-notice {
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        gap: 11px;
+        margin-bottom: 22px;
+        padding: 13px;
+        border: 1px solid rgba(0, 229, 255, 0.16);
+        border-radius: 10px;
+        background: rgba(0, 229, 255, 0.04);
+    }
+
+    .edit-notice-icon {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        color: #67e8f9;
+        font-family: monospace;
+        font-size: 0.57rem;
+        font-weight: 900;
+        border: 1px solid rgba(0, 229, 255, 0.22);
+        border-radius: 8px;
+    }
+
+    .edit-stock-notice strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #bae6fd;
+        font-size: 0.75rem;
+    }
+
+    .edit-stock-notice p {
+        margin: 0;
+        color: #77879c;
+        font-size: 0.68rem;
+        line-height: 1.5;
+    }
+
+    .edit-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .edit-submit,
+    .edit-stock-button,
+    .edit-cancel {
+        display: inline-flex;
+        min-height: 47px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 16px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 9px;
+    }
+
+    .edit-submit {
+        flex: 1;
+        color: #171403;
+        border: 1px solid #facc15;
+        background: linear-gradient( 135deg, #facc15, #f59e0b);
+        box-shadow: 0 0 24px rgba(250, 204, 21, 0.13);
+    }
+
+        .edit-submit:hover {
+            color: #171403;
+            box-shadow: 0 0 31px rgba(250, 204, 21, 0.24);
+        }
+
+    .edit-stock-button {
+        color: #67e8f9;
+        border: 1px solid rgba(0, 229, 255, 0.23);
+        background: rgba(0, 229, 255, 0.05);
+    }
+
+        .edit-stock-button:hover {
+            color: #ffffff;
+            border-color: rgba(0, 229, 255, 0.4);
+        }
+
+    .edit-cancel {
+        color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, 0.21);
+        background: rgba(15, 23, 42, 0.6);
+    }
+
+        .edit-cancel:hover {
+            color: #fde68a;
+            border-color: rgba(250, 204, 21, 0.28);
+        }
+
+    @@media (max-width: 991px) {
+        .edit-information {
+            min-height: auto;
+            border-right: 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .edit-form-area {
+            min-height: auto;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .inventory-edit-page {
+            padding: 27px 0 60px;
+        }
+
+        .edit-route {
+            display: none;
+        }
+
+        .edit-information,
+        .edit-form-area {
+            padding: 28px 22px;
+        }
+
+            .edit-information h1 {
+                font-size: 2.1rem;
+            }
+
+        .edit-actions {
+            display: grid;
+        }
+
+        .edit-submit,
+        .edit-stock-button,
+        .edit-cancel {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="inventory-edit-page">
+
+    <div class="container">
+
+        <!-- NAVIGATION -->
+        <div class="edit-navigation">
+
+            <a asp-controller="Inventory"
+               asp-action="Index"
+               class="edit-back">
+
+                ← Back to inventory
+
+            </a>
+
+            <span class="edit-route">
+
+                OPERATIONS / INVENTORY /
+                @Model.InventoryId / EDIT
+
+            </span>
+
+        </div>
+
+        <div class="edit-shell">
+
+            <div class="row g-0">
+
+                <!-- ITEM INFORMATION -->
+                <div class="col-lg-5">
+
+                    <div class="edit-information">
+
+                        <div class="edit-info-content">
+
+                            <div class="edit-eyebrow">
+                                Inventory Record Control
+                            </div>
+
+                            <h1>
+
+                                Update item
+
+                                <span class="edit-gradient">
+                                    information safely.
+                                </span>
+
+                            </h1>
+
+                            <p class="edit-description">
+
+                                Modify item identification,
+                                description, minimum stock threshold
+                                and unit price without changing the
+                                recorded stock balance.
+
+                            </p>
+
+                            <div class="edit-item-panel">
+
+                                <div class="edit-item-label">
+                                    Current Inventory Record
+                                </div>
+
+                                <div class="edit-item-code">
+                                    @Model.ItemCode
+                                </div>
+
+                                <div class="edit-item-name">
+                                    @Model.ItemName
+                                </div>
+
+                            </div>
+
+                            <div class="edit-rules">
+
+                                <div class="edit-rule">
+
+                                    <div class="edit-rule-icon">
+                                        ID
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Unique Identification</h3>
+
+                                        <p>
+                                            Item Code and Barcode
+                                            must remain unique.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="edit-rule">
+
+                                    <div class="edit-rule-icon">
+                                        QTY
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Protected Stock Balance</h3>
+
+                                        <p>
+                                            Quantity cannot be edited
+                                            from this information form.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="edit-rule">
+
+                                    <div class="edit-rule-icon">
+                                        LOG
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Audited Changes</h3>
+
+                                        <p>
+                                            Successful item updates
+                                            are recorded in Audit Logs.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="edit-service-state">
+                            Inventory update service active
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- EDIT FORM -->
+                <div class="col-lg-7">
+
+                    <div class="edit-form-area">
+
+                        <div class="edit-form-eyebrow">
+                            Edit Inventory Item
+                        </div>
+
+                        <h2 class="edit-form-title">
+                            Item information
+                        </h2>
+
+                        <p class="edit-form-description">
+
+                            Update the required information and
+                            save the changes when complete.
+
+                        </p>
+
+                        <form asp-controller="Inventory"
+                              asp-action="Edit"
+                              method="post">
+
+                            <input asp-for="InventoryId"
+                                   type="hidden" />
+
+                            <div asp-validation-summary="ModelOnly"
+                                 class="edit-validation"
+                                 role="alert">
+                            </div>
+
+                            <div class="row">
+
+                                <!-- ITEM CODE -->
+                                <div class="col-md-6">
+
+                                    <div class="edit-field">
+
+                                        <label asp-for="ItemCode"
+                                               class="edit-label">
+
+                                            Item Code
+
+                                            <span class="edit-required">
+                                                *
+                                            </span>
+
+                                        </label>
+
+                                        <input asp-for="ItemCode"
+                                               class="form-control
+                                        edit-input"
+                                               placeholder="Example: RAM-001"
+                                               autocomplete="off"
+                                               style="text-transform: uppercase;" />
+
+                                        <span asp-validation-for="ItemCode"
+                                              class="text-danger
+                                            edit-error">
+                                        </span>
+
+                                        <span class="edit-help">
+                                            Item Code must be unique.
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- BARCODE -->
+                                <div class="col-md-6">
+
+                                    <div class="edit-field">
+
+                                        <label asp-for="Barcode"
+                                               class="edit-label">
+
+                                            Barcode
+
+                                            <span class="edit-optional">
+                                                Optional
+                                            </span>
+
+                                        </label>
+
+                                        <div class="edit-barcode-field">
+
+                                            <span class="edit-field-prefix">
+                                                CODE
+                                            </span>
+
+                                            <input asp-for="Barcode"
+                                                   class="form-control
+                                            edit-input"
+                                                   placeholder="Scan or enter barcode"
+                                                   autocomplete="off" />
+
+                                        </div>
+
+                                        <span asp-validation-for="Barcode"
+                                              class="text-danger
+                                            edit-error">
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- ITEM NAME -->
+                                <div class="col-md-7">
+
+                                    <div class="edit-field">
+
+                                        <label asp-for="ItemName"
+                                               class="edit-label">
+
+                                            Item Name
+
+                                            <span class="edit-required">
+                                                *
+                                            </span>
+
+                                        </label>
+
+                                        <input asp-for="ItemName"
+                                               class="form-control
+                                        edit-input"
+                                               placeholder="Enter item name" />
+
+                                        <span asp-validation-for="ItemName"
+                                              class="text-danger
+                                            edit-error">
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- CATEGORY -->
+                                <div class="col-md-5">
+
+                                    <div class="edit-field">
+
+                                        <label asp-for="Category"
+                                               class="edit-label">
+
+                                            Category
+
+                                            <span class="edit-optional">
+                                                Optional
+                                            </span>
+
+                                        </label>
+
+                                        <input asp-for="Category"
+                                               list="editCategories"
+                                               class="form-control
+                                        edit-input"
+                                               placeholder="Select or enter" />
+
+                                        <datalist id="editCategories">
+                                            <option value="Memory"></option>
+                                            <option value="Storage"></option>
+                                            <option value="Display"></option>
+                                            <option value="Battery"></option>
+                                            <option value="Power Supply"></option>
+                                            <option value="Cooling"></option>
+                                            <option value="Keyboard"></option>
+                                            <option value="Networking"></option>
+                                            <option value="Cable"></option>
+                                            <option value="Accessory"></option>
+                                            <option value="Other"></option>
+                                        </datalist>
+
+                                        <span asp-validation-for="Category"
+                                              class="text-danger
+                                            edit-error">
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <!-- DESCRIPTION -->
+                            <div class="edit-field">
+
+                                <label asp-for="Description"
+                                       class="edit-label">
+
+                                    Description
+
+                                    <span class="edit-optional">
+                                        Optional
+                                    </span>
+
+                                </label>
+
+                                <textarea asp-for="Description"
+                                          class="form-control
+                                edit-input"
+                                          placeholder="Describe item compatibility or additional information">
+                                </textarea>
+
+                                <span asp-validation-for="Description"
+                                      class="text-danger
+                                    edit-error">
+                                </span>
+
+                            </div>
+
+                            <div class="row">
+
+                                <!-- MINIMUM STOCK -->
+                                <div class="col-md-6">
+
+                                    <div class="edit-field">
+
+                                        <label asp-for="MinimumStock"
+                                               class="edit-label">
+
+                                            Minimum Stock Level
+
+                                            <span class="edit-required">
+                                                *
+                                            </span>
+
+                                        </label>
+
+                                        <input asp-for="MinimumStock"
+                                               type="number"
+                                               min="0"
+                                               step="1"
+                                               class="form-control
+                                        edit-input"
+                                               placeholder="0" />
+
+                                        <span asp-validation-for="MinimumStock"
+                                              class="text-danger
+                                            edit-error">
+                                        </span>
+
+                                        <span class="edit-help">
+                                            A warning appears when
+                                            quantity reaches this level.
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- UNIT PRICE -->
+                                <div class="col-md-6">
+
+                                    <div class="edit-field">
+
+                                        <label asp-for="UnitPrice"
+                                               class="edit-label">
+
+                                            Unit Price
+
+                                            <span class="edit-required">
+                                                *
+                                            </span>
+
+                                        </label>
+
+                                        <div class="edit-money-field">
+
+                                            <span class="edit-field-prefix">
+                                                RM
+                                            </span>
+
+                                            <input asp-for="UnitPrice"
+                                                   type="number"
+                                                   min="0"
+                                                   step="0.01"
+                                                   class="form-control
+                                            edit-input"
+                                                   placeholder="0.00" />
+
+                                        </div>
+
+                                        <span asp-validation-for="UnitPrice"
+                                              class="text-danger
+                                            edit-error">
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="edit-stock-notice">
+
+                                <div class="edit-notice-icon">
+                                    QTY
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        Stock Quantity Protection
+                                    </strong>
+
+                                    <p>
+                                        Use Update Stock to change
+                                        quantity. This preserves the
+                                        transaction balance, user and
+                                        movement history.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <div class="edit-actions">
+
+                                <button type="submit"
+                                        class="btn edit-submit">
+
+                                    Save Item Changes →
+
+                                </button>
+
+                                <a asp-controller="Inventory"
+                                   asp-action="Stock"
+                                   asp-route-id="@Model.InventoryId"
+                                   class="edit-stock-button">
+
+                                    Update Stock
+
+                                </a>
+
+                                <a asp-controller="Inventory"
+                                   asp-action="Index"
+                                   class="edit-cancel">
+
+                                    Cancel
+
+                                </a>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

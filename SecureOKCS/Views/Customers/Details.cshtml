@@ -1,0 +1,845 @@
+﻿@model SecureOKCS.ViewModels.CustomerDisplayViewModel
+
+@{
+    ViewData["Title"] = "Customer Details";
+
+    bool isAdmin =
+        User.IsInRole("Admin");
+
+    string customerInitial =
+        string.IsNullOrWhiteSpace(
+            Model.FullName)
+            ? "?"
+            : Model.FullName[..1];
+}
+
+<style>
+    .customer-details-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 45px 0 75px;
+    }
+
+        .customer-details-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 13% 17%, rgba(0, 229, 255, 0.09), transparent 28%), radial-gradient( circle at 88% 78%, rgba(139, 92, 246, 0.08), transparent 29%);
+        }
+
+    .details-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 22px;
+    }
+
+    .details-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .details-back:hover {
+            color: #67e8f9;
+        }
+
+    .details-route {
+        color: #58677d;
+        font-family: monospace;
+        font-size: 0.69rem;
+    }
+
+    .profile-header {
+        position: relative;
+        margin-bottom: 24px;
+        padding: 32px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 19px;
+        background: linear-gradient( 125deg, rgba(13, 23, 38, 0.97), rgba(12, 38, 65, 0.92));
+        box-shadow: 0 22px 58px rgba(0, 0, 0, 0.27);
+    }
+
+        .profile-header::after {
+            position: absolute;
+            width: 270px;
+            height: 270px;
+            top: -160px;
+            right: -70px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.15);
+            filter: blur(54px);
+        }
+
+    .profile-header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .customer-profile {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .profile-avatar {
+        display: grid;
+        width: 70px;
+        height: 70px;
+        flex: 0 0 70px;
+        place-items: center;
+        color: #031019;
+        font-size: 1.45rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        border: 3px solid rgba(103, 232, 249, 0.2);
+        border-radius: 18px;
+        background: linear-gradient( 135deg, #00e5ff, #60a5fa);
+        box-shadow: 0 0 29px rgba(0, 229, 255, 0.18);
+    }
+
+    .profile-eyebrow {
+        margin-bottom: 6px;
+        color: #00e5ff;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .profile-name {
+        margin-bottom: 5px;
+        color: #f8fafc;
+        font-size: clamp(1.6rem, 3vw, 2.35rem);
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .profile-id {
+        margin: 0;
+        color: #718096;
+        font-family: monospace;
+        font-size: 0.73rem;
+    }
+
+    .profile-access {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 11px;
+        font-size: 0.69rem;
+        font-weight: 800;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        border: 1px solid;
+        border-radius: 8px;
+    }
+
+        .profile-access::before {
+            width: 7px;
+            height: 7px;
+            content: "";
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .profile-access.full {
+            color: #86efac;
+            border-color: rgba(34, 197, 94, 0.27);
+            background: rgba(34, 197, 94, 0.08);
+        }
+
+        .profile-access.masked {
+            color: #fde68a;
+            border-color: rgba(250, 204, 21, 0.27);
+            background: rgba(250, 204, 21, 0.08);
+        }
+
+    .details-card {
+        height: 100%;
+        padding: 28px;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 17px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.94), rgba(7, 14, 25, 0.97));
+        box-shadow: 0 18px 46px rgba(0, 0, 0, 0.19);
+    }
+
+    .details-card-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 23px;
+        color: #f8fafc;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+        .details-card-title::before {
+            width: 4px;
+            height: 18px;
+            content: "";
+            border-radius: 99px;
+            background: linear-gradient( to bottom, #00e5ff, #60a5fa);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+        }
+
+    .information-grid {
+        display: grid;
+        gap: 15px;
+    }
+
+    .information-field {
+        padding: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 11px;
+        background: rgba(15, 23, 42, 0.44);
+    }
+
+    .information-label {
+        display: block;
+        margin-bottom: 7px;
+        color: #64748b;
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .information-value {
+        display: block;
+        color: #dbe7f5;
+        font-size: 0.86rem;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+        .information-value.email {
+            color: #93c5fd;
+        }
+
+        .information-value.hidden-data {
+            color: #fde68a;
+        }
+
+    .tracking-panel {
+        position: relative;
+        margin-bottom: 18px;
+        padding: 21px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 229, 255, 0.2);
+        border-radius: 13px;
+        background: linear-gradient( 145deg, rgba(0, 229, 255, 0.07), rgba(37, 99, 235, 0.05));
+    }
+
+        .tracking-panel::after {
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            right: -80px;
+            bottom: -80px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.18);
+            filter: blur(25px);
+        }
+
+    .tracking-panel-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .tracking-label {
+        margin-bottom: 9px;
+        color: #7dd3fc;
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .tracking-code-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .tracking-code-value {
+        color: #e0faff;
+        font-family: monospace;
+        font-size: clamp(0.9rem, 2vw, 1.1rem);
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        overflow-wrap: anywhere;
+    }
+
+    .copy-tracking-button {
+        display: inline-flex;
+        min-height: 36px;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        padding: 0 11px;
+        color: #67e8f9;
+        font-size: 0.69rem;
+        font-weight: 800;
+        border: 1px solid rgba(0, 229, 255, 0.25);
+        border-radius: 8px;
+        background: rgba(0, 229, 255, 0.06);
+    }
+
+        .copy-tracking-button:hover {
+            color: #ffffff;
+            border-color: rgba(0, 229, 255, 0.45);
+            background: rgba(0, 229, 255, 0.11);
+        }
+
+    .tracking-description {
+        margin: 11px 0 0;
+        color: #718096;
+        font-size: 0.72rem;
+        line-height: 1.55;
+    }
+
+    .security-information {
+        display: grid;
+        gap: 13px;
+    }
+
+    .security-item {
+        display: grid;
+        grid-template-columns: 33px 1fr;
+        gap: 11px;
+        align-items: start;
+        padding: 13px;
+        border: 1px solid rgba(148, 163, 184, 0.09);
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.38);
+    }
+
+    .security-item-icon {
+        display: grid;
+        width: 33px;
+        height: 33px;
+        place-items: center;
+        color: #c4b5fd;
+        font-family: monospace;
+        font-size: 0.6rem;
+        font-weight: 900;
+        border: 1px solid rgba(167, 139, 250, 0.22);
+        border-radius: 8px;
+    }
+
+    .security-item h3 {
+        margin: 1px 0 3px;
+        color: #dbe7f5;
+        font-size: 0.79rem;
+        font-weight: 750;
+    }
+
+    .security-item p {
+        margin: 0;
+        color: #718096;
+        font-size: 0.7rem;
+        line-height: 1.5;
+    }
+
+    .details-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 11px;
+        margin-top: 25px;
+    }
+
+    .details-primary-button,
+    .details-secondary-button {
+        display: inline-flex;
+        min-height: 46px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 17px;
+        font-size: 0.77rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 9px;
+    }
+
+    .details-primary-button {
+        color: #031019;
+        border: 1px solid #00e5ff;
+        background: linear-gradient( 135deg, #00e5ff, #60a5fa);
+    }
+
+        .details-primary-button:hover {
+            color: #031019;
+            box-shadow: 0 0 26px rgba(0, 229, 255, 0.22);
+        }
+
+    .details-secondary-button {
+        color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, 0.21);
+        background: rgba(15, 23, 42, 0.58);
+    }
+
+        .details-secondary-button:hover {
+            color: #67e8f9;
+            border-color: rgba(0, 229, 255, 0.3);
+        }
+
+    .copy-message {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        margin-top: 15px;
+        padding: 10px 12px;
+        color: #86efac;
+        font-size: 0.73rem;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+        border-radius: 8px;
+        background: rgba(34, 197, 94, 0.06);
+    }
+
+        .copy-message.show {
+            display: flex;
+        }
+
+    @@media (max-width: 767px) {
+        .customer-details-page {
+            padding: 27px 0 60px;
+        }
+
+        .details-route {
+            display: none;
+        }
+
+        .profile-header {
+            padding: 25px 21px;
+        }
+
+        .customer-profile {
+            align-items: flex-start;
+        }
+
+        .profile-avatar {
+            width: 57px;
+            height: 57px;
+            flex-basis: 57px;
+            border-radius: 14px;
+        }
+
+        .profile-access {
+            margin-top: 20px;
+        }
+
+        .details-card {
+            padding: 23px 20px;
+        }
+
+        .tracking-code-row {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .details-actions {
+            display: grid;
+        }
+
+        .details-primary-button,
+        .details-secondary-button {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="customer-details-page">
+
+    <div class="container">
+
+        <!-- NAVIGATION -->
+        <div class="details-navigation">
+
+            <a asp-controller="Customers"
+               asp-action="Index"
+               class="details-back">
+
+                ← Back to customer records
+
+            </a>
+
+            <span class="details-route">
+
+                OPERATIONS / CUSTOMERS /
+                @Model.CustomerId
+
+            </span>
+
+        </div>
+
+        <!-- CUSTOMER PROFILE HEADER -->
+        <header class="profile-header">
+
+            <div class="profile-header-content">
+
+                <div class="row align-items-center">
+
+                    <div class="col-md-8">
+
+                        <div class="customer-profile">
+
+                            <div class="profile-avatar">
+                                @customerInitial
+                            </div>
+
+                            <div>
+
+                                <div class="profile-eyebrow">
+                                    Protected Customer Record
+                                </div>
+
+                                <h1 class="profile-name">
+                                    @Model.FullName
+                                </h1>
+
+                                <p class="profile-id">
+
+                                    CUSTOMER-ID:
+                                    @Model.CustomerId.ToString("D6")
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4
+                        text-md-end">
+
+                        @if (isAdmin)
+                        {
+                            <span class="profile-access full">
+                                Full Data Access
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="profile-access masked">
+                                Masked Data Access
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <div class="row g-4">
+
+            <!-- CUSTOMER INFORMATION -->
+            <div class="col-lg-7">
+
+                <article class="details-card">
+
+                    <h2 class="details-card-title">
+                        Customer information
+                    </h2>
+
+                    <div class="information-grid">
+
+                        <div class="information-field">
+
+                            <span class="information-label">
+                                Full Name
+                            </span>
+
+                            <span class="information-value">
+                                @Model.FullName
+                            </span>
+
+                        </div>
+
+                        <div class="information-field">
+
+                            <span class="information-label">
+                                Email Address
+                            </span>
+
+                            <span class="information-value email">
+                                @Model.Email
+                            </span>
+
+                        </div>
+
+                        <div class="information-field">
+
+                            <span class="information-label">
+                                Phone Number
+                            </span>
+
+                            <span class="information-value">
+                                @Model.PhoneNumber
+                            </span>
+
+                        </div>
+
+                        <div class="information-field">
+
+                            <span class="information-label">
+                                Address
+                            </span>
+
+                            <span class="information-value
+                                @(isAdmin
+                                    ? ""
+                                    : "hidden-data")">
+
+                                @(string.IsNullOrWhiteSpace(
+                                    Model.Address)
+                                    ? "Not provided"
+                                    : Model.Address)
+
+                            </span>
+
+                        </div>
+
+                        <div class="information-field">
+
+                            <span class="information-label">
+                                Record Created
+                            </span>
+
+                            <span class="information-value">
+
+                                @Model.CreatedAt.ToString(
+                                    "dd MMM yyyy, hh:mm tt")
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+            </div>
+
+            <!-- TRACKING AND SECURITY -->
+            <div class="col-lg-5">
+
+                <article class="details-card">
+
+                    <h2 class="details-card-title">
+                        Tracking and security
+                    </h2>
+
+                    <div class="tracking-panel">
+
+                        <div class="tracking-panel-content">
+
+                            <div class="tracking-label">
+                                Customer Tracking Code
+                            </div>
+
+                            <div class="tracking-code-row">
+
+                                <span class="tracking-code-value"
+                                      id="trackingCode">
+
+                                    @Model.TrackingCode
+
+                                </span>
+
+                                <button type="button"
+                                        class="copy-tracking-button"
+                                        id="copyTrackingCode">
+
+                                    Copy Code
+
+                                </button>
+
+                            </div>
+
+                            <p class="tracking-description">
+
+                                The customer uses this code together
+                                with a repair ticket number to check
+                                repair progress.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="copy-message"
+                         id="copyMessage"
+                         role="status">
+
+                        ✓ Tracking code copied successfully.
+
+                    </div>
+
+                    <div class="security-information">
+
+                        <div class="security-item">
+
+                            <div class="security-item-icon">
+                                ENC
+                            </div>
+
+                            <div>
+
+                                <h3>Encrypted Information</h3>
+
+                                <p>
+                                    Sensitive customer fields are
+                                    protected before database storage.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div class="security-item">
+
+                            <div class="security-item-icon">
+                                ACL
+                            </div>
+
+                            <div>
+
+                                <h3>Role-Based Access</h3>
+
+                                <p>
+
+                                    @(isAdmin
+                                        ? "Administrator access allows authorised viewing of complete customer information."
+                                        : "Staff access automatically masks sensitive customer information.")
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div class="security-item">
+
+                            <div class="security-item-icon">
+                                TRK
+                            </div>
+
+                            <div>
+
+                                <h3>Secure Repair Tracking</h3>
+
+                                <p>
+                                    Tracking requires both the customer
+                                    code and a valid repair ticket number.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+            </div>
+
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="details-actions">
+
+            <a asp-controller="Repairs"
+               asp-action="Create"
+               class="details-primary-button">
+
+                Create Repair Ticket →
+
+            </a>
+
+            <a asp-controller="Customers"
+               asp-action="Index"
+               class="details-secondary-button">
+
+                Back to Customer List
+
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <script>
+        (() => {
+            const copyButton =
+                document.getElementById(
+                    "copyTrackingCode");
+
+            const trackingCode =
+                document.getElementById(
+                    "trackingCode");
+
+            const copyMessage =
+                document.getElementById(
+                    "copyMessage");
+
+            if (!copyButton ||
+                !trackingCode) {
+                return;
+            }
+
+            copyButton.addEventListener(
+                "click",
+                async () => {
+                    const code =
+                        trackingCode.textContent
+                            .trim();
+
+                    try {
+                        await navigator.clipboard
+                            .writeText(code);
+
+                        copyButton.textContent =
+                            "Copied";
+
+                        copyMessage?.classList
+                            .add("show");
+
+                        window.setTimeout(
+                            () => {
+                                copyButton.textContent =
+                                    "Copy Code";
+
+                                copyMessage?.classList
+                                    .remove("show");
+                            },
+                            2500);
+                    }
+                    catch {
+                        copyButton.textContent =
+                            "Copy Failed";
+                    }
+                });
+        })();
+    </script>
+}

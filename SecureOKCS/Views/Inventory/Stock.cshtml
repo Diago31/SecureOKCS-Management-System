@@ -1,0 +1,1119 @@
+﻿@model SecureOKCS.ViewModels.InventoryStockViewModel
+
+@{
+    ViewData["Title"] = "Update Stock";
+
+    string initialStockStatus =
+        Model.CurrentQuantity == 0
+            ? "Out of Stock"
+            : "Available";
+
+    string initialStockClass =
+        Model.CurrentQuantity == 0
+            ? "current-stock-empty"
+            : "current-stock-available";
+}
+
+<style>
+    .stock-update-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 45px 0 75px;
+    }
+
+        .stock-update-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 13% 18%, rgba(250, 204, 21, 0.08), transparent 28%), radial-gradient( circle at 88% 78%, rgba(0, 229, 255, 0.07), transparent 29%);
+        }
+
+    .stock-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 21px;
+    }
+
+    .stock-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        font-size: 0.81rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .stock-back:hover {
+            color: #fde68a;
+        }
+
+    .stock-route {
+        color: #58677d;
+        font-family: monospace;
+        font-size: 0.68rem;
+    }
+
+    .stock-shell {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 21px;
+        background: rgba(9, 17, 30, 0.95);
+        box-shadow: 0 27px 72px rgba(0, 0, 0, 0.36), 0 0 55px rgba(250, 204, 21, 0.04);
+    }
+
+    .stock-information {
+        position: relative;
+        display: flex;
+        min-height: 650px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 43px;
+        overflow: hidden;
+        border-right: 1px solid rgba(148, 163, 184, 0.12);
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.97), rgba(54, 44, 12, 0.77));
+    }
+
+        .stock-information::after {
+            position: absolute;
+            width: 290px;
+            height: 290px;
+            right: -155px;
+            bottom: -145px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(250, 204, 21, 0.14);
+            filter: blur(57px);
+        }
+
+    .stock-information-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .stock-eyebrow {
+        margin-bottom: 12px;
+        color: #fde68a;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .stock-information h1 {
+        max-width: 460px;
+        margin-bottom: 16px;
+        color: #f8fafc;
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+    }
+
+    .stock-gradient {
+        color: transparent;
+        background: linear-gradient( 90deg, #facc15, #22d3ee);
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+
+    .stock-description {
+        max-width: 455px;
+        color: #8fa0b7;
+        font-size: 0.85rem;
+        line-height: 1.75;
+    }
+
+    .stock-item-panel {
+        margin-top: 34px;
+        padding: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 13px;
+        background: rgba(5, 11, 20, 0.45);
+    }
+
+    .stock-item-code {
+        margin-bottom: 7px;
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.72rem;
+        font-weight: 800;
+    }
+
+    .stock-item-name {
+        margin-bottom: 20px;
+        color: #e2e8f0;
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    .current-stock-panel {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.55);
+    }
+
+    .current-stock-label {
+        margin-bottom: 3px;
+        color: #64748b;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .current-stock-quantity {
+        color: #f8fafc;
+        font-family: monospace;
+        font-size: 1.6rem;
+        font-weight: 900;
+    }
+
+    .current-stock-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 9px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        border: 1px solid;
+        border-radius: 7px;
+    }
+
+        .current-stock-badge::before {
+            width: 6px;
+            height: 6px;
+            content: "";
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+    .current-stock-available {
+        color: #86efac;
+        border-color: rgba(34, 197, 94, 0.25);
+        background: rgba(34, 197, 94, 0.07);
+    }
+
+    .current-stock-empty {
+        color: #fda4af;
+        border-color: rgba(244, 63, 94, 0.25);
+        background: rgba(244, 63, 94, 0.07);
+    }
+
+    .stock-operation-information {
+        display: grid;
+        gap: 13px;
+        margin-top: 25px;
+    }
+
+    .stock-operation-item {
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 11px;
+        align-items: start;
+    }
+
+    .stock-operation-icon {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.58rem;
+        font-weight: 900;
+        border: 1px solid rgba(250, 204, 21, 0.22);
+        border-radius: 8px;
+    }
+
+    .stock-operation-item h3 {
+        margin: 1px 0 3px;
+        color: #dbe7f5;
+        font-size: 0.77rem;
+        font-weight: 750;
+    }
+
+    .stock-operation-item p {
+        margin: 0;
+        color: #718096;
+        font-size: 0.69rem;
+        line-height: 1.5;
+    }
+
+    .stock-service-state {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+        .stock-service-state::before {
+            width: 8px;
+            height: 8px;
+            content: "";
+            border-radius: 50%;
+            background: #facc15;
+            box-shadow: 0 0 11px #facc15;
+        }
+
+    .stock-form-area {
+        display: flex;
+        min-height: 650px;
+        align-items: center;
+        padding: 43px;
+        background: linear-gradient( 145deg, rgba(7, 14, 25, 0.98), rgba(5, 11, 20, 0.98));
+    }
+
+    .stock-form-container {
+        width: 100%;
+        max-width: 485px;
+        margin: auto;
+    }
+
+    .stock-form-eyebrow {
+        margin-bottom: 8px;
+        color: #fde68a;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .stock-form-title {
+        margin-bottom: 8px;
+        color: #f8fafc;
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .stock-form-description {
+        margin-bottom: 25px;
+        color: #8291a7;
+        font-size: 0.82rem;
+        line-height: 1.65;
+    }
+
+    .stock-validation {
+        margin-bottom: 20px;
+        padding: 13px 15px;
+        color: #fecaca;
+        font-size: 0.8rem;
+        border: 1px solid rgba(239, 68, 68, 0.27);
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.08);
+    }
+
+        .stock-validation:empty,
+        .stock-validation.validation-summary-valid {
+            display: none;
+        }
+
+        .stock-validation ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+    .stock-field {
+        margin-bottom: 19px;
+    }
+
+    .stock-label {
+        margin-bottom: 8px;
+        color: #cbd5e1;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .stock-required {
+        color: #fde68a;
+    }
+
+    .stock-optional {
+        margin-left: 5px;
+        color: #58677d;
+        font-size: 0.68rem;
+        font-weight: 500;
+    }
+
+    .stock-input,
+    .stock-select {
+        min-height: 49px;
+        color: #f8fafc !important;
+        border: 1px solid #263449;
+        border-radius: 9px;
+        background-color: rgba(15, 23, 42, 0.78) !important;
+    }
+
+    textarea.stock-input {
+        min-height: 105px;
+        resize: vertical;
+    }
+
+    .stock-input::placeholder {
+        color: #5f6f85;
+    }
+
+    .stock-input:focus,
+    .stock-select:focus {
+        color: #ffffff;
+        border-color: #facc15;
+        background-color: rgba(15, 23, 42, 0.97) !important;
+        box-shadow: 0 0 0 0.2rem rgba(250, 204, 21, 0.08);
+    }
+
+    .stock-input[readonly] {
+        color: #7dd3fc !important;
+        font-family: monospace;
+        cursor: default;
+        opacity: 0.85;
+    }
+
+    .stock-select option {
+        color: #e2e8f0;
+        background: #0b1422;
+    }
+
+    .stock-error {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.75rem;
+    }
+
+    .stock-help {
+        display: block;
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 0.69rem;
+        line-height: 1.5;
+    }
+
+    .stock-preview {
+        margin-bottom: 21px;
+        padding: 16px;
+        border: 1px solid rgba(0, 229, 255, 0.16);
+        border-radius: 11px;
+        background: rgba(0, 229, 255, 0.04);
+    }
+
+    .stock-preview-header {
+        margin-bottom: 12px;
+        color: #64748b;
+        font-size: 0.63rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .stock-preview-equation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 9px;
+        font-family: monospace;
+    }
+
+    .stock-preview-value {
+        color: #cbd5e1;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+    .stock-preview-symbol {
+        color: #64748b;
+    }
+
+    .stock-preview-result {
+        color: #67e8f9;
+        font-size: 1.12rem;
+        font-weight: 900;
+    }
+
+        .stock-preview-result.warning {
+            color: #fda4af;
+        }
+
+    .stock-preview-warning {
+        display: none;
+        margin-top: 11px;
+        color: #fda4af;
+        font-size: 0.7rem;
+        line-height: 1.5;
+    }
+
+        .stock-preview-warning.show {
+            display: block;
+        }
+
+    .stock-automatic-notice {
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        gap: 11px;
+        margin-bottom: 22px;
+        padding: 13px;
+        border: 1px solid rgba(139, 92, 246, 0.18);
+        border-radius: 10px;
+        background: rgba(139, 92, 246, 0.05);
+    }
+
+    .stock-notice-icon {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        color: #c4b5fd;
+        font-family: monospace;
+        font-size: 0.57rem;
+        font-weight: 900;
+        border: 1px solid rgba(167, 139, 250, 0.22);
+        border-radius: 8px;
+    }
+
+    .stock-automatic-notice strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #ddd6fe;
+        font-size: 0.76rem;
+    }
+
+    .stock-automatic-notice p {
+        margin: 0;
+        color: #88809e;
+        font-size: 0.69rem;
+        line-height: 1.5;
+    }
+
+    .stock-actions {
+        display: flex;
+        gap: 11px;
+    }
+
+    .stock-submit,
+    .stock-cancel {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 17px;
+        font-size: 0.76rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 9px;
+    }
+
+    .stock-submit {
+        flex: 1;
+        color: #171403;
+        border: 1px solid #facc15;
+        background: linear-gradient( 135deg, #facc15, #f59e0b);
+        box-shadow: 0 0 25px rgba(250, 204, 21, 0.13);
+    }
+
+        .stock-submit:hover {
+            color: #171403;
+            box-shadow: 0 0 32px rgba(250, 204, 21, 0.24);
+        }
+
+    .stock-cancel {
+        color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, 0.21);
+        background: rgba(15, 23, 42, 0.6);
+    }
+
+        .stock-cancel:hover {
+            color: #fde68a;
+            border-color: rgba(250, 204, 21, 0.28);
+        }
+
+    @@media (max-width: 991px) {
+        .stock-information {
+            min-height: auto;
+            border-right: 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .stock-form-area {
+            min-height: auto;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .stock-update-page {
+            padding: 27px 0 60px;
+        }
+
+        .stock-route {
+            display: none;
+        }
+
+        .stock-information,
+        .stock-form-area {
+            padding: 28px 22px;
+        }
+
+            .stock-information h1 {
+                font-size: 2.1rem;
+            }
+
+        .stock-actions {
+            display: grid;
+        }
+
+        .stock-submit,
+        .stock-cancel {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="stock-update-page">
+
+    <div class="container">
+
+        <!-- NAVIGATION -->
+        <div class="stock-navigation">
+
+            <a asp-controller="Inventory"
+               asp-action="Index"
+               class="stock-back">
+
+                ← Back to inventory
+
+            </a>
+
+            <span class="stock-route">
+
+                OPERATIONS / INVENTORY /
+                @Model.InventoryId / STOCK
+
+            </span>
+
+        </div>
+
+        <div class="stock-shell">
+
+            <div class="row g-0">
+
+                <!-- CURRENT STOCK INFORMATION -->
+                <div class="col-lg-5">
+
+                    <div class="stock-information">
+
+                        <div class="stock-information-content">
+
+                            <div class="stock-eyebrow">
+                                Inventory Balance Control
+                            </div>
+
+                            <h1>
+
+                                Record a secure
+
+                                <span class="stock-gradient">
+                                    stock movement.
+                                </span>
+
+                            </h1>
+
+                            <p class="stock-description">
+
+                                Add received inventory or record
+                                stock used during repair operations.
+                                Every movement is stored in the
+                                transaction history.
+
+                            </p>
+
+                            <div class="stock-item-panel">
+
+                                <div class="stock-item-code">
+                                    @Model.ItemCode
+                                </div>
+
+                                <div class="stock-item-name">
+                                    @Model.ItemName
+                                </div>
+
+                                <div class="current-stock-panel">
+
+                                    <div>
+
+                                        <div class="current-stock-label">
+                                            Current Quantity
+                                        </div>
+
+                                        <div class="current-stock-quantity">
+                                            @Model.CurrentQuantity
+                                        </div>
+
+                                    </div>
+
+                                    <span class="current-stock-badge
+                                        @initialStockClass">
+
+                                        @initialStockStatus
+
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <div class="stock-operation-information">
+
+                                <div class="stock-operation-item">
+
+                                    <div class="stock-operation-icon">
+                                        IN
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Stock In</h3>
+
+                                        <p>
+                                            Increases the current
+                                            inventory balance.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="stock-operation-item">
+
+                                    <div class="stock-operation-icon">
+                                        OUT
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Stock Out</h3>
+
+                                        <p>
+                                            Reduces the balance and
+                                            cannot exceed available stock.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="stock-operation-item">
+
+                                    <div class="stock-operation-icon">
+                                        LOG
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Transaction History</h3>
+
+                                        <p>
+                                            User, movement and balance
+                                            are recorded automatically.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="stock-service-state">
+                            Inventory transaction service active
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- STOCK FORM -->
+                <div class="col-lg-7">
+
+                    <div class="stock-form-area">
+
+                        <div class="stock-form-container">
+
+                            <div class="stock-form-eyebrow">
+                                Stock Transaction Form
+                            </div>
+
+                            <h2 class="stock-form-title">
+                                Update inventory balance
+                            </h2>
+
+                            <p class="stock-form-description">
+
+                                Select a transaction type and enter
+                                the quantity to update.
+
+                            </p>
+
+                            <form asp-controller="Inventory"
+                                  asp-action="Stock"
+                                  method="post">
+
+                                <input asp-for="InventoryId"
+                                       type="hidden" />
+
+                                <div asp-validation-summary="ModelOnly"
+                                     class="stock-validation"
+                                     role="alert">
+                                </div>
+
+                                <!-- TRANSACTION TYPE -->
+                                <div class="stock-field">
+
+                                    <label asp-for="TransactionType"
+                                           class="stock-label">
+
+                                        Transaction Type
+
+                                        <span class="stock-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <select asp-for="TransactionType"
+                                            id="transactionType"
+                                            class="form-select
+                                        stock-select">
+
+                                        <option value="">
+                                            Select transaction type
+                                        </option>
+
+                                        <option value="Stock In">
+                                            Stock In
+                                        </option>
+
+                                        <option value="Stock Out">
+                                            Stock Out
+                                        </option>
+
+                                    </select>
+
+                                    <span asp-validation-for="TransactionType"
+                                          class="text-danger
+                                        stock-error">
+                                    </span>
+
+                                </div>
+
+                                <!-- QUANTITY -->
+                                <div class="stock-field">
+
+                                    <label asp-for="Quantity"
+                                           class="stock-label">
+
+                                        Quantity
+
+                                        <span class="stock-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <input asp-for="Quantity"
+                                           id="transactionQuantity"
+                                           type="number"
+                                           min="1"
+                                           step="1"
+                                           class="form-control
+                                    stock-input"
+                                           placeholder="Enter quantity" />
+
+                                    <span asp-validation-for="Quantity"
+                                          class="text-danger
+                                        stock-error">
+                                    </span>
+
+                                </div>
+
+                                <!-- BALANCE PREVIEW -->
+                                <div class="stock-preview">
+
+                                    <div class="stock-preview-header">
+                                        Balance Preview
+                                    </div>
+
+                                    <div class="stock-preview-equation">
+
+                                        <span class="stock-preview-value">
+                                            @Model.CurrentQuantity
+                                        </span>
+
+                                        <span class="stock-preview-symbol"
+                                              id="previewOperator">
+                                            ±
+                                        </span>
+
+                                        <span class="stock-preview-value"
+                                              id="previewQuantity">
+                                            0
+                                        </span>
+
+                                        <span class="stock-preview-symbol">
+                                            =
+                                        </span>
+
+                                        <span class="stock-preview-result"
+                                              id="previewBalance">
+
+                                            @Model.CurrentQuantity
+
+                                        </span>
+
+                                    </div>
+
+                                    <div class="stock-preview-warning"
+                                         id="stockPreviewWarning">
+
+                                        Stock Out quantity exceeds the
+                                        current available balance.
+
+                                    </div>
+
+                                </div>
+
+                                <!-- SCANNED CODE -->
+                                <div class="stock-field">
+
+                                    <label asp-for="ScannedCode"
+                                           class="stock-label">
+
+                                        Scanned Code
+
+                                        <span class="stock-optional">
+                                            Optional
+                                        </span>
+
+                                    </label>
+
+                                    <input asp-for="ScannedCode"
+                                           class="form-control
+                                    stock-input"
+                                           placeholder="No barcode provided"
+                                           readonly />
+
+                                    <span asp-validation-for="ScannedCode"
+                                          class="text-danger
+                                        stock-error">
+                                    </span>
+
+                                    <span class="stock-help">
+
+                                        This value identifies the barcode
+                                        or item code used for this
+                                        transaction.
+
+                                    </span>
+
+                                </div>
+
+                                <!-- NOTES -->
+                                <div class="stock-field">
+
+                                    <label asp-for="TransactionNotes"
+                                           class="stock-label">
+
+                                        Transaction Notes
+
+                                        <span class="stock-optional">
+                                            Optional
+                                        </span>
+
+                                    </label>
+
+                                    <textarea asp-for="TransactionNotes"
+                                              class="form-control
+                                    stock-input"
+                                              placeholder="Example: Received from supplier or used for repair ticket">
+                                    </textarea>
+
+                                    <span asp-validation-for="TransactionNotes"
+                                          class="text-danger
+                                        stock-error">
+                                    </span>
+
+                                </div>
+
+                                <div class="stock-automatic-notice">
+
+                                    <div class="stock-notice-icon">
+                                        AUD
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            Automatic Transaction Record
+                                        </strong>
+
+                                        <p>
+                                            The transaction type,
+                                            quantity change, new balance
+                                            and authorised user will be
+                                            recorded automatically.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="stock-actions">
+
+                                    <button type="submit"
+                                            class="btn stock-submit">
+
+                                        Save Stock Transaction →
+
+                                    </button>
+
+                                    <a asp-controller="Inventory"
+                                       asp-action="Index"
+                                       class="stock-cancel">
+
+                                        Cancel
+
+                                    </a>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+            const currentQuantity =
+                        @Model.CurrentQuantity;
+
+            const transactionType =
+                document.getElementById(
+                    "transactionType");
+
+            const transactionQuantity =
+                document.getElementById(
+                    "transactionQuantity");
+
+            const previewOperator =
+                document.getElementById(
+                    "previewOperator");
+
+            const previewQuantity =
+                document.getElementById(
+                    "previewQuantity");
+
+            const previewBalance =
+                document.getElementById(
+                    "previewBalance");
+
+            const previewWarning =
+                document.getElementById(
+                    "stockPreviewWarning");
+
+            if (!transactionType ||
+                !transactionQuantity ||
+                !previewOperator ||
+                !previewQuantity ||
+                !previewBalance) {
+                return;
+            }
+
+            function updateStockPreview() {
+                const transaction =
+                    transactionType.value;
+
+                const quantity =
+                    Number.parseInt(
+                        transactionQuantity.value,
+                        10) || 0;
+
+                let newBalance =
+                    currentQuantity;
+
+                let operator = "±";
+
+                if (transaction === "Stock In") {
+                    operator = "+";
+                    newBalance =
+                        currentQuantity + quantity;
+                }
+                else if (
+                    transaction === "Stock Out") {
+                    operator = "−";
+                    newBalance =
+                        currentQuantity - quantity;
+                }
+
+                previewOperator.textContent =
+                    operator;
+
+                previewQuantity.textContent =
+                    quantity.toString();
+
+                previewBalance.textContent =
+                    newBalance.toString();
+
+                const insufficientStock =
+                    transaction === "Stock Out" &&
+                    quantity > currentQuantity;
+
+                previewBalance.classList.toggle(
+                    "warning",
+                    insufficientStock);
+
+                previewWarning?.classList.toggle(
+                    "show",
+                    insufficientStock);
+            }
+
+            transactionType.addEventListener(
+                "change",
+                updateStockPreview);
+
+            transactionQuantity.addEventListener(
+                "input",
+                updateStockPreview);
+
+            updateStockPreview();
+        })();
+    </script>
+}

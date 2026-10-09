@@ -1,0 +1,423 @@
+﻿@model IEnumerable<SecureOKCS.Models.InventoryTransaction>
+
+@{
+    ViewData["Title"] = "Stock Movement Report";
+
+    int totalTransactions =
+        ViewBag.TotalTransactions is int total
+            ? total
+            : 0;
+
+    int totalStockIn =
+        ViewBag.TotalStockIn is int stockIn
+            ? stockIn
+            : 0;
+
+    int totalStockOut =
+        ViewBag.TotalStockOut is int stockOut
+            ? stockOut
+            : 0;
+
+    string? selectedTransactionType =
+        ViewBag.TransactionType as string;
+
+    var transactionTypeOptions =
+        new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+            new[]
+            {
+                "Initial Stock",
+                "Stock In",
+                "Stock Out"
+            },
+            selectedTransactionType);
+}
+
+<!-- PAGE HEADER -->
+<div class="d-md-flex
+    justify-content-between
+    align-items-center mb-4">
+
+    <div>
+
+        <h1 class="fw-bold mb-1">
+            Stock Movement Report
+        </h1>
+
+        <p class="text-muted mb-md-0">
+            Review all inventory stock
+            transactions and movements.
+        </p>
+
+    </div>
+
+    <a asp-controller="Inventory"
+       asp-action="Index"
+       class="btn btn-secondary
+        mt-3 mt-md-0">
+
+        Back to Inventory
+
+    </a>
+
+</div>
+
+<!-- REPORT SUMMARY -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+
+        <div class="card border-0
+            shadow-sm h-100">
+
+            <div class="card-body">
+
+                <p class="text-muted mb-1">
+                    Total Transactions
+                </p>
+
+                <h3 class="fw-bold mb-0">
+                    @totalTransactions
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-4">
+
+        <div class="card border-success
+            shadow-sm h-100">
+
+            <div class="card-body">
+
+                <p class="text-muted mb-1">
+                    Stock Added
+                </p>
+
+                <h3 class="fw-bold
+                    text-success mb-0">
+
+                    +@totalStockIn
+
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-4">
+
+        <div class="card border-danger
+            shadow-sm h-100">
+
+            <div class="card-body">
+
+                <p class="text-muted mb-1">
+                    Stock Removed
+                </p>
+
+                <h3 class="fw-bold
+                    text-danger mb-0">
+
+                    -@totalStockOut
+
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- SEARCH AND FILTER -->
+<div class="card border-0
+    shadow-sm mb-4">
+
+    <div class="card-body">
+
+        <form asp-controller="Inventory"
+              asp-action="Transactions"
+              method="get">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Search
+                    </label>
+
+                    <input type="text"
+                           name="search"
+                           value="@ViewBag.Search"
+                           class="form-control"
+                           placeholder="Item code, name or user" />
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <label class="form-label">
+                        Transaction Type
+                    </label>
+
+                    <select name="transactionType"
+                            asp-items="transactionTypeOptions"
+                            class="form-select">
+
+                        <option value="">
+                            All Types
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <label class="form-label">
+                        Start Date
+                    </label>
+
+                    <input type="date"
+                           name="dateFrom"
+                           value="@ViewBag.DateFrom"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <label class="form-label">
+                        End Date
+                    </label>
+
+                    <input type="date"
+                           name="dateTo"
+                           value="@ViewBag.DateTo"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <label class="form-label d-block">
+                        &nbsp;
+                    </label>
+
+                    <div class="d-grid gap-2">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            Apply Filter
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="mt-3">
+
+                <a asp-controller="Inventory"
+                   asp-action="Transactions"
+                   class="btn btn-outline-secondary">
+
+                    Reset Filter
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- TRANSACTION TABLE -->
+<div class="card border-0 shadow-sm">
+
+    <div class="card-header
+        bg-dark text-white">
+
+        <div class="d-flex
+            justify-content-between
+            align-items-center">
+
+            <h5 class="mb-0">
+                Stock Transactions
+            </h5>
+
+            <span class="badge bg-light
+                text-dark">
+
+                @totalTransactions record(s)
+
+            </span>
+
+        </div>
+
+    </div>
+
+    <div class="card-body p-0">
+
+        <div class="table-responsive">
+
+            <table class="table
+                table-hover mb-0">
+
+                <thead class="table-light">
+
+                    <tr>
+                        <th>Date and Time</th>
+                        <th>Item</th>
+                        <th>Transaction Type</th>
+                        <th>Quantity Change</th>
+                        <th>Balance After</th>
+                        <th>Performed By</th>
+                        <th>Scanned Code</th>
+                        <th>Notes</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @if (!Model.Any())
+                    {
+                        <tr>
+
+                            <td colspan="8"
+                                class="text-center
+                                text-muted py-5">
+
+                                No stock transaction
+                                found for the selected
+                                filter.
+
+                            </td>
+
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var transaction
+                            in Model)
+                        {
+                            bool isStockOut =
+                                transaction.QuantityChanged < 0;
+
+                            bool isInitialStock =
+                                transaction.TransactionType ==
+                                "Initial Stock";
+
+                            <tr>
+
+                                <td>
+                                    @(transaction.CreatedAt.ToString(
+                                        "dd MMM yyyy hh:mm:ss tt"))
+                                </td>
+
+                                <td>
+
+                                    <div class="fw-semibold">
+                                        @(transaction.InventoryItem?
+                                            .ItemCode ?? "-")
+                                    </div>
+
+                                    <small class="text-muted">
+                                        @(transaction.InventoryItem?
+                                            .ItemName ?? "Unknown item")
+                                    </small>
+
+                                </td>
+
+                                <td>
+
+                                    @if (isStockOut)
+                                    {
+                                        <span class="badge bg-danger">
+                                            Stock Out
+                                        </span>
+                                    }
+                                    else if (isInitialStock)
+                                    {
+                                        <span class="badge bg-secondary">
+                                            Initial Stock
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">
+                                            Stock In
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="fw-bold
+                                    @(isStockOut
+                                        ? "text-danger"
+                                        : "text-success")">
+
+                                    @(transaction.QuantityChanged > 0
+                                        ? "+"
+                                        : "")@transaction.QuantityChanged
+
+                                </td>
+
+                                <td class="fw-semibold">
+                                    @transaction.BalanceAfter
+                                </td>
+
+                                <td>
+                                    @(transaction.User?
+                                        .FullName ?? "Unknown")
+                                </td>
+
+                                <td>
+
+                                    @if (string.IsNullOrWhiteSpace(
+                                        transaction.ScannedCode))
+                                    {
+                                        <span>-</span>
+                                    }
+                                    else
+                                    {
+                                        <code>
+                                            @transaction.ScannedCode
+                                        </code>
+                                    }
+
+                                </td>
+
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(
+                                        transaction.TransactionNotes)
+                                        ? "-"
+                                        : transaction.TransactionNotes)
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>

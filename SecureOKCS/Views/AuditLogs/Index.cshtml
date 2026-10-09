@@ -1,0 +1,1106 @@
+﻿@model IEnumerable<SecureOKCS.ViewModels.AuditLogDisplayViewModel>
+
+@{
+    ViewData["Title"] = "Audit Logs";
+
+    var logs = Model?
+        .OrderByDescending(log => log.CreatedAt)
+        .ToList()
+        ?? new List<
+            SecureOKCS.ViewModels.AuditLogDisplayViewModel>();
+
+    DateTime currentTime = DateTime.Now;
+
+    int recentCount = logs.Count(log =>
+        log.CreatedAt >=
+        currentTime.AddHours(-24));
+
+    int securityCount = logs.Count(log =>
+    {
+        string action =
+            log.ActionType?
+                .ToUpperInvariant()
+            ?? string.Empty;
+
+        return action.Contains("FAILED") ||
+               action.Contains("INTRUSION") ||
+               action.Contains("BLOCKED") ||
+               action.Contains("MISMATCH") ||
+               action.Contains("DENIED");
+    });
+
+    int uniqueIpCount = logs
+        .Where(log =>
+            !string.IsNullOrWhiteSpace(
+                log.IpAddress))
+        .Select(log =>
+            log.IpAddress)
+        .Distinct()
+        .Count();
+}
+
+<style>
+    .audit-page {
+        position: relative;
+    }
+
+    .audit-hero {
+        position: relative;
+        overflow: hidden;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(34, 211, 238, 0.2);
+        border-radius: 22px;
+        background: radial-gradient( circle at 85% 20%, rgba(6, 182, 212, 0.18), transparent 30%), radial-gradient( circle at 15% 90%, rgba(124, 58, 237, 0.18), transparent 32%), linear-gradient( 135deg, #07101f, #0b172b 58%, #101a35);
+        color: #f8fafc;
+        box-shadow: 0 24px 60px rgba(2, 8, 23, 0.28);
+    }
+
+        .audit-hero::after {
+            position: absolute;
+            inset: 0;
+            content: "";
+            pointer-events: none;
+            opacity: 0.16;
+            background-image: linear-gradient( rgba(34, 211, 238, 0.18) 1px, transparent 1px), linear-gradient( 90deg, rgba(34, 211, 238, 0.18) 1px, transparent 1px);
+            background-size: 34px 34px;
+        }
+
+    .audit-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .audit-eyebrow {
+        margin-bottom: 0.65rem;
+        color: #67e8f9;
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+
+    .audit-hero h1 {
+        margin-bottom: 0.5rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+
+    .audit-hero p {
+        max-width: 680px;
+        margin-bottom: 0;
+        color: #a9bbd4;
+    }
+
+    .live-monitor {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.65rem 0.9rem;
+        border: 1px solid rgba(52, 211, 153, 0.3);
+        border-radius: 12px;
+        background: rgba(16, 185, 129, 0.08);
+        color: #6ee7b7;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .live-monitor-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #34d399;
+        box-shadow: 0 0 13px #34d399;
+    }
+
+    .audit-header-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .export-excel-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.55rem;
+        padding: 0.65rem 0.95rem;
+        border: 1px solid rgba(74, 222, 128, 0.38);
+        border-radius: 12px;
+        background: linear-gradient( 135deg, rgba(22, 163, 74, 0.95), rgba(5, 150, 105, 0.95));
+        color: #ffffff;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-decoration: none;
+        text-transform: uppercase;
+        box-shadow: 0 12px 25px rgba(5, 150, 105, 0.18);
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .export-excel-btn:hover {
+            transform: translateY(-2px);
+            border-color: rgba(134, 239, 172, 0.75);
+            color: #ffffff;
+            text-decoration: none;
+            box-shadow: 0 15px 30px rgba(5, 150, 105, 0.28);
+        }
+
+    .export-excel-icon {
+        display: inline-grid;
+        min-width: 32px;
+        height: 22px;
+        padding: 0 0.3rem;
+        place-items: center;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.16);
+        font-size: 0.66rem;
+        letter-spacing: 0.05em;
+    }
+
+    .audit-stat {
+        height: 100%;
+        padding: 1.2rem;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 17px;
+        background: rgba(15, 23, 42, 0.93);
+        color: #f8fafc;
+        box-shadow: 0 16px 35px rgba(15, 23, 42, 0.12);
+    }
+
+    .audit-stat-label {
+        margin-bottom: 0.6rem;
+        color: #94a3b8;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .audit-stat-value {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 800;
+    }
+
+    .audit-stat-cyan {
+        color: #22d3ee;
+    }
+
+    .audit-stat-purple {
+        color: #a78bfa;
+    }
+
+    .audit-stat-red {
+        color: #fb7185;
+    }
+
+    .audit-stat-green {
+        color: #34d399;
+    }
+
+    .audit-panel {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+    }
+
+    .audit-toolbar {
+        padding: 1.25rem;
+        border-bottom: 1px solid #e5e7eb;
+        background: linear-gradient( 135deg, #ffffff, #f8fbff);
+    }
+
+    .audit-search {
+        position: relative;
+    }
+
+        .audit-search input {
+            min-height: 46px;
+            padding-left: 2.8rem;
+        }
+
+    .audit-search-symbol {
+        position: absolute;
+        top: 50%;
+        left: 1rem;
+        z-index: 2;
+        color: #64748b;
+        font-weight: 800;
+        transform: translateY(-50%);
+    }
+
+    .audit-toolbar .form-control,
+    .audit-toolbar .form-select {
+        border-color: #dbe3ef;
+        border-radius: 11px;
+        background-color: #ffffff;
+    }
+
+    .audit-result-count {
+        color: #64748b;
+        font-size: 0.84rem;
+        font-weight: 600;
+    }
+
+    .audit-table {
+        min-width: 1050px;
+    }
+
+        .audit-table thead th {
+            padding: 0.9rem 1rem;
+            border: 0;
+            background: #07111f;
+            color: #93a9c7;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .audit-table tbody td {
+            padding: 1rem;
+            border-color: #edf1f7;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        .audit-table tbody tr {
+            transition: background-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+            .audit-table tbody tr:hover {
+                background: #f7fbff;
+                box-shadow: inset 3px 0 0 #22d3ee;
+            }
+
+    .audit-date {
+        min-width: 140px;
+    }
+
+    .audit-date-main {
+        display: block;
+        color: #0f172a;
+        font-weight: 700;
+    }
+
+    .audit-date-time {
+        color: #64748b;
+        font-size: 0.77rem;
+    }
+
+    .audit-user {
+        display: flex;
+        min-width: 150px;
+        align-items: center;
+        gap: 0.7rem;
+    }
+
+    .audit-avatar {
+        display: grid;
+        width: 35px;
+        height: 35px;
+        flex: 0 0 35px;
+        place-items: center;
+        border: 1px solid rgba(34, 211, 238, 0.25);
+        border-radius: 10px;
+        background: #e9fbff;
+        color: #087d98;
+        font-size: 0.78rem;
+        font-weight: 800;
+    }
+
+    .audit-user-name {
+        color: #0f172a;
+        font-size: 0.87rem;
+        font-weight: 700;
+    }
+
+    .audit-user-description {
+        color: #94a3b8;
+        font-size: 0.7rem;
+    }
+
+    .audit-badge {
+        display: inline-flex;
+        padding: 0.42rem 0.6rem;
+        align-items: center;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+    }
+
+    .audit-badge-danger {
+        border-color: rgba(244, 63, 94, 0.22);
+        background: rgba(244, 63, 94, 0.1);
+        color: #be123c;
+    }
+
+    .audit-badge-cyan {
+        border-color: rgba(6, 182, 212, 0.22);
+        background: rgba(6, 182, 212, 0.1);
+        color: #0e7490;
+    }
+
+    .audit-badge-warning {
+        border-color: rgba(245, 158, 11, 0.25);
+        background: rgba(245, 158, 11, 0.11);
+        color: #b45309;
+    }
+
+    .audit-badge-blue {
+        border-color: rgba(59, 130, 246, 0.2);
+        background: rgba(59, 130, 246, 0.1);
+        color: #1d4ed8;
+    }
+
+    .audit-resource {
+        display: block;
+        color: #334155;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.76rem;
+        font-weight: 700;
+    }
+
+    .audit-record {
+        color: #94a3b8;
+        font-size: 0.69rem;
+    }
+
+    .audit-ip {
+        display: inline-block;
+        padding: 0.36rem 0.5rem;
+        border-radius: 7px;
+        background: #f1f5f9;
+        color: #475569;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.72rem;
+    }
+
+    .audit-details {
+        max-width: 310px;
+        color: #64748b;
+        font-size: 0.81rem;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+    }
+
+    .audit-security-row {
+        background: rgba(255, 241, 242, 0.55);
+    }
+
+    .audit-empty {
+        padding: 4rem 1.5rem !important;
+        text-align: center;
+    }
+
+    .audit-empty-icon {
+        display: grid;
+        width: 58px;
+        height: 58px;
+        margin: 0 auto 1rem;
+        place-items: center;
+        border: 1px solid rgba(34, 211, 238, 0.25);
+        border-radius: 17px;
+        background: #ecfeff;
+        color: #0891b2;
+        font-size: 1.2rem;
+        font-weight: 900;
+    }
+
+    @@media (max-width: 767.98px) {
+        .audit-hero {
+            padding: 1.5rem;
+        }
+
+            .audit-hero h1 {
+                font-size: 1.75rem;
+            }
+
+        .audit-header-actions {
+            justify-content: flex-start;
+            margin-top: 1.25rem;
+        }
+
+            .audit-header-actions .live-monitor {
+                margin-top: 0;
+            }
+    }
+</style>
+
+<div class="container audit-page">
+
+    <!-- SECURITY HEADER -->
+    <section class="audit-hero">
+
+        <div class="audit-hero-content">
+
+            <div class="row
+                align-items-center g-4">
+
+                <div class="col-lg-8">
+
+                    <div class="audit-eyebrow">
+                        Security Operations Centre
+                    </div>
+
+                    <h1>
+                        System Audit Logs
+                    </h1>
+
+                    <p>
+                        Monitor authentication activity,
+                        system changes and security events
+                        recorded throughout Secure OKCS.
+                    </p>
+
+                </div>
+
+                <div class="col-lg-4
+                    text-lg-end">
+
+                    <div class="audit-header-actions">
+
+                        <div class="live-monitor">
+
+                            <span class="live-monitor-dot">
+                            </span>
+
+                            Monitoring Active
+
+                        </div>
+
+                        <a asp-controller="AuditLogs"
+                           asp-action="ExportExcel"
+                           class="export-excel-btn"
+                           title="Export all audit logs to Excel">
+
+                            <span class="export-excel-icon">
+                                XLSX
+                            </span>
+
+                            Export to Excel
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- SUMMARY -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-6 col-xl-3">
+
+            <div class="audit-stat">
+
+                <div class="audit-stat-label">
+                    Total Events
+                </div>
+
+                <p class="audit-stat-value
+                    audit-stat-cyan">
+
+                    @logs.Count
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="col-6 col-xl-3">
+
+            <div class="audit-stat">
+
+                <div class="audit-stat-label">
+                    Last 24 Hours
+                </div>
+
+                <p class="audit-stat-value
+                    audit-stat-purple">
+
+                    @recentCount
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="col-6 col-xl-3">
+
+            <div class="audit-stat">
+
+                <div class="audit-stat-label">
+                    Security Alerts
+                </div>
+
+                <p class="audit-stat-value
+                    audit-stat-red">
+
+                    @securityCount
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="col-6 col-xl-3">
+
+            <div class="audit-stat">
+
+                <div class="audit-stat-label">
+                    Unique IP Addresses
+                </div>
+
+                <p class="audit-stat-value
+                    audit-stat-green">
+
+                    @uniqueIpCount
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- AUDIT LOG PANEL -->
+    <section class="audit-panel">
+
+        <div class="audit-toolbar">
+
+            <div class="row g-3
+                align-items-center">
+
+                <!-- SEARCH -->
+                <div class="col-lg-5">
+
+                    <div class="audit-search">
+
+                        <span class="audit-search-symbol">
+                            &gt;_
+                        </span>
+
+                        <input type="search"
+                               id="auditSearch"
+                               class="form-control"
+                               autocomplete="off"
+                               placeholder="Search user, action, IP address or details" />
+
+                    </div>
+
+                </div>
+
+                <!-- CATEGORY FILTER -->
+                <div class="col-md-5 col-lg-3">
+
+                    <select id="auditCategory"
+                            class="form-select">
+
+                        <option value="all">
+                            All Event Categories
+                        </option>
+
+                        <option value="security">
+                            Security Alerts
+                        </option>
+
+                        <option value="authentication">
+                            Authentication
+                        </option>
+
+                        <option value="change">
+                            Data Changes
+                        </option>
+
+                        <option value="activity">
+                            General Activity
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <!-- DATE FILTER -->
+                <div class="col-md-5 col-lg-2">
+
+                    <select id="auditPeriod"
+                            class="form-select">
+
+                        <option value="all">
+                            All Time
+                        </option>
+
+                        <option value="today">
+                            Today
+                        </option>
+
+                        <option value="24">
+                            Last 24 Hours
+                        </option>
+
+                        <option value="7">
+                            Last 7 Days
+                        </option>
+
+                        <option value="30">
+                            Last 30 Days
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <!-- RESULT COUNT -->
+                <div class="col-md-2 col-lg-2
+                    text-md-end">
+
+                    <span class="audit-result-count"
+                          id="auditResultCount">
+
+                        @logs.Count record(s)
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table audit-table">
+
+                <thead>
+
+                    <tr>
+                        <th>Date and Time</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Resource</th>
+                        <th>IP Address</th>
+                        <th>Event Details</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="auditTableBody">
+
+                    @if (!logs.Any())
+                    {
+                        <tr id="serverEmptyRow">
+
+                            <td colspan="6"
+                                class="audit-empty">
+
+                                <div class="audit-empty-icon">
+                                    OK
+                                </div>
+
+                                <h5 class="fw-bold">
+                                    No audit events found
+                                </h5>
+
+                                <p class="text-muted mb-0">
+                                    System activity will appear
+                                    here after an event is recorded.
+                                </p>
+
+                            </td>
+
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var log in logs)
+                        {
+                            string action =
+                                log.ActionType?
+                                    .ToUpperInvariant()
+                                ?? "UNKNOWN";
+
+                            bool isSecurityEvent =
+                                action.Contains("FAILED") ||
+                                action.Contains("INTRUSION") ||
+                                action.Contains("BLOCKED") ||
+                                action.Contains("MISMATCH") ||
+                                action.Contains("DENIED");
+
+                            string category;
+                            string badgeClass;
+
+                            if (isSecurityEvent)
+                            {
+                                category =
+                                    "security";
+
+                                badgeClass =
+                                    "audit-badge-danger";
+                            }
+                            else if (
+                                action.Contains("LOGIN") ||
+                                action.Contains("LOGOUT") ||
+                                action.Contains("FACE"))
+                            {
+                                category =
+                                    "authentication";
+
+                                badgeClass =
+                                    "audit-badge-cyan";
+                            }
+                            else if (
+                                action.Contains("UPDATE") ||
+                                action.Contains("EDIT") ||
+                                action.Contains("DELETE") ||
+                                action.Contains("DEACTIVATE") ||
+                                action.Contains("STOCK"))
+                            {
+                                category =
+                                    "change";
+
+                                badgeClass =
+                                    "audit-badge-warning";
+                            }
+                            else
+                            {
+                                category =
+                                    "activity";
+
+                                badgeClass =
+                                    "audit-badge-blue";
+                            }
+
+                            string userName =
+                                string.IsNullOrWhiteSpace(
+                                    log.UserName)
+                                    ? "System / Anonymous"
+                                    : log.UserName;
+
+                            string avatarText =
+                                !string.IsNullOrWhiteSpace(
+                                    userName)
+                                    ? userName[..1]
+                                        .ToUpperInvariant()
+                                    : "S";
+
+                            string searchText =
+                                $"{userName} " +
+                                $"{action} " +
+                                $"{log.TableName} " +
+                                $"{log.RecordId} " +
+                                $"{log.IpAddress} " +
+                                $"{log.ActionDetails}";
+
+                            <tr data-audit-row
+                                data-category="@category"
+                                data-created="@log.CreatedAt.ToString("O")"
+                                data-search="@searchText.ToLowerInvariant()"
+                                class="@(isSecurityEvent
+                                    ? "audit-security-row"
+                                    : "")">
+
+                                <!-- DATE -->
+                                <td class="audit-date">
+
+                                    <span class="audit-date-main">
+
+                                        @log.CreatedAt.ToString(
+                                            "dd MMM yyyy")
+
+                                    </span>
+
+                                    <span class="audit-date-time">
+
+                                        @log.CreatedAt.ToString(
+                                            "hh:mm:ss tt")
+
+                                    </span>
+
+                                </td>
+
+                                <!-- USER -->
+                                <td>
+
+                                    <div class="audit-user">
+
+                                        <div class="audit-avatar">
+                                            @avatarText
+                                        </div>
+
+                                        <div>
+
+                                            <div class="audit-user-name">
+                                                @userName
+                                            </div>
+
+                                            <div class="audit-user-description">
+                                                Recorded system activity
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <!-- ACTION -->
+                                <td>
+
+                                    <span class="audit-badge
+                                        @badgeClass">
+
+                                        @action
+
+                                    </span>
+
+                                </td>
+
+                                <!-- RESOURCE -->
+                                <td>
+
+                                    <span class="audit-resource">
+
+                                        @(string.IsNullOrWhiteSpace(
+                                            log.TableName)
+                                            ? "system"
+                                            : log.TableName)
+
+                                    </span>
+
+                                    <span class="audit-record">
+
+                                        @(string.IsNullOrWhiteSpace(
+                                            log.RecordId)
+                                            ? "Record: —"
+                                            : $"Record: {log.RecordId}")
+
+                                    </span>
+
+                                </td>
+
+                                <!-- IP ADDRESS -->
+                                <td>
+
+                                    <span class="audit-ip">
+
+                                        @(string.IsNullOrWhiteSpace(
+                                            log.IpAddress)
+                                            ? "Unknown"
+                                            : log.IpAddress)
+
+                                    </span>
+
+                                </td>
+
+                                <!-- DETAILS -->
+                                <td>
+
+                                    <div class="audit-details">
+
+                                        @(string.IsNullOrWhiteSpace(
+                                            log.ActionDetails)
+                                            ? "No additional event details."
+                                            : log.ActionDetails)
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
+                    <!-- FILTER EMPTY RESULT -->
+                    <tr id="clientEmptyRow"
+                        style="display: none;">
+
+                        <td colspan="6"
+                            class="audit-empty">
+
+                            <div class="audit-empty-icon">
+                                ?
+                            </div>
+
+                            <h5 class="fw-bold">
+                                No matching audit events
+                            </h5>
+
+                            <p class="text-muted mb-0">
+                                Change the search text,
+                                category or date range.
+                            </p>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const searchInput =
+                document.getElementById(
+                    "auditSearch");
+
+            const categoryFilter =
+                document.getElementById(
+                    "auditCategory");
+
+            const periodFilter =
+                document.getElementById(
+                    "auditPeriod");
+
+            const resultCount =
+                document.getElementById(
+                    "auditResultCount");
+
+            const emptyRow =
+                document.getElementById(
+                    "clientEmptyRow");
+
+            const rows = Array.from(
+                document.querySelectorAll(
+                    "[data-audit-row]"));
+
+            function matchesPeriod(
+                row,
+                period) {
+
+                if (period === "all") {
+                    return true;
+                }
+
+                const created =
+                    new Date(
+                        row.dataset.created);
+
+                const now =
+                    new Date();
+
+                if (period === "today") {
+                    return (
+                        created.getFullYear() ===
+                        now.getFullYear() &&
+                        created.getMonth() ===
+                        now.getMonth() &&
+                        created.getDate() ===
+                        now.getDate()
+                    );
+                }
+
+                const hours =
+                    Number(period) * 24;
+
+                const minimumDate =
+                    new Date(
+                        now.getTime() -
+                        hours *
+                        60 *
+                        60 *
+                        1000);
+
+                return created >=
+                    minimumDate;
+            }
+
+            function filterAuditLogs() {
+                const searchValue =
+                    searchInput.value
+                        .trim()
+                        .toLowerCase();
+
+                const selectedCategory =
+                    categoryFilter.value;
+
+                const selectedPeriod =
+                    periodFilter.value;
+
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const matchesSearch =
+                        !searchValue ||
+                        row.dataset.search.includes(
+                            searchValue);
+
+                    const matchesCategory =
+                        selectedCategory === "all" ||
+                        row.dataset.category ===
+                        selectedCategory;
+
+                    const periodMatched =
+                        matchesPeriod(
+                            row,
+                            selectedPeriod);
+
+                    const shouldDisplay =
+                        matchesSearch &&
+                        matchesCategory &&
+                        periodMatched;
+
+                    row.style.display =
+                        shouldDisplay
+                            ? ""
+                            : "none";
+
+                    if (shouldDisplay) {
+                        visibleCount++;
+                    }
+                });
+
+                resultCount.textContent =
+                    `${visibleCount} record(s)`;
+
+                if (emptyRow) {
+                    emptyRow.style.display =
+                        rows.length > 0 &&
+                            visibleCount === 0
+                            ? ""
+                            : "none";
+                }
+            }
+
+            searchInput.addEventListener(
+                "input",
+                filterAuditLogs);
+
+            categoryFilter.addEventListener(
+                "change",
+                filterAuditLogs);
+
+            periodFilter.addEventListener(
+                "change",
+                filterAuditLogs);
+        })();
+    </script>
+}

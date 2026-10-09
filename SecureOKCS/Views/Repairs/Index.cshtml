@@ -1,0 +1,1071 @@
+﻿@model IEnumerable<SecureOKCS.ViewModels.RepairDisplayViewModel>
+
+@{
+    ViewData["Title"] = "Repair Management";
+
+    var repairList =
+        Model?.ToList()
+        ?? new List<
+            SecureOKCS.ViewModels.RepairDisplayViewModel>();
+
+    int activeCount =
+        repairList.Count(repair =>
+            repair.RepairStatus != "Collected" &&
+            repair.RepairStatus != "Cancelled");
+
+    int readyCount =
+        repairList.Count(repair =>
+            repair.RepairStatus ==
+                "Ready For Pickup");
+
+    int completedCount =
+        repairList.Count(repair =>
+            repair.RepairStatus ==
+                "Collected");
+
+    string GetStatusClass(string? status)
+    {
+        return status?.Trim().ToLowerInvariant() switch
+        {
+            "received" => "repair-status-received",
+            "inspecting" => "repair-status-inspecting",
+            "waiting for parts" => "repair-status-waiting",
+            "repairing" => "repair-status-repairing",
+            "quality check" => "repair-status-quality",
+            "ready for pickup" => "repair-status-ready",
+            "collected" => "repair-status-collected",
+            "cancelled" => "repair-status-cancelled",
+            _ => "repair-status-default"
+        };
+    }
+}
+
+<style>
+    .repair-list-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 42px 0 75px;
+    }
+
+        .repair-list-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 12% 15%, rgba(34, 197, 94, 0.07), transparent 27%), radial-gradient( circle at 90% 78%, rgba(0, 229, 255, 0.07), transparent 28%);
+        }
+
+    .repair-list-header {
+        position: relative;
+        margin-bottom: 25px;
+        padding: 32px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 19px;
+        background: linear-gradient( 125deg, rgba(13, 23, 38, 0.97), rgba(10, 50, 48, 0.88));
+        box-shadow: 0 21px 55px rgba(0, 0, 0, 0.24);
+    }
+
+        .repair-list-header::after {
+            position: absolute;
+            width: 270px;
+            height: 270px;
+            top: -160px;
+            right: -70px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(34, 197, 94, 0.14);
+            filter: blur(52px);
+        }
+
+    .repair-header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .repair-eyebrow {
+        margin-bottom: 9px;
+        color: #5eead4;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .repair-page-title {
+        margin-bottom: 9px;
+        color: #f8fafc;
+        font-size: clamp(1.9rem, 4vw, 2.8rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+    }
+
+    .repair-page-description {
+        max-width: 650px;
+        margin: 0;
+        color: #8fa0b7;
+        font-size: 0.88rem;
+        line-height: 1.7;
+    }
+
+    .repair-header-action {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .new-repair-button {
+        display: inline-flex;
+        min-height: 46px;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        padding: 0 18px;
+        color: #03140f;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-decoration: none;
+        border: 1px solid #34d399;
+        border-radius: 9px;
+        background: linear-gradient( 135deg, #34d399, #22d3ee);
+        box-shadow: 0 0 25px rgba(34, 197, 94, 0.14);
+    }
+
+        .new-repair-button:hover {
+            color: #03140f;
+            box-shadow: 0 0 33px rgba(34, 197, 94, 0.26);
+        }
+
+    .repair-summary {
+        margin-bottom: 25px;
+    }
+
+    .repair-summary-card {
+        --summary-colour: #00e5ff;
+        display: flex;
+        height: 100%;
+        align-items: center;
+        gap: 14px;
+        padding: 18px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 14px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.88), rgba(7, 14, 25, 0.94));
+    }
+
+    .summary-active {
+        --summary-colour: #22d3ee;
+    }
+
+    .summary-ready {
+        --summary-colour: #22c55e;
+    }
+
+    .summary-completed {
+        --summary-colour: #a78bfa;
+    }
+
+    .repair-summary-icon {
+        display: grid;
+        width: 43px;
+        height: 43px;
+        flex: 0 0 43px;
+        place-items: center;
+        color: var(--summary-colour);
+        font-family: monospace;
+        font-size: 0.66rem;
+        font-weight: 900;
+        border: 1px solid color-mix( in srgb, var(--summary-colour) 27%, transparent);
+        border-radius: 10px;
+        background: color-mix( in srgb, var(--summary-colour) 7%, transparent);
+    }
+
+    .repair-summary-label {
+        margin-bottom: 3px;
+        color: #64748b;
+        font-size: 0.64rem;
+        font-weight: 800;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+    }
+
+    .repair-summary-value {
+        color: #e2e8f0;
+        font-size: 1.04rem;
+        font-weight: 800;
+    }
+
+    .repair-toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 230px auto;
+        gap: 12px;
+        margin-bottom: 17px;
+        padding: 15px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 13px;
+        background: rgba(13, 23, 38, 0.76);
+    }
+
+    .repair-search {
+        position: relative;
+    }
+
+    .repair-search-label {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 13px;
+        color: #5eead4;
+        font-family: monospace;
+        font-size: 0.65rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+    }
+
+    .repair-search-input {
+        min-height: 44px;
+        padding-left: 54px;
+        color: #f8fafc !important;
+        border: 1px solid #27364b;
+        border-radius: 9px;
+        background: rgba(5, 11, 20, 0.68) !important;
+    }
+
+        .repair-search-input::placeholder {
+            color: #64748b;
+        }
+
+        .repair-search-input:focus,
+        .repair-filter:focus {
+            border-color: #34d399;
+            box-shadow: 0 0 0 0.2rem rgba(34, 197, 94, 0.09);
+        }
+
+    .repair-filter {
+        min-height: 44px;
+        color: #cbd5e1;
+        border: 1px solid #27364b;
+        border-radius: 9px;
+        background-color: #0b1422;
+    }
+
+    .repair-result-count {
+        display: flex;
+        align-items: center;
+        color: #718096;
+        font-family: monospace;
+        font-size: 0.7rem;
+        white-space: nowrap;
+    }
+
+    .repair-table-card {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 16px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.94), rgba(7, 14, 25, 0.97));
+        box-shadow: 0 20px 52px rgba(0, 0, 0, 0.2);
+    }
+
+    .repair-table {
+        min-width: 1180px;
+        margin: 0;
+        color: #cbd5e1;
+    }
+
+        .repair-table thead th {
+            padding: 15px;
+            color: #8494aa;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.07em;
+            white-space: nowrap;
+            text-transform: uppercase;
+            border-color: rgba(148, 163, 184, 0.1);
+            background: rgba(5, 11, 20, 0.73);
+        }
+
+        .repair-table tbody td {
+            padding: 16px 15px;
+            color: #aebdce;
+            font-size: 0.78rem;
+            vertical-align: middle;
+            border-color: rgba(148, 163, 184, 0.08);
+            background: transparent;
+        }
+
+        .repair-table tbody tr {
+            transition: background-color 0.18s ease;
+        }
+
+            .repair-table tbody tr:hover {
+                background: rgba(34, 197, 94, 0.025);
+            }
+
+    .repair-ticket {
+        color: #67e8f9;
+        font-family: monospace;
+        font-size: 0.74rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .repair-customer {
+        color: #e2e8f0;
+        font-weight: 750;
+    }
+
+    .repair-device {
+        color: #cbd5e1;
+        font-weight: 700;
+    }
+
+    .repair-model {
+        margin-top: 3px;
+        color: #64748b;
+        font-size: 0.7rem;
+    }
+
+    .repair-technician {
+        color: #a5b4c7;
+    }
+
+    .repair-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 9px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        text-transform: uppercase;
+        border: 1px solid;
+        border-radius: 7px;
+    }
+
+        .repair-status::before {
+            width: 6px;
+            height: 6px;
+            content: "";
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+    .repair-status-received {
+        color: #7dd3fc;
+        border-color: rgba(56, 189, 248, 0.25);
+        background: rgba(56, 189, 248, 0.07);
+    }
+
+    .repair-status-inspecting {
+        color: #c4b5fd;
+        border-color: rgba(167, 139, 250, 0.25);
+        background: rgba(139, 92, 246, 0.07);
+    }
+
+    .repair-status-waiting {
+        color: #fde68a;
+        border-color: rgba(250, 204, 21, 0.25);
+        background: rgba(250, 204, 21, 0.07);
+    }
+
+    .repair-status-repairing {
+        color: #67e8f9;
+        border-color: rgba(0, 229, 255, 0.27);
+        background: rgba(0, 229, 255, 0.07);
+    }
+
+    .repair-status-quality {
+        color: #93c5fd;
+        border-color: rgba(96, 165, 250, 0.25);
+        background: rgba(37, 99, 235, 0.07);
+    }
+
+    .repair-status-ready,
+    .repair-status-collected {
+        color: #86efac;
+        border-color: rgba(34, 197, 94, 0.25);
+        background: rgba(34, 197, 94, 0.07);
+    }
+
+    .repair-status-cancelled {
+        color: #fda4af;
+        border-color: rgba(244, 63, 94, 0.25);
+        background: rgba(244, 63, 94, 0.07);
+    }
+
+    .repair-status-default {
+        color: #cbd5e1;
+        border-color: rgba(148, 163, 184, 0.22);
+        background: rgba(148, 163, 184, 0.06);
+    }
+
+    .repair-cost {
+        color: #86efac;
+        font-family: monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+        .repair-cost.pending {
+            color: #64748b;
+        }
+
+    .repair-date {
+        color: #8291a7;
+        font-family: monospace;
+        font-size: 0.69rem;
+        white-space: nowrap;
+    }
+
+    .repair-actions {
+        display: flex;
+        justify-content: center;
+        gap: 7px;
+    }
+
+    .repair-view-button,
+    .repair-update-button {
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 10px;
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 7px;
+    }
+
+    .repair-view-button {
+        color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(15, 23, 42, 0.64);
+    }
+
+        .repair-view-button:hover {
+            color: #67e8f9;
+            border-color: rgba(0, 229, 255, 0.3);
+        }
+
+    .repair-update-button {
+        color: #86efac;
+        border: 1px solid rgba(34, 197, 94, 0.23);
+        background: rgba(34, 197, 94, 0.06);
+    }
+
+        .repair-update-button:hover {
+            color: #bbf7d0;
+            border-color: rgba(34, 197, 94, 0.4);
+        }
+
+    .repair-empty {
+        padding: 65px 20px !important;
+        text-align: center;
+    }
+
+    .repair-empty-icon {
+        display: grid;
+        width: 54px;
+        height: 54px;
+        margin: 0 auto 15px;
+        place-items: center;
+        color: #64748b;
+        font-family: monospace;
+        font-weight: 900;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.55);
+    }
+
+    .repair-empty-title {
+        margin-bottom: 6px;
+        color: #cbd5e1;
+        font-weight: 800;
+    }
+
+    .repair-empty-text {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.78rem;
+    }
+
+    @@media (max-width: 991px) {
+        .repair-header-action {
+            justify-content: flex-start;
+            margin-top: 21px;
+        }
+
+        .repair-toolbar {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .repair-list-page {
+            padding: 27px 0 60px;
+        }
+
+        .repair-list-header {
+            padding: 26px 21px;
+        }
+
+        .new-repair-button {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="repair-list-page">
+
+    <div class="container">
+
+        <!-- PAGE HEADER -->
+        <header class="repair-list-header">
+
+            <div class="repair-header-content">
+
+                <div class="row align-items-center">
+
+                    <div class="col-lg-8">
+
+                        <div class="repair-eyebrow">
+                            Operations / Repair Tickets
+                        </div>
+
+                        <h1 class="repair-page-title">
+                            Repair Management
+                        </h1>
+
+                        <p class="repair-page-description">
+
+                            Register repair tickets, assign
+                            technicians and monitor every device
+                            through the complete repair workflow.
+
+                        </p>
+
+                    </div>
+
+                    <div class="col-lg-4">
+
+                        <div class="repair-header-action">
+
+                            <a asp-controller="Repairs"
+                               asp-action="Create"
+                               class="new-repair-button">
+
+                                <span aria-hidden="true">＋</span>
+                                Create Repair Ticket
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success
+                alert-dismissible fade show">
+
+                @TempData["Success"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+
+            </div>
+        }
+
+        <!-- REPAIR SUMMARY -->
+        <div class="row g-3 repair-summary">
+
+            <div class="col-6 col-xl-3">
+
+                <div class="repair-summary-card">
+
+                    <div class="repair-summary-icon">
+                        ALL
+                    </div>
+
+                    <div>
+
+                        <div class="repair-summary-label">
+                            Total Tickets
+                        </div>
+
+                        <div class="repair-summary-value">
+                            @repairList.Count
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="repair-summary-card
+                    summary-active">
+
+                    <div class="repair-summary-icon">
+                        RUN
+                    </div>
+
+                    <div>
+
+                        <div class="repair-summary-label">
+                            Active Repairs
+                        </div>
+
+                        <div class="repair-summary-value">
+                            @activeCount
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="repair-summary-card
+                    summary-ready">
+
+                    <div class="repair-summary-icon">
+                        RDY
+                    </div>
+
+                    <div>
+
+                        <div class="repair-summary-label">
+                            Ready for Pickup
+                        </div>
+
+                        <div class="repair-summary-value">
+                            @readyCount
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="repair-summary-card
+                    summary-completed">
+
+                    <div class="repair-summary-icon">
+                        END
+                    </div>
+
+                    <div>
+
+                        <div class="repair-summary-label">
+                            Collected
+                        </div>
+
+                        <div class="repair-summary-value">
+                            @completedCount
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- FILTER TOOLBAR -->
+        <div class="repair-toolbar">
+
+            <div class="repair-search">
+
+                <span class="repair-search-label">
+                    FIND
+                </span>
+
+                <input type="search"
+                       id="repairSearch"
+                       class="form-control
+                repair-search-input"
+                       placeholder="Search ticket, customer, device or technician"
+                       autocomplete="off"
+                       aria-label="Search repairs" />
+
+            </div>
+
+            <select id="repairStatusFilter"
+                    class="form-select repair-filter"
+                    aria-label="Filter repair status">
+
+                <option value="">
+                    All Repair Statuses
+                </option>
+
+                <option value="received">
+                    Received
+                </option>
+
+                <option value="inspecting">
+                    Inspecting
+                </option>
+
+                <option value="waiting for parts">
+                    Waiting For Parts
+                </option>
+
+                <option value="repairing">
+                    Repairing
+                </option>
+
+                <option value="quality check">
+                    Quality Check
+                </option>
+
+                <option value="ready for pickup">
+                    Ready For Pickup
+                </option>
+
+                <option value="collected">
+                    Collected
+                </option>
+
+                <option value="cancelled">
+                    Cancelled
+                </option>
+
+            </select>
+
+            <div class="repair-result-count"
+                 id="repairResultCount">
+
+                Showing @repairList.Count ticket(s)
+
+            </div>
+
+        </div>
+
+        <!-- REPAIR TABLE -->
+        <div class="repair-table-card">
+
+            <div class="table-responsive">
+
+                <table class="table repair-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Ticket Number</th>
+                            <th>Customer</th>
+                            <th>Device</th>
+                            <th>Technician</th>
+                            <th>Status</th>
+                            <th>Final Cost</th>
+                            <th>Received Date</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @if (!repairList.Any())
+                        {
+                            <tr>
+
+                                <td colspan="8"
+                                    class="repair-empty">
+
+                                    <div class="repair-empty-icon">
+                                        RPR
+                                    </div>
+
+                                    <div class="repair-empty-title">
+                                        No repair tickets found
+                                    </div>
+
+                                    <p class="repair-empty-text">
+                                        Create a repair ticket to
+                                        begin tracking a customer device.
+                                    </p>
+
+                                </td>
+
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var repair
+                                in repairList)
+                            {
+                                string searchableContent =
+                                    string.Join(
+                                        " ",
+                                        repair.TicketNumber,
+                                        repair.CustomerName,
+                                        repair.DeviceType,
+                                        repair.BrandModel,
+                                        repair.TechnicianName)
+                                    .ToLowerInvariant();
+
+                                string normalizedRepairStatus =
+                                    repair.RepairStatus
+                                        .Trim()
+                                        .ToLowerInvariant();
+
+                                <tr data-repair-row
+                                    data-search="@searchableContent"
+                                    data-status="@normalizedRepairStatus">
+
+                                    <td>
+
+                                        <span class="repair-ticket">
+                                            @repair.TicketNumber
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="repair-customer">
+                                            @repair.CustomerName
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="repair-device">
+                                            @repair.DeviceType
+                                        </div>
+
+                                        <div class="repair-model">
+                                            @repair.BrandModel
+                                        </div>
+
+                                    </td>
+
+                                    <td class="repair-technician">
+                                        @repair.TechnicianName
+                                    </td>
+
+                                    <td>
+
+                                        <span class="repair-status
+                                            @GetStatusClass(
+                                                repair.RepairStatus)">
+
+                                            @repair.RepairStatus
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (repair.FinalCost > 0)
+                                        {
+                                            <span class="repair-cost">
+
+                                                @($"RM {repair.FinalCost:N2}")
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="repair-cost
+                                                pending">
+
+                                                Pending
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="repair-date">
+
+                                            @repair.ReceivedAt.ToString(
+                                                "dd MMM yyyy")
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="repair-actions">
+
+                                            <a asp-controller="Repairs"
+                                               asp-action="Details"
+                                               asp-route-id="@repair.RepairId"
+                                               class="repair-view-button">
+
+                                                Details
+
+                                            </a>
+
+                                            <a asp-controller="Repairs"
+                                               asp-action="UpdateStatus"
+                                               asp-route-id="@repair.RepairId"
+                                               class="repair-update-button">
+
+                                                Update
+
+                                            </a>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+                        <tr id="noRepairResults"
+                            style="display: none;">
+
+                            <td colspan="8"
+                                class="repair-empty">
+
+                                <div class="repair-empty-icon">
+                                    404
+                                </div>
+
+                                <div class="repair-empty-title">
+                                    No matching repair found
+                                </div>
+
+                                <p class="repair-empty-text">
+                                    Change the search text or
+                                    select another repair status.
+                                </p>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <script>
+        (() => {
+            const searchInput =
+                document.getElementById(
+                    "repairSearch");
+
+            const statusFilter =
+                document.getElementById(
+                    "repairStatusFilter");
+
+            const resultCount =
+                document.getElementById(
+                    "repairResultCount");
+
+            const noResultsRow =
+                document.getElementById(
+                    "noRepairResults");
+
+            const repairRows =
+                Array.from(
+                    document.querySelectorAll(
+                        "[data-repair-row]"));
+
+            if (!searchInput ||
+                !statusFilter ||
+                !resultCount) {
+                return;
+            }
+
+            function filterRepairs() {
+                const searchValue =
+                    searchInput.value
+                        .trim()
+                        .toLowerCase();
+
+                const statusValue =
+                    statusFilter.value
+                        .trim()
+                        .toLowerCase();
+
+                let visibleCount = 0;
+
+                repairRows.forEach(row => {
+                    const searchableContent =
+                        row.dataset.search ?? "";
+
+                    const repairStatus =
+                        row.dataset.status ?? "";
+
+                    const matchesSearch =
+                        searchableContent.includes(
+                            searchValue);
+
+                    const matchesStatus =
+                        !statusValue ||
+                        repairStatus === statusValue;
+
+                    const shouldDisplay =
+                        matchesSearch &&
+                        matchesStatus;
+
+                    row.style.display =
+                        shouldDisplay
+                            ? ""
+                            : "none";
+
+                    if (shouldDisplay) {
+                        visibleCount++;
+                    }
+                });
+
+                resultCount.textContent =
+                    `Showing ${visibleCount} ticket(s)`;
+
+                if (noResultsRow) {
+                    noResultsRow.style.display =
+                        repairRows.length > 0 &&
+                            visibleCount === 0
+                            ? ""
+                            : "none";
+                }
+            }
+
+            searchInput.addEventListener(
+                "input",
+                filterRepairs);
+
+            statusFilter.addEventListener(
+                "change",
+                filterRepairs);
+        })();
+    </script>
+}

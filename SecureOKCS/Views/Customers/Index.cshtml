@@ -1,0 +1,819 @@
+﻿@model IEnumerable<SecureOKCS.ViewModels.CustomerDisplayViewModel>
+
+@{
+    ViewData["Title"] = "Customer Management";
+
+    var customerList =
+        Model?.ToList()
+        ?? new List<
+            SecureOKCS.ViewModels.CustomerDisplayViewModel>();
+
+    bool isAdmin =
+        User.IsInRole("Admin");
+}
+
+<style>
+    .customer-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 42px 0 75px;
+    }
+
+        .customer-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 12% 15%, rgba(0, 229, 255, 0.08), transparent 27%), radial-gradient( circle at 90% 78%, rgba(37, 99, 235, 0.07), transparent 28%);
+        }
+
+    .customer-header {
+        position: relative;
+        margin-bottom: 25px;
+        padding: 32px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 19px;
+        background: linear-gradient( 125deg, rgba(13, 23, 38, 0.97), rgba(12, 38, 65, 0.91));
+        box-shadow: 0 21px 55px rgba(0, 0, 0, 0.24);
+    }
+
+        .customer-header::after {
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            top: -160px;
+            right: -70px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.15);
+            filter: blur(52px);
+        }
+
+    .customer-header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .customer-eyebrow {
+        margin-bottom: 9px;
+        color: #00e5ff;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .customer-title {
+        margin-bottom: 9px;
+        color: #f8fafc;
+        font-size: clamp(1.9rem, 4vw, 2.8rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+    }
+
+    .customer-description {
+        max-width: 650px;
+        margin: 0;
+        color: #8fa0b7;
+        font-size: 0.88rem;
+        line-height: 1.7;
+    }
+
+    .customer-header-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .customer-add-button {
+        display: inline-flex;
+        min-height: 46px;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        padding: 0 18px;
+        color: #031019;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-decoration: none;
+        border: 1px solid #00e5ff;
+        border-radius: 9px;
+        background: linear-gradient( 135deg, #00e5ff, #60a5fa);
+        box-shadow: 0 0 25px rgba(0, 229, 255, 0.15);
+    }
+
+        .customer-add-button:hover {
+            color: #031019;
+            box-shadow: 0 0 32px rgba(0, 229, 255, 0.27);
+        }
+
+    .customer-stat-row {
+        margin-bottom: 25px;
+    }
+
+    .customer-stat-card {
+        display: flex;
+        height: 100%;
+        align-items: center;
+        gap: 15px;
+        padding: 19px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 14px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.88), rgba(7, 14, 25, 0.94));
+    }
+
+    .customer-stat-icon {
+        display: grid;
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+        place-items: center;
+        color: #00e5ff;
+        font-family: monospace;
+        font-size: 0.7rem;
+        font-weight: 900;
+        border: 1px solid rgba(0, 229, 255, 0.25);
+        border-radius: 11px;
+        background: rgba(0, 229, 255, 0.07);
+    }
+
+    .customer-stat-label {
+        margin-bottom: 3px;
+        color: #64748b;
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+    }
+
+    .customer-stat-value {
+        color: #e2e8f0;
+        font-size: 1.03rem;
+        font-weight: 800;
+    }
+
+    .customer-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 17px;
+        margin-bottom: 17px;
+        padding: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 13px;
+        background: rgba(13, 23, 38, 0.76);
+    }
+
+    .customer-search {
+        position: relative;
+        width: min(100%, 480px);
+    }
+
+    .customer-search-icon {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 14px;
+        color: #00e5ff;
+        font-family: monospace;
+        font-size: 0.68rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+    }
+
+    .customer-search-input {
+        min-height: 44px;
+        padding-left: 55px;
+        color: #f8fafc !important;
+        border: 1px solid #27364b;
+        border-radius: 9px;
+        background: rgba(5, 11, 20, 0.68) !important;
+    }
+
+        .customer-search-input::placeholder {
+            color: #64748b;
+        }
+
+        .customer-search-input:focus {
+            border-color: #00e5ff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 229, 255, 0.1);
+        }
+
+    .customer-result-count {
+        color: #718096;
+        font-family: monospace;
+        font-size: 0.72rem;
+        white-space: nowrap;
+    }
+
+    .customer-table-card {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 16px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.94), rgba(7, 14, 25, 0.97));
+        box-shadow: 0 20px 52px rgba(0, 0, 0, 0.2);
+    }
+
+    .customer-table {
+        min-width: 980px;
+        color: #cbd5e1;
+        margin: 0;
+    }
+
+        .customer-table thead th {
+            padding: 15px;
+            color: #8494aa;
+            font-size: 0.67rem;
+            font-weight: 800;
+            letter-spacing: 0.07em;
+            white-space: nowrap;
+            text-transform: uppercase;
+            border-color: rgba(148, 163, 184, 0.1);
+            background: rgba(5, 11, 20, 0.73);
+        }
+
+        .customer-table tbody td {
+            padding: 16px 15px;
+            color: #aebdce;
+            font-size: 0.8rem;
+            vertical-align: middle;
+            border-color: rgba(148, 163, 184, 0.08);
+            background: transparent;
+        }
+
+        .customer-table tbody tr {
+            transition: background-color 0.18s ease;
+        }
+
+            .customer-table tbody tr:hover {
+                background: rgba(0, 229, 255, 0.035);
+            }
+
+    .customer-identity {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .customer-avatar {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        place-items: center;
+        color: #67e8f9;
+        font-size: 0.74rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        border: 1px solid rgba(0, 229, 255, 0.22);
+        border-radius: 10px;
+        background: rgba(0, 229, 255, 0.06);
+    }
+
+    .customer-name {
+        color: #e2e8f0;
+        font-weight: 750;
+    }
+
+    .customer-id {
+        margin-top: 3px;
+        color: #58677d;
+        font-family: monospace;
+        font-size: 0.68rem;
+    }
+
+    .customer-email {
+        color: #93c5fd;
+    }
+
+    .tracking-code {
+        display: inline-block;
+        padding: 6px 8px;
+        color: #67e8f9;
+        font-family: monospace;
+        font-size: 0.7rem;
+        font-weight: 700;
+        border: 1px solid rgba(0, 229, 255, 0.17);
+        border-radius: 7px;
+        background: rgba(0, 229, 255, 0.045);
+    }
+
+    .customer-date {
+        color: #8291a7;
+        font-family: monospace;
+        font-size: 0.7rem;
+        white-space: nowrap;
+    }
+
+    .customer-details-button {
+        display: inline-flex;
+        min-height: 35px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 11px;
+        color: #dbe7f5;
+        font-size: 0.71rem;
+        font-weight: 800;
+        text-decoration: none;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 8px;
+        background: rgba(15, 23, 42, 0.65);
+    }
+
+        .customer-details-button:hover {
+            color: #67e8f9;
+            border-color: rgba(0, 229, 255, 0.32);
+            background: rgba(0, 229, 255, 0.05);
+        }
+
+    .customer-empty {
+        padding: 65px 20px !important;
+        text-align: center;
+    }
+
+    .customer-empty-icon {
+        display: grid;
+        width: 54px;
+        height: 54px;
+        margin: 0 auto 15px;
+        place-items: center;
+        color: #64748b;
+        font-family: monospace;
+        font-weight: 900;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.55);
+    }
+
+    .customer-empty-title {
+        margin-bottom: 6px;
+        color: #cbd5e1;
+        font-weight: 800;
+    }
+
+    .customer-empty-text {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.79rem;
+    }
+
+    @@media (max-width: 991px) {
+        .customer-header-actions {
+            justify-content: flex-start;
+            margin-top: 22px;
+        }
+
+        .customer-toolbar {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .customer-search {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .customer-page {
+            padding: 27px 0 60px;
+        }
+
+        .customer-header {
+            padding: 26px 21px;
+        }
+
+        .customer-add-button {
+            width: 100%;
+        }
+
+        .customer-result-count {
+            white-space: normal;
+        }
+    }
+</style>
+
+<section class="customer-page">
+
+    <div class="container">
+
+        <!-- PAGE HEADER -->
+        <header class="customer-header">
+
+            <div class="customer-header-content">
+
+                <div class="row align-items-center">
+
+                    <div class="col-lg-8">
+
+                        <div class="customer-eyebrow">
+                            Operations / Customer Records
+                        </div>
+
+                        <h1 class="customer-title">
+                            Customer Management
+                        </h1>
+
+                        <p class="customer-description">
+
+                            Register customers, review protected
+                            contact information and access the
+                            tracking code assigned to each record.
+
+                        </p>
+
+                    </div>
+
+                    <div class="col-lg-4">
+
+                        <div class="customer-header-actions">
+
+                            <a asp-controller="Customers"
+                               asp-action="Create"
+                               class="customer-add-button">
+
+                                <span aria-hidden="true">＋</span>
+                                Add New Customer
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success
+                alert-dismissible fade show">
+
+                @TempData["Success"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+
+            </div>
+        }
+
+        <!-- SUMMARY -->
+        <div class="row g-3 customer-stat-row">
+
+            <div class="col-md-4">
+
+                <div class="customer-stat-card">
+
+                    <div class="customer-stat-icon">
+                        CST
+                    </div>
+
+                    <div>
+
+                        <div class="customer-stat-label">
+                            Customer Records
+                        </div>
+
+                        <div class="customer-stat-value">
+                            @customerList.Count
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-4">
+
+                <div class="customer-stat-card">
+
+                    <div class="customer-stat-icon">
+                        SEC
+                    </div>
+
+                    <div>
+
+                        <div class="customer-stat-label">
+                            Data Protection
+                        </div>
+
+                        <div class="customer-stat-value">
+                            Encrypted
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-4">
+
+                <div class="customer-stat-card">
+
+                    <div class="customer-stat-icon">
+                        ACL
+                    </div>
+
+                    <div>
+
+                        <div class="customer-stat-label">
+                            Current Access
+                        </div>
+
+                        <div class="customer-stat-value">
+
+                            @(isAdmin
+                                ? "Full Access"
+                                : "Masked Access")
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SEARCH TOOLBAR -->
+        <div class="customer-toolbar">
+
+            <div class="customer-search">
+
+                <span class="customer-search-icon">
+                    FIND
+                </span>
+
+                <input type="search"
+                       id="customerSearch"
+                       class="form-control
+                customer-search-input"
+                       placeholder="Search by customer, email, phone or tracking code"
+                       autocomplete="off"
+                       aria-label="Search customers" />
+
+            </div>
+
+            <div class="customer-result-count"
+                 id="customerResultCount">
+
+                Showing @customerList.Count
+                customer record(s)
+
+            </div>
+
+        </div>
+
+        <!-- CUSTOMER TABLE -->
+        <div class="customer-table-card">
+
+            <div class="table-responsive">
+
+                <table class="table customer-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Customer</th>
+                            <th>Email Address</th>
+                            <th>Phone Number</th>
+                            <th>Tracking Code</th>
+                            <th>Registered Date</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="customerTableBody">
+
+                        @if (!customerList.Any())
+                        {
+                            <tr>
+
+                                <td colspan="6"
+                                    class="customer-empty">
+
+                                    <div class="customer-empty-icon">
+                                        CST
+                                    </div>
+
+                                    <div class="customer-empty-title">
+                                        No customer records found
+                                    </div>
+
+                                    <p class="customer-empty-text">
+                                        Add a customer to create the
+                                        first protected record.
+                                    </p>
+
+                                </td>
+
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var customer
+                                in customerList)
+                            {
+                                string customerInitial =
+                                    string.IsNullOrWhiteSpace(
+                                        customer.FullName)
+                                        ? "?"
+                                        : customer.FullName[..1];
+
+                                string searchableContent =
+                                    string.Join(
+                                        " ",
+                                        customer.FullName,
+                                        customer.Email,
+                                        customer.PhoneNumber,
+                                        customer.TrackingCode)
+                                    .ToLowerInvariant();
+
+                                <tr data-customer-row
+                                    data-search="@searchableContent">
+
+                                    <td>
+
+                                        <div class="customer-identity">
+
+                                            <div class="customer-avatar">
+                                                @customerInitial
+                                            </div>
+
+                                            <div>
+
+                                                <div class="customer-name">
+                                                    @customer.FullName
+                                                </div>
+
+                                                <div class="customer-id">
+
+                                                    Customer ID:
+                                                    @customer.CustomerId
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+                                    <td class="customer-email">
+                                        @customer.Email
+                                    </td>
+
+                                    <td>
+                                        @customer.PhoneNumber
+                                    </td>
+
+                                    <td>
+
+                                        <span class="tracking-code">
+                                            @customer.TrackingCode
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="customer-date">
+
+                                            @customer.CreatedAt.ToString(
+                                                "dd MMM yyyy")
+
+                                        </span>
+
+                                    </td>
+
+                                    <td class="text-center">
+
+                                        <a asp-controller="Customers"
+                                           asp-action="Details"
+                                           asp-route-id="@customer.CustomerId"
+                                           class="customer-details-button">
+
+                                            View Details
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+                        <tr id="noCustomerSearchResults"
+                            style="display: none;">
+
+                            <td colspan="6"
+                                class="customer-empty">
+
+                                <div class="customer-empty-icon">
+                                    404
+                                </div>
+
+                                <div class="customer-empty-title">
+                                    No matching customer found
+                                </div>
+
+                                <p class="customer-empty-text">
+                                    Try another name, email,
+                                    phone number or tracking code.
+                                </p>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <script>
+        (() => {
+            const searchInput =
+                document.getElementById(
+                    "customerSearch");
+
+            const customerRows =
+                Array.from(
+                    document.querySelectorAll(
+                        "[data-customer-row]"));
+
+            const resultCount =
+                document.getElementById(
+                    "customerResultCount");
+
+            const noResultsRow =
+                document.getElementById(
+                    "noCustomerSearchResults");
+
+            if (!searchInput ||
+                !resultCount) {
+                return;
+            }
+
+            searchInput.addEventListener(
+                "input",
+                () => {
+                    const searchValue =
+                        searchInput.value
+                            .trim()
+                            .toLowerCase();
+
+                    let visibleCount = 0;
+
+                    customerRows.forEach(row => {
+                        const searchableContent =
+                            row.dataset.search ?? "";
+
+                        const shouldDisplay =
+                            searchableContent.includes(
+                                searchValue);
+
+                        row.style.display =
+                            shouldDisplay
+                                ? ""
+                                : "none";
+
+                        if (shouldDisplay) {
+                            visibleCount++;
+                        }
+                    });
+
+                    resultCount.textContent =
+                        `Showing ${visibleCount} ` +
+                        `customer record(s)`;
+
+                    if (noResultsRow) {
+                        noResultsRow.style.display =
+                            customerRows.length > 0 &&
+                                visibleCount === 0
+                                ? ""
+                                : "none";
+                    }
+                });
+        })();
+    </script>
+}

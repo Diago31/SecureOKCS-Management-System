@@ -1,0 +1,1272 @@
+﻿@model SecureOKCS.ViewModels.RepairTrackingResultViewModel
+
+@{
+    ViewData["Title"] = "Repair Status";
+
+    string currentStatus =
+        Model.RepairStatus?.Trim() ?? "Unknown";
+
+    string normalizedStatus =
+        currentStatus.ToLowerInvariant();
+
+    string statusClass =
+        normalizedStatus switch
+        {
+            "received" => "status-received",
+            "inspecting" => "status-inspecting",
+            "waiting for parts" => "status-waiting",
+            "repairing" => "status-repairing",
+            "quality check" => "status-quality",
+            "ready for pickup" => "status-ready",
+            "collected" => "status-collected",
+            "cancelled" => "status-cancelled",
+            _ => "status-default"
+        };
+
+    int currentStage =
+        normalizedStatus switch
+        {
+            "received" => 1,
+            "inspecting" => 2,
+            "waiting for parts" => 2,
+            "repairing" => 3,
+            "quality check" => 4,
+            "ready for pickup" => 5,
+            "collected" => 5,
+            _ => 0
+        };
+
+    int progressPercentage =
+        currentStage switch
+        {
+            1 => 10,
+            2 => 30,
+            3 => 55,
+            4 => 78,
+            5 => 100,
+            _ => 0
+        };
+
+    string GetStageClass(int stage)
+    {
+        if (normalizedStatus == "cancelled")
+            return "stage-cancelled";
+
+        if (stage < currentStage)
+            return "stage-complete";
+
+        if (stage == currentStage)
+            return "stage-current";
+
+        return "stage-pending";
+    }
+
+    string GetHistoryClass(string? status)
+    {
+        return status?.Trim().ToLowerInvariant() switch
+        {
+            "received" => "history-received",
+            "inspecting" => "history-inspecting",
+            "waiting for parts" => "history-waiting",
+            "repairing" => "history-repairing",
+            "quality check" => "history-quality",
+            "ready for pickup" => "history-ready",
+            "collected" => "history-collected",
+            "cancelled" => "history-cancelled",
+            _ => "history-default"
+        };
+    }
+}
+
+<style>
+    .result-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 70px 0 90px;
+        overflow: hidden;
+    }
+
+        .result-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -3;
+            content: "";
+            background: radial-gradient( circle at 15% 20%, rgba(0, 229, 255, 0.12), transparent 31%), radial-gradient( circle at 88% 78%, rgba(139, 92, 246, 0.11), transparent 32%), #050b14;
+        }
+
+    .result-grid {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        opacity: 0.16;
+        background-image: linear-gradient( rgba(0, 229, 255, 0.11) 1px, transparent 1px), linear-gradient( 90deg, rgba(0, 229, 255, 0.11) 1px, transparent 1px);
+        background-size: 52px 52px;
+        mask-image: linear-gradient( to bottom, black, transparent 92%);
+    }
+
+    .result-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .result-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        font-size: 0.84rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .result-back:hover {
+            color: #67e8f9;
+        }
+
+    .live-sync {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 11px;
+        color: #86efac;
+        font-family: monospace;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+        border-radius: 999px;
+        background: rgba(34, 197, 94, 0.06);
+    }
+
+    .live-sync-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #22c55e;
+        box-shadow: 0 0 11px #22c55e;
+        animation: resultPulse 1.8s infinite;
+    }
+
+    .result-header {
+        position: relative;
+        margin-bottom: 25px;
+        padding: 36px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 21px;
+        background: linear-gradient( 135deg, rgba(13, 23, 38, 0.97), rgba(12, 31, 55, 0.93));
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.32);
+    }
+
+        .result-header::after {
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            top: -160px;
+            right: -100px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.14);
+            filter: blur(55px);
+        }
+
+    .result-header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .result-eyebrow {
+        margin-bottom: 11px;
+        color: #00e5ff;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+    }
+
+    .result-title {
+        margin-bottom: 9px;
+        color: #f8fafc;
+        font-size: clamp(2rem, 4vw, 3.25rem);
+        font-weight: 800;
+        letter-spacing: -0.045em;
+    }
+
+    .result-ticket {
+        margin: 0;
+        color: #8291a7;
+        font-family: monospace;
+        font-size: 0.86rem;
+    }
+
+    .current-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 11px 16px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border: 1px solid;
+        border-radius: 10px;
+    }
+
+        .current-status::before {
+            width: 8px;
+            height: 8px;
+            content: "";
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 12px currentColor;
+        }
+
+    .status-received {
+        color: #7dd3fc;
+        border-color: rgba(56, 189, 248, 0.28);
+        background: rgba(56, 189, 248, 0.08);
+    }
+
+    .status-inspecting {
+        color: #c4b5fd;
+        border-color: rgba(167, 139, 250, 0.28);
+        background: rgba(139, 92, 246, 0.08);
+    }
+
+    .status-waiting {
+        color: #fde68a;
+        border-color: rgba(250, 204, 21, 0.27);
+        background: rgba(250, 204, 21, 0.08);
+    }
+
+    .status-repairing {
+        color: #67e8f9;
+        border-color: rgba(0, 229, 255, 0.3);
+        background: rgba(0, 229, 255, 0.08);
+    }
+
+    .status-quality {
+        color: #93c5fd;
+        border-color: rgba(96, 165, 250, 0.28);
+        background: rgba(37, 99, 235, 0.08);
+    }
+
+    .status-ready,
+    .status-collected {
+        color: #86efac;
+        border-color: rgba(34, 197, 94, 0.28);
+        background: rgba(34, 197, 94, 0.08);
+    }
+
+    .status-cancelled {
+        color: #fda4af;
+        border-color: rgba(244, 63, 94, 0.28);
+        background: rgba(244, 63, 94, 0.08);
+    }
+
+    .status-default {
+        color: #cbd5e1;
+        border-color: rgba(148, 163, 184, 0.25);
+        background: rgba(148, 163, 184, 0.07);
+    }
+
+    .result-card {
+        height: 100%;
+        padding: 29px;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 17px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.94), rgba(7, 14, 25, 0.96));
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.19);
+    }
+
+    .result-card-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 25px;
+        color: #f8fafc;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+        .result-card-title::before {
+            width: 4px;
+            height: 18px;
+            content: "";
+            border-radius: 99px;
+            background: linear-gradient( to bottom, #00e5ff, #60a5fa);
+            box-shadow: 0 0 11px rgba(0, 229, 255, 0.35);
+        }
+
+    .device-information {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .information-item {
+        padding: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 11px;
+        background: rgba(15, 23, 42, 0.45);
+    }
+
+    .information-label {
+        display: block;
+        margin-bottom: 7px;
+        color: #64748b;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+    }
+
+    .information-value {
+        display: block;
+        overflow-wrap: anywhere;
+        color: #dbe7f5;
+        font-size: 0.89rem;
+        font-weight: 700;
+    }
+
+        .information-value.monospace {
+            color: #7dd3fc;
+            font-family: monospace;
+        }
+
+    .last-updated {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        margin-top: 18px;
+        padding: 14px;
+        color: #8291a7;
+        font-size: 0.76rem;
+        line-height: 1.55;
+        border: 1px solid rgba(0, 229, 255, 0.12);
+        border-radius: 10px;
+        background: rgba(0, 229, 255, 0.04);
+    }
+
+    .last-updated-icon {
+        display: grid;
+        width: 27px;
+        height: 27px;
+        flex: 0 0 27px;
+        place-items: center;
+        color: #67e8f9;
+        font-family: monospace;
+        font-size: 0.62rem;
+        font-weight: 900;
+        border: 1px solid rgba(0, 229, 255, 0.2);
+        border-radius: 7px;
+    }
+
+    .repair-progress {
+        position: relative;
+        display: grid;
+        gap: 17px;
+    }
+
+    .progress-line-background,
+    .progress-line-active {
+        position: absolute;
+        width: 2px;
+        top: 17px;
+        bottom: 17px;
+        left: 16px;
+        border-radius: 99px;
+    }
+
+    .progress-line-background {
+        background: #1e293b;
+    }
+
+    .progress-line-active {
+        height: calc( var(--repair-progress) * 1%);
+        max-height: calc(100% - 34px);
+        bottom: auto;
+        background: linear-gradient( to bottom, #00e5ff, #60a5fa);
+        box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+    }
+
+    .progress-stage {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        min-height: 46px;
+        grid-template-columns: 34px 1fr;
+        gap: 13px;
+        align-items: center;
+    }
+
+    .stage-marker {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        color: #64748b;
+        font-family: monospace;
+        font-size: 0.67rem;
+        font-weight: 900;
+        border: 1px solid #334155;
+        border-radius: 50%;
+        background: #111827;
+    }
+
+    .stage-complete .stage-marker {
+        color: #031019;
+        border-color: #00e5ff;
+        background: #00e5ff;
+        box-shadow: 0 0 14px rgba(0, 229, 255, 0.25);
+    }
+
+    .stage-current .stage-marker {
+        color: #031019;
+        border-color: #67e8f9;
+        background: linear-gradient( 135deg, #00e5ff, #60a5fa);
+        box-shadow: 0 0 19px rgba(0, 229, 255, 0.4);
+    }
+
+    .stage-cancelled .stage-marker {
+        color: #fda4af;
+        border-color: rgba(244, 63, 94, 0.35);
+        background: rgba(244, 63, 94, 0.09);
+    }
+
+    .stage-name {
+        margin-bottom: 3px;
+        color: #718096;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .stage-complete .stage-name,
+    .stage-current .stage-name {
+        color: #dbe7f5;
+    }
+
+    .stage-current .stage-name {
+        color: #67e8f9;
+    }
+
+    .stage-description {
+        margin: 0;
+        color: #58677d;
+        font-size: 0.71rem;
+    }
+
+    .history-card {
+        margin-top: 25px;
+        padding: 30px;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 18px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.94), rgba(7, 14, 25, 0.96));
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+    }
+
+    .history-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 27px;
+    }
+
+    .history-title {
+        margin: 0;
+        color: #f8fafc;
+        font-size: 1.08rem;
+        font-weight: 800;
+    }
+
+    .history-count {
+        padding: 5px 9px;
+        color: #7dd3fc;
+        font-family: monospace;
+        font-size: 0.68rem;
+        border: 1px solid rgba(0, 229, 255, 0.18);
+        border-radius: 7px;
+        background: rgba(0, 229, 255, 0.05);
+    }
+
+    .history-timeline {
+        position: relative;
+        display: grid;
+        gap: 20px;
+    }
+
+        .history-timeline::before {
+            position: absolute;
+            width: 1px;
+            top: 15px;
+            bottom: 15px;
+            left: 16px;
+            content: "";
+            background: linear-gradient( to bottom, rgba(0, 229, 255, 0.4), rgba(139, 92, 246, 0.14));
+        }
+
+    .history-entry {
+        position: relative;
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 15px;
+    }
+
+    .history-marker {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border: 1px solid;
+        border-radius: 50%;
+        background: #0b1422;
+    }
+
+        .history-marker::after {
+            width: 8px;
+            height: 8px;
+            content: "";
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+    .history-content {
+        padding: 15px 17px;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 11px;
+        background: rgba(15, 23, 42, 0.43);
+    }
+
+    .history-content-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 7px;
+    }
+
+    .history-status {
+        font-size: 0.81rem;
+        font-weight: 800;
+    }
+
+    .history-date {
+        color: #64748b;
+        font-family: monospace;
+        font-size: 0.7rem;
+        white-space: nowrap;
+    }
+
+    .history-notes {
+        margin: 0;
+        color: #8999af;
+        font-size: 0.78rem;
+        line-height: 1.6;
+    }
+
+    .history-received,
+    .history-quality {
+        color: #7dd3fc;
+    }
+
+    .history-inspecting {
+        color: #c4b5fd;
+    }
+
+    .history-waiting {
+        color: #fde68a;
+    }
+
+    .history-repairing {
+        color: #67e8f9;
+    }
+
+    .history-ready,
+    .history-collected {
+        color: #86efac;
+    }
+
+    .history-cancelled {
+        color: #fda4af;
+    }
+
+    .history-default {
+        color: #cbd5e1;
+    }
+
+    .result-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 25px;
+    }
+
+    .result-primary-action,
+    .result-secondary-action {
+        display: inline-flex;
+        min-height: 47px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 18px;
+        font-size: 0.82rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 9px;
+    }
+
+    .result-primary-action {
+        color: #031019;
+        border: 1px solid #00e5ff;
+        background: linear-gradient( 135deg, #00e5ff, #60a5fa);
+    }
+
+        .result-primary-action:hover {
+            color: #031019;
+            box-shadow: 0 0 25px rgba(0, 229, 255, 0.24);
+        }
+
+    .result-secondary-action {
+        color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: rgba(15, 23, 42, 0.55);
+    }
+
+        .result-secondary-action:hover {
+            color: #67e8f9;
+            border-color: rgba(0, 229, 255, 0.32);
+        }
+
+    @@keyframes resultPulse {
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.35;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .result-page {
+            padding: 45px 0 70px;
+        }
+
+        .result-header {
+            padding: 27px 22px;
+        }
+
+        .current-status {
+            margin-top: 22px;
+        }
+
+        .result-card,
+        .history-card {
+            padding: 23px 20px;
+        }
+
+        .device-information {
+            grid-template-columns: 1fr;
+        }
+
+        .history-content-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .history-date {
+            white-space: normal;
+        }
+
+        .result-actions {
+            display: grid;
+        }
+
+        .result-primary-action,
+        .result-secondary-action {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="result-page"
+         id="repairResult"
+         data-current-status="@currentStatus"
+         data-updated-at="@Model.UpdatedAt.ToUniversalTime().ToString("O")">
+
+    <div class="result-grid"
+         aria-hidden="true">
+    </div>
+
+    <div class="container">
+
+        <!-- NAVIGATION -->
+        <div class="result-navigation">
+
+            <a asp-controller="Tracking"
+               asp-action="Index"
+               class="result-back">
+
+                ← Check another repair
+
+            </a>
+
+            <div class="live-sync"
+                 id="liveSyncIndicator">
+
+                <span class="live-sync-dot"></span>
+
+                Live status active
+
+            </div>
+
+        </div>
+
+        <!-- STATUS HEADER -->
+        <div class="result-header">
+
+            <div class="result-header-content">
+
+                <div class="row align-items-center">
+
+                    <div class="col-md-8">
+
+                        <div class="result-eyebrow">
+                            Repair Tracking Result
+                        </div>
+
+                        <h1 class="result-title">
+                            Device repair status
+                        </h1>
+
+                        <p class="result-ticket">
+
+                            Ticket:
+                            @Model.TicketNumber
+
+                        </p>
+
+                    </div>
+
+                    <div class="col-md-4
+                        text-md-end">
+
+                        <span class="current-status
+                            @statusClass">
+
+                            @currentStatus
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="row g-4">
+
+            <!-- DEVICE INFORMATION -->
+            <div class="col-lg-7">
+
+                <div class="result-card">
+
+                    <h2 class="result-card-title">
+                        Repair information
+                    </h2>
+
+                    <div class="device-information">
+
+                        <div class="information-item">
+
+                            <span class="information-label">
+                                Ticket Number
+                            </span>
+
+                            <span class="information-value
+                                monospace">
+
+                                @Model.TicketNumber
+
+                            </span>
+
+                        </div>
+
+                        <div class="information-item">
+
+                            <span class="information-label">
+                                Current Status
+                            </span>
+
+                            <span class="information-value">
+                                @currentStatus
+                            </span>
+
+                        </div>
+
+                        <div class="information-item">
+
+                            <span class="information-label">
+                                Device Type
+                            </span>
+
+                            <span class="information-value">
+                                @Model.DeviceType
+                            </span>
+
+                        </div>
+
+                        <div class="information-item">
+
+                            <span class="information-label">
+                                Brand / Model
+                            </span>
+
+                            <span class="information-value">
+                                @Model.BrandModel
+                            </span>
+
+                        </div>
+
+                        <div class="information-item">
+
+                            <span class="information-label">
+                                Received Date
+                            </span>
+
+                            <span class="information-value">
+
+                                @Model.ReceivedAt.ToString(
+                                    "dd MMM yyyy, hh:mm tt")
+
+                            </span>
+
+                        </div>
+
+                        <div class="information-item">
+
+                            <span class="information-label">
+                                Completed Date
+                            </span>
+
+                            <span class="information-value">
+
+                                @(Model.CompletedAt.HasValue
+                                    ? Model.CompletedAt.Value
+                                        .ToString(
+                                            "dd MMM yyyy, hh:mm tt")
+                                    : "Not completed")
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="last-updated">
+
+                        <div class="last-updated-icon">
+                            SYNC
+                        </div>
+
+                        <div>
+
+                            <strong class="text-light">
+                                Last system update:
+                            </strong>
+
+                            <br />
+
+                            @Model.UpdatedAt.ToString(
+                                "dd MMM yyyy, hh:mm:ss tt")
+
+                            <br />
+
+                            This page checks automatically for
+                            new status information.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- REPAIR PROGRESS -->
+            <div class="col-lg-5">
+
+                <div class="result-card">
+
+                    <h2 class="result-card-title">
+                        Repair progress
+                    </h2>
+
+                    @if (normalizedStatus == "cancelled")
+                    {
+                        <div class="alert alert-danger">
+
+                            This repair ticket has been
+                            cancelled. Please contact
+                            OK Computer Solution for
+                            further information.
+
+                        </div>
+                    }
+
+                    <div class="repair-progress"
+                         style="--repair-progress:
+                        @progressPercentage">
+
+                        <div class="progress-line-background">
+                        </div>
+
+                        <div class="progress-line-active">
+                        </div>
+
+                        <div class="progress-stage
+                            @GetStageClass(1)">
+
+                            <div class="stage-marker">
+                                @(currentStage > 1 ? "✓" : "01")
+                            </div>
+
+                            <div>
+
+                                <div class="stage-name">
+                                    Device Received
+                                </div>
+
+                                <p class="stage-description">
+                                    Device registered in the system.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div class="progress-stage
+                            @GetStageClass(2)">
+
+                            <div class="stage-marker">
+                                @(currentStage > 2 ? "✓" : "02")
+                            </div>
+
+                            <div>
+
+                                <div class="stage-name">
+                                    Technical Inspection
+                                </div>
+
+                                <p class="stage-description">
+                                    Issue diagnosis and inspection.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div class="progress-stage
+                            @GetStageClass(3)">
+
+                            <div class="stage-marker">
+                                @(currentStage > 3 ? "✓" : "03")
+                            </div>
+
+                            <div>
+
+                                <div class="stage-name">
+                                    Repair in Progress
+                                </div>
+
+                                <p class="stage-description">
+                                    Approved repair work begins.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div class="progress-stage
+                            @GetStageClass(4)">
+
+                            <div class="stage-marker">
+                                @(currentStage > 4 ? "✓" : "04")
+                            </div>
+
+                            <div>
+
+                                <div class="stage-name">
+                                    Quality Check
+                                </div>
+
+                                <p class="stage-description">
+                                    Device testing and verification.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div class="progress-stage
+                            @GetStageClass(5)">
+
+                            <div class="stage-marker">
+                                05
+                            </div>
+
+                            <div>
+
+                                <div class="stage-name">
+                                    Ready for Pickup
+                                </div>
+
+                                <p class="stage-description">
+                                    Device ready for collection.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- STATUS HISTORY -->
+        <div class="history-card">
+
+            <div class="history-header">
+
+                <h2 class="history-title">
+                    Repair status history
+                </h2>
+
+                <span class="history-count">
+
+                    @Model.StatusHistory.Count
+                    record(s)
+
+                </span>
+
+            </div>
+
+            @if (Model.StatusHistory.Any())
+            {
+                <div class="history-timeline">
+
+                    @foreach (var history
+                        in Model.StatusHistory
+                            .OrderByDescending(
+                                item => item.ChangedAt))
+                    {
+                        string historyClass =
+                            GetHistoryClass(
+                                history.Status);
+
+                        <div class="history-entry">
+
+                            <div class="history-marker
+                                @historyClass">
+                            </div>
+
+                            <div class="history-content">
+
+                                <div class="history-content-header">
+
+                                    <span class="history-status
+                                        @historyClass">
+
+                                        @history.Status
+
+                                    </span>
+
+                                    <span class="history-date">
+
+                                        @history.ChangedAt.ToString(
+                                            "dd MMM yyyy, hh:mm:ss tt")
+
+                                    </span>
+
+                                </div>
+
+                                <p class="history-notes">
+
+                                    @(string.IsNullOrWhiteSpace(
+                                        history.Notes)
+                                        ? "No additional notes were provided."
+                                        : history.Notes)
+
+                                </p>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="text-center
+                    text-muted py-4">
+
+                    No repair status history is
+                    available yet.
+
+                </div>
+            }
+
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="result-actions">
+
+            <a asp-controller="Tracking"
+               asp-action="Index"
+               class="result-primary-action">
+
+                Check Another Repair
+
+            </a>
+
+            <a asp-controller="Home"
+               asp-action="Index"
+               class="result-secondary-action">
+
+                Return to Homepage
+
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <script>
+        (() => {
+            const resultElement =
+                document.getElementById(
+                    "repairResult");
+
+            const syncIndicator =
+                document.getElementById(
+                    "liveSyncIndicator");
+
+            if (!resultElement) {
+                return;
+            }
+
+            const originalStatus =
+                resultElement.dataset
+                    .currentStatus
+                    ?.trim()
+                    .toLowerCase();
+
+            const originalUpdatedAt =
+                new Date(
+                    resultElement.dataset
+                        .updatedAt)
+                    .getTime();
+
+            const statusEndpoint =
+                '@Url.Action(
+                                            "CurrentStatus",
+                                            "Tracking")';
+
+            async function checkCurrentStatus() {
+                try {
+                    const response =
+                        await fetch(
+                            statusEndpoint,
+                            {
+                                method: "GET",
+                                cache: "no-store",
+                                headers: {
+                                    "X-Requested-With":
+                                        "XMLHttpRequest"
+                                }
+                            });
+
+                    if (!response.ok) {
+                        updateSyncState(false);
+                        return;
+                    }
+
+                    const data =
+                        await response.json();
+
+                    const latestStatus =
+                        (
+                            data.repairStatus ??
+                            data.status ??
+                            ""
+                        )
+                            .trim()
+                            .toLowerCase();
+
+                    const latestUpdatedAt =
+                        new Date(
+                            data.updatedAt)
+                            .getTime();
+
+                    const statusChanged =
+                        latestStatus &&
+                        latestStatus !==
+                        originalStatus;
+
+                    const recordUpdated =
+                        Number.isFinite(
+                            latestUpdatedAt) &&
+                        Number.isFinite(
+                            originalUpdatedAt) &&
+                        latestUpdatedAt >
+                        originalUpdatedAt;
+
+                    updateSyncState(true);
+
+                    if (statusChanged ||
+                        recordUpdated) {
+                        window.location.reload();
+                    }
+                }
+                catch {
+                    updateSyncState(false);
+                }
+            }
+
+            function updateSyncState(isOnline) {
+                if (!syncIndicator) {
+                    return;
+                }
+
+                syncIndicator.lastChild
+                    .textContent =
+                    isOnline
+                        ? " Live status active"
+                        : " Connection interrupted";
+            }
+
+            window.setInterval(
+                checkCurrentStatus,
+                30000);
+        })();
+    </script>
+}

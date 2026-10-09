@@ -1,0 +1,1067 @@
+﻿@model SecureOKCS.ViewModels.InvoiceCreateViewModel
+
+@{
+    ViewData["Title"] = "Generate Invoice";
+
+    decimal initialTotal =
+        Model.Subtotal +
+        Model.TaxAmount;
+}
+
+<style>
+    .invoice-create-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 45px 0 75px;
+    }
+
+        .invoice-create-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 13% 18%, rgba(96, 165, 250, 0.08), transparent 28%), radial-gradient( circle at 88% 78%, rgba(139, 92, 246, 0.08), transparent 29%);
+        }
+
+    .invoice-create-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 21px;
+    }
+
+    .invoice-create-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        font-size: 0.81rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .invoice-create-back:hover {
+            color: #93c5fd;
+        }
+
+    .invoice-create-route {
+        color: #58677d;
+        font-family: monospace;
+        font-size: 0.68rem;
+    }
+
+    .invoice-create-shell {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 21px;
+        background: rgba(9, 17, 30, 0.95);
+        box-shadow: 0 27px 72px rgba(0, 0, 0, 0.36), 0 0 55px rgba(96, 165, 250, 0.045);
+    }
+
+    .invoice-create-information {
+        position: relative;
+        display: flex;
+        min-height: 680px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 43px;
+        overflow: hidden;
+        border-right: 1px solid rgba(148, 163, 184, 0.12);
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.97), rgba(24, 42, 86, 0.84));
+    }
+
+        .invoice-create-information::after {
+            position: absolute;
+            width: 290px;
+            height: 290px;
+            right: -155px;
+            bottom: -145px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(96, 165, 250, 0.15);
+            filter: blur(57px);
+        }
+
+    .invoice-create-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .invoice-create-eyebrow {
+        margin-bottom: 12px;
+        color: #93c5fd;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .invoice-create-information h1 {
+        max-width: 470px;
+        margin-bottom: 16px;
+        color: #f8fafc;
+        font-size: clamp(2rem, 4vw, 3.05rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+    }
+
+    .invoice-create-gradient {
+        color: transparent;
+        background: linear-gradient( 90deg, #60a5fa, #a78bfa);
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+
+    .invoice-create-description {
+        max-width: 460px;
+        color: #8fa0b7;
+        font-size: 0.85rem;
+        line-height: 1.75;
+    }
+
+    .invoice-repair-panel {
+        margin-top: 34px;
+        padding: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 13px;
+        background: rgba(5, 11, 20, 0.47);
+    }
+
+    .invoice-repair-label {
+        margin-bottom: 6px;
+        color: #64748b;
+        font-size: 0.63rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .invoice-repair-value {
+        margin-bottom: 15px;
+        color: #dbe7f5;
+        font-size: 0.85rem;
+        font-weight: 750;
+    }
+
+        .invoice-repair-value:last-child {
+            margin-bottom: 0;
+        }
+
+        .invoice-repair-value.ticket {
+            color: #7dd3fc;
+            font-family: monospace;
+            font-size: 0.78rem;
+        }
+
+    .invoice-process-list {
+        display: grid;
+        gap: 13px;
+        margin-top: 25px;
+    }
+
+    .invoice-process-item {
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 11px;
+        align-items: start;
+    }
+
+    .invoice-process-icon {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        color: #93c5fd;
+        font-family: monospace;
+        font-size: 0.58rem;
+        font-weight: 900;
+        border: 1px solid rgba(96, 165, 250, 0.22);
+        border-radius: 8px;
+    }
+
+    .invoice-process-item h3 {
+        margin: 1px 0 3px;
+        color: #dbe7f5;
+        font-size: 0.77rem;
+        font-weight: 750;
+    }
+
+    .invoice-process-item p {
+        margin: 0;
+        color: #718096;
+        font-size: 0.69rem;
+        line-height: 1.5;
+    }
+
+    .invoice-create-state {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #93c5fd;
+        font-family: monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+        .invoice-create-state::before {
+            width: 8px;
+            height: 8px;
+            content: "";
+            border-radius: 50%;
+            background: #60a5fa;
+            box-shadow: 0 0 11px #60a5fa;
+        }
+
+    .invoice-form-area {
+        display: flex;
+        min-height: 680px;
+        align-items: center;
+        padding: 43px;
+        background: linear-gradient( 145deg, rgba(7, 14, 25, 0.98), rgba(5, 11, 20, 0.98));
+    }
+
+    .invoice-form-container {
+        width: 100%;
+        max-width: 490px;
+        margin: auto;
+    }
+
+    .invoice-form-eyebrow {
+        margin-bottom: 8px;
+        color: #93c5fd;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .invoice-form-title {
+        margin-bottom: 8px;
+        color: #f8fafc;
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .invoice-form-description {
+        margin-bottom: 25px;
+        color: #8291a7;
+        font-size: 0.82rem;
+        line-height: 1.65;
+    }
+
+    .invoice-validation {
+        margin-bottom: 20px;
+        padding: 13px 15px;
+        color: #fecaca;
+        font-size: 0.8rem;
+        border: 1px solid rgba(239, 68, 68, 0.27);
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.08);
+    }
+
+        .invoice-validation:empty,
+        .invoice-validation.validation-summary-valid {
+            display: none;
+        }
+
+        .invoice-validation ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+    .invoice-reference {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .invoice-reference-item {
+        padding: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.43);
+    }
+
+    .invoice-reference-label {
+        display: block;
+        margin-bottom: 6px;
+        color: #64748b;
+        font-size: 0.61rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .invoice-reference-value {
+        display: block;
+        color: #dbe7f5;
+        font-size: 0.76rem;
+        font-weight: 750;
+        overflow-wrap: anywhere;
+    }
+
+        .invoice-reference-value.ticket {
+            color: #7dd3fc;
+            font-family: monospace;
+        }
+
+    .invoice-field {
+        margin-bottom: 19px;
+    }
+
+    .invoice-label {
+        margin-bottom: 8px;
+        color: #cbd5e1;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .invoice-required {
+        color: #93c5fd;
+    }
+
+    .invoice-money-field {
+        position: relative;
+    }
+
+    .invoice-money-prefix {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 13px;
+        color: #86efac;
+        font-family: monospace;
+        font-size: 0.71rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+    }
+
+    .invoice-input {
+        min-height: 49px;
+        padding-left: 48px;
+        color: #f8fafc !important;
+        border: 1px solid #263449;
+        border-radius: 9px;
+        background-color: rgba(15, 23, 42, 0.78) !important;
+    }
+
+        .invoice-input::placeholder {
+            color: #5f6f85;
+        }
+
+        .invoice-input:focus {
+            color: #ffffff;
+            border-color: #60a5fa;
+            background-color: rgba(15, 23, 42, 0.97) !important;
+            box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.09);
+        }
+
+    .invoice-error {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.75rem;
+    }
+
+    .invoice-help {
+        display: block;
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 0.69rem;
+        line-height: 1.5;
+    }
+
+    .invoice-total-panel {
+        margin-bottom: 21px;
+        padding: 20px;
+        border: 1px solid rgba(96, 165, 250, 0.2);
+        border-radius: 12px;
+        background: linear-gradient( 145deg, rgba(37, 99, 235, 0.08), rgba(139, 92, 246, 0.06));
+    }
+
+    .invoice-total-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 10px;
+        color: #8291a7;
+        font-size: 0.75rem;
+    }
+
+        .invoice-total-row:last-child {
+            margin-bottom: 0;
+            padding-top: 13px;
+            border-top: 1px solid rgba(148, 163, 184, 0.13);
+        }
+
+    .invoice-total-value {
+        color: #cbd5e1;
+        font-family: monospace;
+        font-weight: 800;
+    }
+
+    .invoice-grand-total-label {
+        color: #dbe7f5;
+        font-weight: 800;
+    }
+
+    .invoice-grand-total {
+        color: #86efac;
+        font-family: monospace;
+        font-size: 1.23rem;
+        font-weight: 900;
+    }
+
+    .invoice-automatic-notice {
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        gap: 11px;
+        margin-bottom: 22px;
+        padding: 13px;
+        border: 1px solid rgba(139, 92, 246, 0.18);
+        border-radius: 10px;
+        background: rgba(139, 92, 246, 0.05);
+    }
+
+    .invoice-notice-icon {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        color: #c4b5fd;
+        font-family: monospace;
+        font-size: 0.57rem;
+        font-weight: 900;
+        border: 1px solid rgba(167, 139, 250, 0.22);
+        border-radius: 8px;
+    }
+
+    .invoice-automatic-notice strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #ddd6fe;
+        font-size: 0.75rem;
+    }
+
+    .invoice-automatic-notice p {
+        margin: 0;
+        color: #88809e;
+        font-size: 0.68rem;
+        line-height: 1.5;
+    }
+
+    .invoice-create-actions {
+        display: flex;
+        gap: 11px;
+    }
+
+    .invoice-submit,
+    .invoice-cancel {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 17px;
+        font-size: 0.76rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 9px;
+    }
+
+    .invoice-submit {
+        flex: 1;
+        color: #050d1d;
+        border: 1px solid #60a5fa;
+        background: linear-gradient( 135deg, #60a5fa, #a78bfa);
+        box-shadow: 0 0 25px rgba(96, 165, 250, 0.14);
+    }
+
+        .invoice-submit:hover {
+            color: #050d1d;
+            box-shadow: 0 0 32px rgba(96, 165, 250, 0.26);
+        }
+
+    .invoice-cancel {
+        color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, 0.21);
+        background: rgba(15, 23, 42, 0.6);
+    }
+
+        .invoice-cancel:hover {
+            color: #93c5fd;
+            border-color: rgba(96, 165, 250, 0.3);
+        }
+
+    @@media (max-width: 991px) {
+        .invoice-create-information {
+            min-height: auto;
+            border-right: 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .invoice-form-area {
+            min-height: auto;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .invoice-create-page {
+            padding: 27px 0 60px;
+        }
+
+        .invoice-create-route {
+            display: none;
+        }
+
+        .invoice-create-information,
+        .invoice-form-area {
+            padding: 28px 22px;
+        }
+
+            .invoice-create-information h1 {
+                font-size: 2.1rem;
+            }
+
+        .invoice-reference {
+            grid-template-columns: 1fr;
+        }
+
+        .invoice-create-actions {
+            display: grid;
+        }
+
+        .invoice-submit,
+        .invoice-cancel {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="invoice-create-page">
+
+    <div class="container">
+
+        <!-- NAVIGATION -->
+        <div class="invoice-create-navigation">
+
+            <a asp-controller="Repairs"
+               asp-action="Details"
+               asp-route-id="@Model.RepairId"
+               class="invoice-create-back">
+
+                ← Back to repair details
+
+            </a>
+
+            <span class="invoice-create-route">
+                FINANCE / INVOICES / GENERATE
+            </span>
+
+        </div>
+
+        <div class="invoice-create-shell">
+
+            <div class="row g-0">
+
+                <!-- INFORMATION PANEL -->
+                <div class="col-lg-5">
+
+                    <div class="invoice-create-information">
+
+                        <div class="invoice-create-content">
+
+                            <div class="invoice-create-eyebrow">
+                                Customer Billing
+                            </div>
+
+                            <h1>
+
+                                Generate a clear
+
+                                <span class="invoice-create-gradient">
+                                    service invoice.
+                                </span>
+
+                            </h1>
+
+                            <p class="invoice-create-description">
+
+                                Confirm the repair service value
+                                and any applicable tax before creating
+                                the customer invoice.
+
+                            </p>
+
+                            <div class="invoice-repair-panel">
+
+                                <div class="invoice-repair-label">
+                                    Repair Ticket
+                                </div>
+
+                                <div class="invoice-repair-value
+                                    ticket">
+
+                                    @Model.TicketNumber
+
+                                </div>
+
+                                <div class="invoice-repair-label">
+                                    Customer
+                                </div>
+
+                                <div class="invoice-repair-value">
+                                    @Model.CustomerName
+                                </div>
+
+                                <div class="invoice-repair-label">
+                                    Service Description
+                                </div>
+
+                                <div class="invoice-repair-value">
+                                    @Model.DeviceDescription
+                                </div>
+
+                            </div>
+
+                            <div class="invoice-process-list">
+
+                                <div class="invoice-process-item">
+
+                                    <div class="invoice-process-icon">
+                                        INV
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Unique Invoice Number</h3>
+
+                                        <p>
+                                            Generated automatically
+                                            after the invoice is saved.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="invoice-process-item">
+
+                                    <div class="invoice-process-icon">
+                                        DUE
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Initial Payment Status</h3>
+
+                                        <p>
+                                            New invoices begin with
+                                            Unpaid payment status.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="invoice-process-item">
+
+                                    <div class="invoice-process-icon">
+                                        AUD
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Authorised Issuer</h3>
+
+                                        <p>
+                                            The current Admin or Staff
+                                            user is recorded automatically.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="invoice-create-state">
+                            Invoice generation service active
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- INVOICE FORM -->
+                <div class="col-lg-7">
+
+                    <div class="invoice-form-area">
+
+                        <div class="invoice-form-container">
+
+                            <div class="invoice-form-eyebrow">
+                                Invoice Calculation
+                            </div>
+
+                            <h2 class="invoice-form-title">
+                                Confirm invoice amounts
+                            </h2>
+
+                            <p class="invoice-form-description">
+
+                                Review the customer and repair
+                                references, then confirm the
+                                service subtotal and tax.
+
+                            </p>
+
+                            <form asp-controller="Invoices"
+                                  asp-action="Create"
+                                  method="post">
+
+                                <input asp-for="RepairId"
+                                       type="hidden" />
+
+                                <div asp-validation-summary="ModelOnly"
+                                     class="invoice-validation"
+                                     role="alert">
+                                </div>
+
+                                <!-- REFERENCE INFORMATION -->
+                                <div class="invoice-reference">
+
+                                    <div class="invoice-reference-item">
+
+                                        <span class="invoice-reference-label">
+
+                                            Ticket Number
+
+                                        </span>
+
+                                        <span class="invoice-reference-value
+                                            ticket">
+
+                                            @Model.TicketNumber
+
+                                        </span>
+
+                                    </div>
+
+                                    <div class="invoice-reference-item">
+
+                                        <span class="invoice-reference-label">
+
+                                            Customer
+
+                                        </span>
+
+                                        <span class="invoice-reference-value">
+
+                                            @Model.CustomerName
+
+                                        </span>
+
+                                    </div>
+
+                                    <div class="invoice-reference-item"
+                                         style="grid-column: 1 / -1;">
+
+                                        <span class="invoice-reference-label">
+
+                                            Service Description
+
+                                        </span>
+
+                                        <span class="invoice-reference-value">
+
+                                            @Model.DeviceDescription
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- SUBTOTAL -->
+                                <div class="invoice-field">
+
+                                    <label asp-for="Subtotal"
+                                           class="invoice-label">
+
+                                        Repair Service Subtotal
+
+                                        <span class="invoice-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <div class="invoice-money-field">
+
+                                        <span class="invoice-money-prefix">
+                                            RM
+                                        </span>
+
+                                        <input asp-for="Subtotal"
+                                               id="invoiceSubtotal"
+                                               type="number"
+                                               min="0"
+                                               step="0.01"
+                                               class="form-control
+                                        invoice-input"
+                                               placeholder="0.00" />
+
+                                    </div>
+
+                                    <span asp-validation-for="Subtotal"
+                                          class="text-danger
+                                        invoice-error">
+                                    </span>
+
+                                    <span class="invoice-help">
+
+                                        The default amount uses the
+                                        repair Final Cost when available,
+                                        otherwise the Estimated Cost.
+
+                                    </span>
+
+                                </div>
+
+                                <!-- TAX -->
+                                <div class="invoice-field">
+
+                                    <label asp-for="TaxAmount"
+                                           class="invoice-label">
+
+                                        Tax Amount
+
+                                        <span class="invoice-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <div class="invoice-money-field">
+
+                                        <span class="invoice-money-prefix">
+                                            RM
+                                        </span>
+
+                                        <input asp-for="TaxAmount"
+                                               id="invoiceTaxAmount"
+                                               type="number"
+                                               min="0"
+                                               step="0.01"
+                                               class="form-control
+                                        invoice-input"
+                                               placeholder="0.00" />
+
+                                    </div>
+
+                                    <span asp-validation-for="TaxAmount"
+                                          class="text-danger
+                                        invoice-error">
+                                    </span>
+
+                                    <span class="invoice-help">
+                                        Enter zero when no tax applies.
+                                    </span>
+
+                                </div>
+
+                                <!-- LIVE TOTAL -->
+                                <div class="invoice-total-panel">
+
+                                    <div class="invoice-total-row">
+
+                                        <span>Subtotal</span>
+
+                                        <span class="invoice-total-value"
+                                              id="subtotalPreview">
+
+                                            @($"RM {Model.Subtotal:N2}")
+
+                                        </span>
+
+                                    </div>
+
+                                    <div class="invoice-total-row">
+
+                                        <span>Tax Amount</span>
+
+                                        <span class="invoice-total-value"
+                                              id="taxPreview">
+
+                                            @($"RM {Model.TaxAmount:N2}")
+
+                                        </span>
+
+                                    </div>
+
+                                    <div class="invoice-total-row">
+
+                                        <span class="invoice-grand-total-label">
+
+                                            Total Amount
+
+                                        </span>
+
+                                        <span class="invoice-grand-total"
+                                              id="invoiceTotalPreview">
+
+                                            @($"RM {initialTotal:N2}")
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="invoice-automatic-notice">
+
+                                    <div class="invoice-notice-icon">
+                                        AUTO
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            Automatic Invoice Setup
+                                        </strong>
+
+                                        <p>
+                                            The system generates a unique
+                                            invoice number, records the
+                                            issuer and sets payment status
+                                            to Unpaid.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="invoice-create-actions">
+
+                                    <button type="submit"
+                                            class="btn invoice-submit">
+
+                                        Generate Invoice →
+
+                                    </button>
+
+                                    <a asp-controller="Repairs"
+                                       asp-action="Details"
+                                       asp-route-id="@Model.RepairId"
+                                       class="invoice-cancel">
+
+                                        Cancel
+
+                                    </a>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+            const subtotalInput =
+                document.getElementById(
+                    "invoiceSubtotal");
+
+            const taxInput =
+                document.getElementById(
+                    "invoiceTaxAmount");
+
+            const subtotalPreview =
+                document.getElementById(
+                    "subtotalPreview");
+
+            const taxPreview =
+                document.getElementById(
+                    "taxPreview");
+
+            const totalPreview =
+                document.getElementById(
+                    "invoiceTotalPreview");
+
+            if (!subtotalInput ||
+                !taxInput ||
+                !subtotalPreview ||
+                !taxPreview ||
+                !totalPreview) {
+                return;
+            }
+
+            const currencyFormatter =
+                new Intl.NumberFormat(
+                    "en-MY",
+                    {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+            function calculateInvoiceTotal() {
+                const subtotal =
+                    Number.parseFloat(
+                        subtotalInput.value) || 0;
+
+                const tax =
+                    Number.parseFloat(
+                        taxInput.value) || 0;
+
+                const total =
+                    subtotal + tax;
+
+                subtotalPreview.textContent =
+                    `RM ${currencyFormatter
+                        .format(subtotal)}`;
+
+                taxPreview.textContent =
+                    `RM ${currencyFormatter
+                        .format(tax)}`;
+
+                totalPreview.textContent =
+                    `RM ${currencyFormatter
+                        .format(total)}`;
+            }
+
+            subtotalInput.addEventListener(
+                "input",
+                calculateInvoiceTotal);
+
+            taxInput.addEventListener(
+                "input",
+                calculateInvoiceTotal);
+
+            calculateInvoiceTotal();
+        })();
+    </script>
+}

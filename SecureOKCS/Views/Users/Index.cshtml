@@ -1,0 +1,1578 @@
+﻿@model IEnumerable<SecureOKCS.Models.User>
+
+@{
+    ViewData["Title"] = "User Management";
+
+    var userList =
+        Model?.ToList()
+        ?? new List<SecureOKCS.Models.User>();
+
+    var roleList =
+        ViewBag.Roles as
+            List<SecureOKCS.Models.Role>
+        ?? new List<SecureOKCS.Models.Role>();
+
+    string? currentUserIdValue =
+        User.FindFirst(
+            System.Security.Claims
+                .ClaimTypes.NameIdentifier)
+            ?.Value;
+
+    int.TryParse(
+        currentUserIdValue,
+        out int currentUserId);
+
+    int adminCount =
+        userList.Count(user =>
+            user.Role?.RoleName == "Admin");
+
+    int staffCount =
+        userList.Count(user =>
+            user.Role?.RoleName == "Staff");
+
+    int faceEnrolledCount =
+        userList.Count(user =>
+            user.FaceEnrolled);
+}
+
+<style>
+    .user-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 42px 0 75px;
+    }
+
+        .user-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 12% 15%, rgba(139, 92, 246, 0.08), transparent 27%), radial-gradient( circle at 90% 78%, rgba(0, 229, 255, 0.07), transparent 28%);
+        }
+
+    .user-header {
+        position: relative;
+        margin-bottom: 24px;
+        padding: 32px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 19px;
+        background: linear-gradient( 125deg, rgba(13, 23, 38, 0.97), rgba(45, 31, 82, 0.84));
+        box-shadow: 0 21px 55px rgba(0, 0, 0, 0.24);
+    }
+
+        .user-header::after {
+            position: absolute;
+            width: 270px;
+            height: 270px;
+            top: -165px;
+            right: -70px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.15);
+            filter: blur(53px);
+        }
+
+    .user-header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .user-eyebrow {
+        margin-bottom: 9px;
+        color: #c4b5fd;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .user-title {
+        margin-bottom: 9px;
+        color: #f8fafc;
+        font-size: clamp(1.9rem, 4vw, 2.8rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+    }
+
+    .user-description {
+        max-width: 650px;
+        margin: 0;
+        color: #8fa0b7;
+        font-size: 0.87rem;
+        line-height: 1.7;
+    }
+
+    .user-header-action {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .add-staff-button {
+        display: inline-flex;
+        min-height: 45px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 16px;
+        color: #0b0619;
+        font-size: 0.77rem;
+        font-weight: 800;
+        text-decoration: none;
+        border: 1px solid #a78bfa;
+        border-radius: 9px;
+        background: linear-gradient( 135deg, #a78bfa, #60a5fa);
+        box-shadow: 0 0 24px rgba(139, 92, 246, 0.14);
+    }
+
+        .add-staff-button:hover {
+            color: #0b0619;
+            box-shadow: 0 0 31px rgba(139, 92, 246, 0.25);
+        }
+
+    .user-summary {
+        margin-bottom: 24px;
+    }
+
+    .user-summary-card {
+        --summary-colour: #00e5ff;
+        display: flex;
+        height: 100%;
+        align-items: center;
+        gap: 14px;
+        padding: 18px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 14px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.88), rgba(7, 14, 25, 0.94));
+    }
+
+    .summary-admin {
+        --summary-colour: #a78bfa;
+    }
+
+    .summary-staff {
+        --summary-colour: #00e5ff;
+    }
+
+    .summary-face {
+        --summary-colour: #fb7185;
+    }
+
+    .user-summary-icon {
+        display: grid;
+        width: 43px;
+        height: 43px;
+        flex: 0 0 43px;
+        place-items: center;
+        color: var(--summary-colour);
+        font-family: monospace;
+        font-size: 0.62rem;
+        font-weight: 900;
+        border: 1px solid color-mix( in srgb, var(--summary-colour) 27%, transparent);
+        border-radius: 10px;
+        background: color-mix( in srgb, var(--summary-colour) 7%, transparent);
+    }
+
+    .user-summary-label {
+        margin-bottom: 3px;
+        color: #64748b;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+    }
+
+    .user-summary-value {
+        color: #e2e8f0;
+        font-size: 1.03rem;
+        font-weight: 800;
+    }
+
+    .user-toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 190px 190px auto;
+        gap: 11px;
+        margin-bottom: 17px;
+        padding: 15px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 13px;
+        background: rgba(13, 23, 38, 0.76);
+    }
+
+    .user-search {
+        position: relative;
+    }
+
+    .user-search-label {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 13px;
+        color: #c4b5fd;
+        font-family: monospace;
+        font-size: 0.63rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+    }
+
+    .user-search-input {
+        min-height: 44px;
+        padding-left: 54px;
+        color: #f8fafc !important;
+        border: 1px solid #27364b;
+        border-radius: 9px;
+        background: rgba(5, 11, 20, 0.68) !important;
+    }
+
+        .user-search-input::placeholder {
+            color: #64748b;
+        }
+
+        .user-search-input:focus,
+        .user-filter:focus {
+            border-color: #a78bfa;
+            box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.09);
+        }
+
+    .user-filter {
+        min-height: 44px;
+        color: #cbd5e1;
+        border: 1px solid #27364b;
+        border-radius: 9px;
+        background-color: #0b1422;
+    }
+
+        .user-filter option {
+            background: #0b1422;
+        }
+
+    .user-result-count {
+        display: flex;
+        align-items: center;
+        color: #718096;
+        font-family: monospace;
+        font-size: 0.69rem;
+        white-space: nowrap;
+    }
+
+    .user-table-card {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 16px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.94), rgba(7, 14, 25, 0.97));
+        box-shadow: 0 20px 52px rgba(0, 0, 0, 0.2);
+    }
+
+    .user-table {
+        min-width: 1240px;
+        margin: 0;
+        color: #cbd5e1;
+    }
+
+        .user-table thead th {
+            padding: 15px;
+            color: #8494aa;
+            font-size: 0.64rem;
+            font-weight: 800;
+            letter-spacing: 0.07em;
+            white-space: nowrap;
+            text-transform: uppercase;
+            border-color: rgba(148, 163, 184, 0.1);
+            background: rgba(5, 11, 20, 0.73);
+        }
+
+        .user-table tbody td {
+            padding: 16px 15px;
+            color: #aebdce;
+            font-size: 0.76rem;
+            vertical-align: middle;
+            border-color: rgba(148, 163, 184, 0.08);
+            background: transparent;
+        }
+
+        .user-table tbody tr {
+            transition: background-color 0.18s ease;
+        }
+
+            .user-table tbody tr:hover {
+                background: rgba(139, 92, 246, 0.027);
+            }
+
+    .user-identity {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .user-avatar {
+        --avatar-colour: #00e5ff;
+        display: grid;
+        width: 39px;
+        height: 39px;
+        flex: 0 0 39px;
+        place-items: center;
+        color: var(--avatar-colour);
+        font-size: 0.74rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        border: 1px solid color-mix( in srgb, var(--avatar-colour) 25%, transparent);
+        border-radius: 10px;
+        background: color-mix( in srgb, var(--avatar-colour) 6%, transparent);
+    }
+
+        .user-avatar.admin {
+            --avatar-colour: #a78bfa;
+        }
+
+        .user-avatar.staff {
+            --avatar-colour: #00e5ff;
+        }
+
+        .user-avatar.customer {
+            --avatar-colour: #34d399;
+        }
+
+    .user-full-name {
+        color: #e2e8f0;
+        font-weight: 750;
+    }
+
+    .user-id {
+        margin-top: 3px;
+        color: #58677d;
+        font-family: monospace;
+        font-size: 0.67rem;
+    }
+
+    .user-email {
+        color: #93c5fd;
+    }
+
+    .user-phone {
+        color: #a5b4c7;
+    }
+
+    .user-role {
+        display: inline-flex;
+        padding: 6px 9px;
+        font-size: 0.64rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        border: 1px solid;
+        border-radius: 7px;
+    }
+
+    .user-role-admin {
+        color: #c4b5fd;
+        border-color: rgba(167, 139, 250, 0.25);
+        background: rgba(139, 92, 246, 0.07);
+    }
+
+    .user-role-staff {
+        color: #67e8f9;
+        border-color: rgba(0, 229, 255, 0.25);
+        background: rgba(0, 229, 255, 0.07);
+    }
+
+    .user-role-customer {
+        color: #86efac;
+        border-color: rgba(34, 197, 94, 0.25);
+        background: rgba(34, 197, 94, 0.07);
+    }
+
+    .user-role-default {
+        color: #cbd5e1;
+        border-color: rgba(148, 163, 184, 0.22);
+        background: rgba(148, 163, 184, 0.06);
+    }
+
+    .user-account-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 9px;
+        font-size: 0.64rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        border: 1px solid;
+        border-radius: 7px;
+    }
+
+        .user-account-status::before {
+            width: 6px;
+            height: 6px;
+            content: "";
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+    .user-status-active {
+        color: #86efac;
+        border-color: rgba(34, 197, 94, 0.24);
+        background: rgba(34, 197, 94, 0.06);
+    }
+
+    .user-status-inactive {
+        color: #fda4af;
+        border-color: rgba(244, 63, 94, 0.24);
+        background: rgba(244, 63, 94, 0.06);
+    }
+
+    .face-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #8291a7;
+        font-size: 0.69rem;
+        font-weight: 700;
+    }
+
+    .face-status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .face-status.enrolled {
+        color: #fda4af;
+    }
+
+        .face-status.enrolled
+        .face-status-indicator {
+            background: #fb7185;
+            box-shadow: 0 0 9px #fb7185;
+        }
+
+    .face-status.not-enrolled
+    .face-status-indicator {
+        background: #475569;
+    }
+
+    .user-date {
+        color: #8291a7;
+        font-family: monospace;
+        font-size: 0.68rem;
+        white-space: nowrap;
+    }
+
+    .user-empty {
+        padding: 65px 20px !important;
+        text-align: center;
+    }
+
+    .user-empty-icon {
+        display: grid;
+        width: 54px;
+        height: 54px;
+        margin: 0 auto 15px;
+        place-items: center;
+        color: #64748b;
+        font-family: monospace;
+        font-weight: 900;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.55);
+    }
+
+    .user-empty-title {
+        margin-bottom: 6px;
+        color: #cbd5e1;
+        font-weight: 800;
+    }
+
+    .user-empty-text {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.77rem;
+    }
+
+    /* USER ACTION BUTTONS */
+    .user-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        white-space: nowrap;
+    }
+
+        .user-actions form {
+            margin: 0;
+        }
+
+    .user-action-button {
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 11px;
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 7px;
+        transition: 0.2s ease;
+    }
+
+    .user-edit-button {
+        color: #67e8f9;
+        border: 1px solid rgba(0, 229, 255, 0.3);
+        background: rgba(0, 229, 255, 0.07);
+    }
+
+        .user-edit-button:hover {
+            color: #071019;
+            background: #67e8f9;
+        }
+
+    .user-delete-button {
+        color: #fda4af;
+        border: 1px solid rgba(244, 63, 94, 0.3);
+        background: rgba(244, 63, 94, 0.07);
+    }
+
+        .user-delete-button:hover {
+            color: #ffffff;
+            background: #e11d48;
+        }
+
+    .current-account-label {
+        color: #94a3b8;
+        font-family: monospace;
+        font-size: 0.65rem;
+    }
+
+    /* EDIT USER POPUP */
+    .user-modal-content {
+        color: #cbd5e1;
+        border: 1px solid rgba(0, 229, 255, 0.2);
+        border-radius: 16px;
+        background: linear-gradient(145deg, #0d1726, #07101c);
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55);
+    }
+
+        .user-modal-content .modal-header,
+        .user-modal-content .modal-footer {
+            border-color: rgba(148, 163, 184, 0.13);
+        }
+
+        .user-modal-content .modal-title {
+            color: #f8fafc;
+            font-weight: 800;
+        }
+
+        .user-modal-content .btn-close {
+            filter: invert(1);
+        }
+
+        .user-modal-content .form-label {
+            color: #cbd5e1;
+            font-size: 0.76rem;
+            font-weight: 700;
+        }
+
+        .user-modal-content .form-control,
+        .user-modal-content .form-select {
+            color: #f8fafc;
+            border: 1px solid #27364b;
+            background-color: #0b1422;
+        }
+
+            .user-modal-content .form-control:focus,
+            .user-modal-content .form-select:focus {
+                border-color: #00e5ff;
+                box-shadow: 0 0 0 0.2rem rgba(0, 229, 255, 0.08);
+            }
+
+            .user-modal-content .form-control::placeholder {
+                color: #64748b;
+            }
+
+    .update-user-button {
+        color: #041017;
+        font-weight: 800;
+        border: none;
+        background: linear-gradient(135deg, #22d3ee, #60a5fa);
+    }
+
+    @@media (max-width: 1100px) {
+        .user-toolbar {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @@media (max-width: 991px) {
+        .user-header-action {
+            justify-content: flex-start;
+            margin-top: 21px;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .user-page {
+            padding: 27px 0 60px;
+        }
+
+        .user-header {
+            padding: 26px 21px;
+        }
+
+        .add-staff-button {
+            width: 100%;
+        }
+
+        .user-toolbar {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<section class="user-page">
+
+    <div class="container">
+
+        <!-- PAGE HEADER -->
+        <header class="user-header">
+
+            <div class="user-header-content">
+
+                <div class="row align-items-center">
+
+                    <div class="col-lg-8">
+
+                        <div class="user-eyebrow">
+                            Administration / Access Control
+                        </div>
+
+                        <h1 class="user-title">
+                            User Management
+                        </h1>
+
+                        <p class="user-description">
+
+                            Review system users, account roles,
+                            access status and Face ID enrolment.
+                            Staff accounts can only be created
+                            by an Administrator.
+
+                        </p>
+
+                    </div>
+
+                    <div class="col-lg-4">
+
+                        <div class="user-header-action">
+
+                            <a asp-controller="Users"
+                               asp-action="Create"
+                               class="add-staff-button">
+
+                                <span aria-hidden="true">＋</span>
+                                Add Staff Account
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success
+                alert-dismissible fade show">
+
+                @TempData["Success"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger
+                alert-dismissible fade show">
+
+                @TempData["Error"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+
+            </div>
+        }
+
+        <!-- SUMMARY -->
+        <div class="row g-3 user-summary">
+
+            <div class="col-6 col-xl-3">
+
+                <div class="user-summary-card">
+
+                    <div class="user-summary-icon">
+                        ALL
+                    </div>
+
+                    <div>
+
+                        <div class="user-summary-label">
+                            System Users
+                        </div>
+
+                        <div class="user-summary-value">
+                            @userList.Count
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="user-summary-card
+                    summary-admin">
+
+                    <div class="user-summary-icon">
+                        ADM
+                    </div>
+
+                    <div>
+
+                        <div class="user-summary-label">
+                            Administrators
+                        </div>
+
+                        <div class="user-summary-value">
+                            @adminCount
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="user-summary-card
+                    summary-staff">
+
+                    <div class="user-summary-icon">
+                        STF
+                    </div>
+
+                    <div>
+
+                        <div class="user-summary-label">
+                            Staff Accounts
+                        </div>
+
+                        <div class="user-summary-value">
+                            @staffCount
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="user-summary-card
+                    summary-face">
+
+                    <div class="user-summary-icon">
+                        BIO
+                    </div>
+
+                    <div>
+
+                        <div class="user-summary-label">
+                            Face ID Enrolled
+                        </div>
+
+                        <div class="user-summary-value">
+                            @faceEnrolledCount
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SEARCH AND FILTER -->
+        <div class="user-toolbar">
+
+            <div class="user-search">
+
+                <span class="user-search-label">
+                    FIND
+                </span>
+
+                <input type="search"
+                       id="userSearch"
+                       class="form-control
+                user-search-input"
+                       placeholder="Search name, email or phone number"
+                       autocomplete="off"
+                       aria-label="Search users" />
+
+            </div>
+
+            <select id="userRoleFilter"
+                    class="form-select user-filter"
+                    aria-label="Filter user role">
+
+                <option value="">
+                    All Roles
+                </option>
+
+                <option value="admin">
+                    Admin
+                </option>
+
+                <option value="staff">
+                    Staff
+                </option>
+
+                <option value="customer">
+                    Customer
+                </option>
+
+            </select>
+
+            <select id="userStatusFilter"
+                    class="form-select user-filter"
+                    aria-label="Filter account status">
+
+                <option value="">
+                    All Account Statuses
+                </option>
+
+                <option value="active">
+                    Active
+                </option>
+
+                <option value="inactive">
+                    Inactive
+                </option>
+
+            </select>
+
+            <div class="user-result-count"
+                 id="userResultCount">
+
+                Showing @userList.Count user(s)
+
+            </div>
+
+        </div>
+
+        <!-- USER TABLE -->
+        <div class="user-table-card">
+
+            <div class="table-responsive">
+
+                <table class="table user-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>User</th>
+                            <th>Email Address</th>
+                            <th>Phone Number</th>
+                            <th>Role</th>
+                            <th>Account Status</th>
+                            <th>Face ID</th>
+                            <th>Created Date</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @if (!userList.Any())
+                        {
+                            <tr>
+
+                                <td colspan="8"
+                                    class="user-empty">
+
+                                    <div class="user-empty-icon">
+                                        USR
+                                    </div>
+
+                                    <div class="user-empty-title">
+                                        No users found
+                                    </div>
+
+                                    <p class="user-empty-text">
+                                        System users will appear here.
+                                    </p>
+
+                                </td>
+
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var user
+                                in userList)
+                            {
+                                string roleName =
+                                    user.Role?.RoleName
+                                    ?? "Unknown";
+
+                                string normalizedRole =
+                                    roleName
+                                        .ToLowerInvariant();
+
+                                string accountStatus =
+                                    user.IsActive
+                                        ? "active"
+                                        : "inactive";
+
+                                string avatarClass =
+                                    normalizedRole switch
+                                    {
+                                        "admin" => "admin",
+                                        "staff" => "staff",
+                                        "customer" => "customer",
+                                        _ => ""
+                                    };
+
+                                string roleClass =
+                                    normalizedRole switch
+                                    {
+                                        "admin" =>
+                                            "user-role-admin",
+
+                                        "staff" =>
+                                            "user-role-staff",
+
+                                        "customer" =>
+                                            "user-role-customer",
+
+                                        _ =>
+                                            "user-role-default"
+                                    };
+
+                                string userInitial =
+                                    string.IsNullOrWhiteSpace(
+                                        user.FullName)
+                                        ? "?"
+                                        : user.FullName[..1];
+
+                                string searchableContent =
+                                    string.Join(
+                                        " ",
+                                        user.FullName,
+                                        user.Email,
+                                        user.PhoneNumber)
+                                    .ToLowerInvariant();
+
+                                bool isCurrentAccount =
+                                    user.UserId ==
+                                    currentUserId;
+
+                                <tr data-user-row
+                                    data-search="@searchableContent"
+                                    data-role="@normalizedRole"
+                                    data-status="@accountStatus">
+
+                                    <td>
+
+                                        <div class="user-identity">
+
+                                            <div class="user-avatar
+                                                @avatarClass">
+
+                                                @userInitial
+
+                                            </div>
+
+                                            <div>
+
+                                                <div class="user-full-name">
+                                                    @user.FullName
+                                                </div>
+
+                                                <div class="user-id">
+
+                                                    USER-ID:
+                                                    @user.UserId.ToString("D6")
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+                                    <td class="user-email">
+                                        @user.Email
+                                    </td>
+
+                                    <td class="user-phone">
+
+                                        @(string.IsNullOrWhiteSpace(
+                                            user.PhoneNumber)
+                                            ? "-"
+                                            : user.PhoneNumber)
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="user-role
+                                            @roleClass">
+
+                                            @roleName
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (user.IsActive)
+                                        {
+                                            <span class="user-account-status
+                                                user-status-active">
+
+                                                Active
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="user-account-status
+                                                user-status-inactive">
+
+                                                Inactive
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (user.FaceEnrolled)
+                                        {
+                                            <span class="face-status enrolled">
+
+                                                <span class="face-status-indicator">
+                                                </span>
+
+                                                Enrolled
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="face-status
+                                                not-enrolled">
+
+                                                <span class="face-status-indicator">
+                                                </span>
+
+                                                Not Enrolled
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="user-date">
+
+                                            @user.CreatedAt.ToString(
+                                                "dd MMM yyyy")
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="user-actions">
+
+                                            <button type="button"
+                                                    class="user-action-button
+                                                user-edit-button"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editUserModal"
+                                                    data-user-id="@user.UserId"
+                                                    data-full-name="@user.FullName"
+                                                    data-email="@user.Email"
+                                                    data-phone="@user.PhoneNumber"
+                                                    data-role-id="@user.RoleId"
+                                                    data-is-active="@user.IsActive.ToString().ToLowerInvariant()">
+
+                                                Edit
+
+                                            </button>
+
+                                            @if (!isCurrentAccount)
+                                            {
+                                                <form asp-controller="Users"
+                                                      asp-action="Delete"
+                                                      method="post"
+                                                      onsubmit="return confirm('Permanently delete this account? This action cannot be undone.');">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden"
+                                                           name="id"
+                                                           value="@user.UserId" />
+
+                                                    <button type="submit"
+                                                            class="user-action-button
+                                                        user-delete-button">
+
+                                                        Delete
+
+                                                    </button>
+
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <span class="current-account-label">
+                                                    Current account
+                                                </span>
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+                        <tr id="noUserResults"
+                            style="display: none;">
+
+                            <td colspan="8"
+                                class="user-empty">
+
+                                <div class="user-empty-icon">
+                                    404
+                                </div>
+
+                                <div class="user-empty-title">
+                                    No matching user found
+                                </div>
+
+                                <p class="user-empty-text">
+                                    Change the search text,
+                                    role or account-status filter.
+                                </p>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- EDIT USER MODAL -->
+        <div class="modal fade"
+             id="editUserModal"
+             tabindex="-1"
+             aria-labelledby="editUserModalLabel"
+             aria-hidden="true">
+
+            <div class="modal-dialog
+                modal-dialog-centered">
+
+                <div class="modal-content
+                    user-modal-content">
+
+                    <form asp-controller="Users"
+                          asp-action="Update"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               id="editUserId"
+                               name="UserId" />
+
+                        <div class="modal-header">
+
+                            <div>
+
+                                <div class="user-eyebrow mb-1">
+                                    Administration / Account Update
+                                </div>
+
+                                <h5 class="modal-title"
+                                    id="editUserModalLabel">
+                                    Edit User Account
+                                </h5>
+
+                            </div>
+
+                            <button type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close">
+                            </button>
+
+                        </div>
+
+                        <div class="modal-body p-4">
+
+                            <div class="mb-3">
+
+                                <label for="editFullName"
+                                       class="form-label">
+                                    Full Name
+                                </label>
+
+                                <input type="text"
+                                       id="editFullName"
+                                       name="FullName"
+                                       class="form-control"
+                                       maxlength="100"
+                                       required />
+
+                            </div>
+
+                            <div class="mb-3">
+
+                                <label for="editEmail"
+                                       class="form-label">
+                                    Email Address
+                                </label>
+
+                                <input type="email"
+                                       id="editEmail"
+                                       name="Email"
+                                       class="form-control"
+                                       maxlength="100"
+                                       required />
+
+                            </div>
+
+                            <div class="mb-3">
+
+                                <label for="editPhoneNumber"
+                                       class="form-label">
+                                    Phone Number
+                                </label>
+
+                                <input type="text"
+                                       id="editPhoneNumber"
+                                       name="PhoneNumber"
+                                       class="form-control"
+                                       maxlength="20" />
+
+                            </div>
+
+                            <div class="mb-3">
+
+                                <label for="editRoleId"
+                                       class="form-label">
+                                    Account Role
+                                </label>
+
+                                <select id="editRoleId"
+                                        name="RoleId"
+                                        class="form-select"
+                                        required>
+
+                                    @foreach (var role
+                                        in roleList)
+                                    {
+                                        <option value="@role.RoleId">
+                                            @role.RoleName
+                                        </option>
+                                    }
+
+                                </select>
+
+                            </div>
+
+                            <div class="form-check mb-3">
+
+                                <input type="checkbox"
+                                       id="editIsActive"
+                                       name="IsActive"
+                                       value="true"
+                                       class="form-check-input" />
+
+                                <input type="hidden"
+                                       name="IsActive"
+                                       value="false" />
+
+                                <label for="editIsActive"
+                                       class="form-check-label">
+                                    Active Account
+                                </label>
+
+                            </div>
+
+                            <hr class="border-secondary" />
+
+                            <p class="small text-secondary">
+                                Leave the password fields empty
+                                to keep the current password.
+                            </p>
+
+                            <div class="mb-3">
+
+                                <label for="editNewPassword"
+                                       class="form-label">
+                                    New Password
+                                </label>
+
+                                <input type="password"
+                                       id="editNewPassword"
+                                       name="NewPassword"
+                                       class="form-control"
+                                       minlength="8"
+                                       autocomplete="new-password"
+                                       placeholder="Optional" />
+
+                            </div>
+
+                            <div>
+
+                                <label for="editConfirmPassword"
+                                       class="form-label">
+                                    Confirm New Password
+                                </label>
+
+                                <input type="password"
+                                       id="editConfirmPassword"
+                                       name="ConfirmPassword"
+                                       class="form-control"
+                                       minlength="8"
+                                       autocomplete="new-password"
+                                       placeholder="Optional" />
+
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer">
+
+                            <button type="button"
+                                    class="btn btn-outline-secondary"
+                                    data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+
+                            <button type="submit"
+                                    class="btn update-user-button">
+                                Update Account
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <script>
+        (() => {
+            const searchInput =
+                document.getElementById(
+                    "userSearch");
+
+            const roleFilter =
+                document.getElementById(
+                    "userRoleFilter");
+
+            const statusFilter =
+                document.getElementById(
+                    "userStatusFilter");
+
+            const resultCount =
+                document.getElementById(
+                    "userResultCount");
+
+            const noResultsRow =
+                document.getElementById(
+                    "noUserResults");
+
+            const userRows =
+                Array.from(
+                    document.querySelectorAll(
+                        "[data-user-row]"));
+
+            const editUserModal =
+                document.getElementById(
+                    "editUserModal");
+
+            if (editUserModal) {
+                editUserModal.addEventListener(
+                    "show.bs.modal",
+                    event => {
+                        const button =
+                            event.relatedTarget;
+
+                        if (!button) {
+                            return;
+                        }
+
+                        document.getElementById(
+                            "editUserId").value =
+                            button.dataset.userId ?? "";
+
+                        document.getElementById(
+                            "editFullName").value =
+                            button.dataset.fullName ?? "";
+
+                        document.getElementById(
+                            "editEmail").value =
+                            button.dataset.email ?? "";
+
+                        document.getElementById(
+                            "editPhoneNumber").value =
+                            button.dataset.phone ?? "";
+
+                        document.getElementById(
+                            "editRoleId").value =
+                            button.dataset.roleId ?? "";
+
+                        document.getElementById(
+                            "editIsActive").checked =
+                            button.dataset.isActive ===
+                            "true";
+
+                        document.getElementById(
+                            "editNewPassword").value = "";
+
+                        document.getElementById(
+                            "editConfirmPassword").value = "";
+                    });
+            }
+
+            if (!searchInput ||
+                !roleFilter ||
+                !statusFilter ||
+                !resultCount) {
+                return;
+            }
+
+            function filterUsers() {
+                const searchValue =
+                    searchInput.value
+                        .trim()
+                        .toLowerCase();
+
+                const roleValue =
+                    roleFilter.value
+                        .trim()
+                        .toLowerCase();
+
+                const statusValue =
+                    statusFilter.value
+                        .trim()
+                        .toLowerCase();
+
+                let visibleCount = 0;
+
+                userRows.forEach(row => {
+                    const searchableContent =
+                        row.dataset.search ?? "";
+
+                    const role =
+                        row.dataset.role ?? "";
+
+                    const status =
+                        row.dataset.status ?? "";
+
+                    const matchesSearch =
+                        searchableContent.includes(
+                            searchValue);
+
+                    const matchesRole =
+                        !roleValue ||
+                        role === roleValue;
+
+                    const matchesStatus =
+                        !statusValue ||
+                        status === statusValue;
+
+                    const shouldDisplay =
+                        matchesSearch &&
+                        matchesRole &&
+                        matchesStatus;
+
+                    row.style.display =
+                        shouldDisplay
+                            ? ""
+                            : "none";
+
+                    if (shouldDisplay) {
+                        visibleCount++;
+                    }
+                });
+
+                resultCount.textContent =
+                    `Showing ${visibleCount} user(s)`;
+
+                if (noResultsRow) {
+                    noResultsRow.style.display =
+                        userRows.length > 0 &&
+                            visibleCount === 0
+                            ? ""
+                            : "none";
+                }
+            }
+
+            searchInput.addEventListener(
+                "input",
+                filterUsers);
+
+            roleFilter.addEventListener(
+                "change",
+                filterUsers);
+
+            statusFilter.addEventListener(
+                "change",
+                filterUsers);
+        })();
+    </script>
+}

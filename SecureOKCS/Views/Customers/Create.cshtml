@@ -1,0 +1,762 @@
+﻿@model SecureOKCS.ViewModels.CustomerCreateViewModel
+
+@{
+    ViewData["Title"] = "Add Customer";
+}
+
+<style>
+    .customer-create-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 48px 0 75px;
+    }
+
+        .customer-create-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 13% 18%, rgba(0, 229, 255, 0.09), transparent 29%), radial-gradient( circle at 88% 78%, rgba(139, 92, 246, 0.08), transparent 29%);
+        }
+
+    .create-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 22px;
+    }
+
+    .create-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .create-back-link:hover {
+            color: #67e8f9;
+        }
+
+    .create-route {
+        color: #58677d;
+        font-family: monospace;
+        font-size: 0.7rem;
+    }
+
+    .create-shell {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 21px;
+        background: rgba(9, 17, 30, 0.95);
+        box-shadow: 0 27px 72px rgba(0, 0, 0, 0.36), 0 0 55px rgba(0, 229, 255, 0.045);
+    }
+
+    .create-information {
+        position: relative;
+        display: flex;
+        min-height: 680px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 44px;
+        overflow: hidden;
+        border-right: 1px solid rgba(148, 163, 184, 0.12);
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.97), rgba(12, 35, 59, 0.93));
+    }
+
+        .create-information::after {
+            position: absolute;
+            width: 290px;
+            height: 290px;
+            right: -160px;
+            bottom: -145px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.17);
+            filter: blur(57px);
+        }
+
+    .create-info-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .create-eyebrow {
+        margin-bottom: 13px;
+        color: #00e5ff;
+        font-size: 0.71rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .create-information h1 {
+        max-width: 470px;
+        margin-bottom: 17px;
+        color: #f8fafc;
+        font-size: clamp(2rem, 4vw, 3.1rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+    }
+
+    .create-gradient {
+        color: transparent;
+        background: linear-gradient( 90deg, #00e5ff, #60a5fa);
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+
+    .create-description {
+        max-width: 470px;
+        color: #8fa0b7;
+        font-size: 0.88rem;
+        line-height: 1.75;
+    }
+
+    .create-process {
+        display: grid;
+        gap: 16px;
+        margin-top: 36px;
+    }
+
+    .create-process-item {
+        display: grid;
+        grid-template-columns: 38px 1fr;
+        gap: 13px;
+        align-items: start;
+    }
+
+    .create-process-number {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        color: #00e5ff;
+        font-family: monospace;
+        font-size: 0.69rem;
+        font-weight: 900;
+        border: 1px solid rgba(0, 229, 255, 0.26);
+        border-radius: 10px;
+        background: rgba(0, 229, 255, 0.07);
+    }
+
+    .create-process-item h3 {
+        margin: 1px 0 4px;
+        color: #dbe7f5;
+        font-size: 0.87rem;
+        font-weight: 750;
+    }
+
+    .create-process-item p {
+        margin: 0;
+        color: #718096;
+        font-size: 0.75rem;
+        line-height: 1.55;
+    }
+
+    .create-security-state {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #7dd3fc;
+        font-family: monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+        .create-security-state::before {
+            width: 8px;
+            height: 8px;
+            content: "";
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 11px #22c55e;
+        }
+
+    .create-form-area {
+        display: flex;
+        min-height: 680px;
+        align-items: center;
+        padding: 44px;
+        background: linear-gradient( 145deg, rgba(7, 14, 25, 0.98), rgba(5, 11, 20, 0.98));
+    }
+
+    .create-form-container {
+        width: 100%;
+        max-width: 480px;
+        margin: auto;
+    }
+
+    .create-form-eyebrow {
+        margin-bottom: 8px;
+        color: #00e5ff;
+        font-size: 0.69rem;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .create-form-title {
+        margin-bottom: 9px;
+        color: #f8fafc;
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .create-form-description {
+        margin-bottom: 25px;
+        color: #8291a7;
+        font-size: 0.84rem;
+        line-height: 1.65;
+    }
+
+    .create-validation {
+        margin-bottom: 19px;
+        padding: 13px 15px;
+        color: #fecaca;
+        font-size: 0.81rem;
+        border: 1px solid rgba(239, 68, 68, 0.27);
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.08);
+    }
+
+        .create-validation:empty,
+        .create-validation.validation-summary-valid {
+            display: none;
+        }
+
+        .create-validation ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+    .create-field {
+        margin-bottom: 18px;
+    }
+
+    .create-label {
+        margin-bottom: 8px;
+        color: #dbe7f5;
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+
+    .create-required {
+        color: #67e8f9;
+    }
+
+    .create-input {
+        min-height: 49px;
+        color: #f8fafc !important;
+        border: 1px solid #263449;
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.75) !important;
+    }
+
+    textarea.create-input {
+        min-height: 105px;
+        resize: vertical;
+    }
+
+    .create-input::placeholder {
+        color: #5f6f85;
+    }
+
+    .create-input:focus {
+        color: #ffffff;
+        border-color: #00e5ff;
+        background: rgba(15, 23, 42, 0.95);
+        box-shadow: 0 0 0 0.2rem rgba(0, 229, 255, 0.1);
+    }
+
+    .create-input:-webkit-autofill {
+        -webkit-text-fill-color: #f8fafc;
+        box-shadow: 0 0 0 1000px #0f172a inset;
+    }
+
+    .create-error {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.76rem;
+    }
+
+    .create-help {
+        display: block;
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 0.71rem;
+        line-height: 1.5;
+    }
+
+    .create-encryption-notice {
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 11px;
+        margin: 5px 0 22px;
+        padding: 13px;
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        border-radius: 10px;
+        background: rgba(139, 92, 246, 0.06);
+    }
+
+    .create-lock-icon {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        color: #c4b5fd;
+        font-family: monospace;
+        font-size: 0.61rem;
+        font-weight: 900;
+        border: 1px solid rgba(167, 139, 250, 0.25);
+        border-radius: 8px;
+    }
+
+    .create-encryption-notice strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #ddd6fe;
+        font-size: 0.78rem;
+    }
+
+    .create-encryption-notice p {
+        margin: 0;
+        color: #8f89a4;
+        font-size: 0.71rem;
+        line-height: 1.5;
+    }
+
+    .create-actions {
+        display: flex;
+        gap: 11px;
+    }
+
+    .create-submit,
+    .create-cancel {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 17px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 9px;
+    }
+
+    .create-submit {
+        flex: 1;
+        color: #031019;
+        border: 1px solid #00e5ff;
+        background: linear-gradient( 135deg, #00e5ff, #60a5fa);
+        box-shadow: 0 0 25px rgba(0, 229, 255, 0.15);
+    }
+
+        .create-submit:hover {
+            color: #031019;
+            box-shadow: 0 0 32px rgba(0, 229, 255, 0.27);
+        }
+
+    .create-cancel {
+        color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, 0.21);
+        background: rgba(15, 23, 42, 0.6);
+    }
+
+        .create-cancel:hover {
+            color: #67e8f9;
+            border-color: rgba(0, 229, 255, 0.3);
+        }
+
+    @@media (max-width: 991px) {
+        .create-information {
+            min-height: auto;
+            border-right: 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .create-form-area {
+            min-height: auto;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .customer-create-page {
+            padding: 27px 0 60px;
+        }
+
+        .create-route {
+            display: none;
+        }
+
+        .create-information,
+        .create-form-area {
+            padding: 28px 22px;
+        }
+
+            .create-information h1 {
+                font-size: 2.15rem;
+            }
+
+        .create-actions {
+            display: grid;
+        }
+
+        .create-submit,
+        .create-cancel {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="customer-create-page">
+
+    <div class="container">
+
+        <!-- NAVIGATION -->
+        <div class="create-navigation">
+
+            <a asp-controller="Customers"
+               asp-action="Index"
+               class="create-back-link">
+
+                ← Back to customer records
+
+            </a>
+
+            <span class="create-route">
+                OPERATIONS / CUSTOMERS / CREATE
+            </span>
+
+        </div>
+
+        <div class="create-shell">
+
+            <div class="row g-0">
+
+                <!-- INFORMATION PANEL -->
+                <div class="col-lg-6">
+
+                    <div class="create-information">
+
+                        <div class="create-info-content">
+
+                            <div class="create-eyebrow">
+                                Protected Customer Registration
+                            </div>
+
+                            <h1>
+
+                                Create a secure
+
+                                <span class="create-gradient">
+                                    customer record.
+                                </span>
+
+                            </h1>
+
+                            <p class="create-description">
+
+                                Register the customer information
+                                required for repair services. Sensitive
+                                fields are protected before being
+                                stored in the database.
+
+                            </p>
+
+                            <div class="create-process">
+
+                                <div class="create-process-item">
+
+                                    <div class="create-process-number">
+                                        01
+                                    </div>
+
+                                    <div>
+
+                                        <h3>
+                                            Enter Customer Details
+                                        </h3>
+
+                                        <p>
+                                            Add accurate contact
+                                            information for the customer.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="create-process-item">
+
+                                    <div class="create-process-number">
+                                        02
+                                    </div>
+
+                                    <div>
+
+                                        <h3>
+                                            Information Encryption
+                                        </h3>
+
+                                        <p>
+                                            Sensitive information is
+                                            encrypted before storage.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="create-process-item">
+
+                                    <div class="create-process-number">
+                                        03
+                                    </div>
+
+                                    <div>
+
+                                        <h3>
+                                            Tracking Code Generation
+                                        </h3>
+
+                                        <p>
+                                            A unique customer tracking
+                                            code is generated automatically.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="create-security-state">
+                            Customer encryption service active
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- CREATE FORM -->
+                <div class="col-lg-6">
+
+                    <div class="create-form-area">
+
+                        <div class="create-form-container">
+
+                            <div class="create-form-eyebrow">
+                                New Customer
+                            </div>
+
+                            <h2 class="create-form-title">
+                                Customer information
+                            </h2>
+
+                            <p class="create-form-description">
+
+                                Fields marked with an asterisk are
+                                required to create the customer record.
+
+                            </p>
+
+                            <form asp-controller="Customers"
+                                  asp-action="Create"
+                                  method="post">
+
+                                <div asp-validation-summary="ModelOnly"
+                                     class="create-validation"
+                                     role="alert">
+                                </div>
+
+                                <!-- FULL NAME -->
+                                <div class="create-field">
+
+                                    <label asp-for="FullName"
+                                           class="create-label">
+
+                                        Full Name
+
+                                        <span class="create-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <input asp-for="FullName"
+                                           class="form-control
+                                    create-input"
+                                           placeholder="Enter the customer's full name"
+                                           autocomplete="name"
+                                           autofocus />
+
+                                    <span asp-validation-for="FullName"
+                                          class="text-danger
+                                        create-error">
+                                    </span>
+
+                                </div>
+
+                                <!-- EMAIL -->
+                                <div class="create-field">
+
+                                    <label asp-for="Email"
+                                           class="create-label">
+
+                                        Email Address
+
+                                        <span class="create-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <input asp-for="Email"
+                                           type="email"
+                                           class="form-control
+                                    create-input"
+                                           placeholder="customer@example.com"
+                                           autocomplete="email" />
+
+                                    <span asp-validation-for="Email"
+                                          class="text-danger
+                                        create-error">
+                                    </span>
+
+                                    <span class="create-help">
+
+                                        Status notifications will use
+                                        this email address when email
+                                        delivery is enabled.
+
+                                    </span>
+
+                                </div>
+
+                                <!-- PHONE -->
+                                <div class="create-field">
+
+                                    <label asp-for="PhoneNumber"
+                                           class="create-label">
+
+                                        Phone Number
+
+                                        <span class="create-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <input asp-for="PhoneNumber"
+                                           type="tel"
+                                           class="form-control
+                                    create-input"
+                                           placeholder="Example: 0123456789"
+                                           autocomplete="tel" />
+
+                                    <span asp-validation-for="PhoneNumber"
+                                          class="text-danger
+                                        create-error">
+                                    </span>
+
+                                </div>
+
+                                <!-- ADDRESS -->
+                                <div class="create-field">
+
+                                    <label asp-for="Address"
+                                           class="create-label">
+                                        Address
+                                    </label>
+
+                                    <textarea asp-for="Address"
+                                              class="form-control
+                                    create-input"
+                                              placeholder="Enter the customer's address"
+                                              autocomplete="street-address">
+                                    </textarea>
+
+                                    <span asp-validation-for="Address"
+                                          class="text-danger
+                                        create-error">
+                                    </span>
+
+                                    <span class="create-help">
+                                        Address is optional.
+                                    </span>
+
+                                </div>
+
+                                <div class="create-encryption-notice">
+
+                                    <div class="create-lock-icon">
+                                        SEC
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            Protected Information
+                                        </strong>
+
+                                        <p>
+                                            Name, email, phone number
+                                            and address are encrypted
+                                            before database storage.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="create-actions">
+
+                                    <button type="submit"
+                                            class="btn create-submit">
+
+                                        Create Customer Record →
+
+                                    </button>
+
+                                    <a asp-controller="Customers"
+                                       asp-action="Index"
+                                       class="create-cancel">
+
+                                        Cancel
+
+                                    </a>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

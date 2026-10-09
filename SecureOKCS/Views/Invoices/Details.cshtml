@@ -1,0 +1,1205 @@
+﻿@model SecureOKCS.ViewModels.InvoiceDisplayViewModel
+
+@{
+    ViewData["Title"] = "Invoice Details";
+
+    bool isPaid =
+        string.Equals(
+            Model.PaymentStatus,
+            "Paid",
+            StringComparison.OrdinalIgnoreCase);
+}
+
+<style>
+    .invoice-details-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 42px 0 75px;
+    }
+
+        .invoice-details-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 12% 15%, rgba(96, 165, 250, 0.08), transparent 27%), radial-gradient( circle at 90% 78%, rgba(139, 92, 246, 0.07), transparent 28%);
+        }
+
+    .invoice-screen-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 17px;
+        margin-bottom: 22px;
+    }
+
+    .invoice-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        font-size: 0.81rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .invoice-back-link:hover {
+            color: #93c5fd;
+        }
+
+    .invoice-action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 9px;
+    }
+
+    .invoice-payment-button,
+    .invoice-print-button {
+        display: inline-flex;
+        min-height: 42px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 14px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 8px;
+    }
+
+    .invoice-payment-button {
+        color: #dcfce7;
+        border: 1px solid rgba(34, 197, 94, 0.28);
+        background: rgba(34, 197, 94, 0.08);
+    }
+
+        .invoice-payment-button:hover {
+            color: #ffffff;
+            border-color: rgba(34, 197, 94, 0.5);
+        }
+
+    .invoice-print-button {
+        color: #050d1d;
+        border: 1px solid #60a5fa;
+        background: linear-gradient( 135deg, #60a5fa, #a78bfa);
+        box-shadow: 0 0 22px rgba(96, 165, 250, 0.13);
+    }
+
+        .invoice-print-button:hover {
+            color: #050d1d;
+            box-shadow: 0 0 29px rgba(96, 165, 250, 0.24);
+        }
+
+    .invoice-document {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 20px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.98), rgba(7, 14, 25, 0.99));
+        box-shadow: 0 28px 75px rgba(0, 0, 0, 0.36);
+    }
+
+        .invoice-document::before {
+            position: absolute;
+            width: 330px;
+            height: 330px;
+            top: -210px;
+            right: -90px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(96, 165, 250, 0.14);
+            filter: blur(60px);
+        }
+
+    .invoice-document-inner {
+        position: relative;
+        z-index: 1;
+        padding: 50px;
+    }
+
+    .invoice-company-header {
+        margin-bottom: 44px;
+        padding-bottom: 31px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.13);
+    }
+
+    .invoice-company {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .invoice-company-mark {
+        display: grid;
+        width: 53px;
+        height: 53px;
+        flex: 0 0 53px;
+        place-items: center;
+        color: #050d1d;
+        font-size: 1.1rem;
+        font-weight: 900;
+        border-radius: 14px;
+        background: linear-gradient( 135deg, #60a5fa, #a78bfa);
+        box-shadow: 0 0 25px rgba(96, 165, 250, 0.18);
+    }
+
+    .invoice-company-name {
+        margin-bottom: 3px;
+        color: #f8fafc;
+        font-size: 1.35rem;
+        font-weight: 850;
+        letter-spacing: -0.025em;
+    }
+
+    .invoice-company-description {
+        margin: 0;
+        color: #718096;
+        font-size: 0.74rem;
+        line-height: 1.5;
+    }
+
+    .invoice-document-title {
+        margin-bottom: 7px;
+        color: #f8fafc;
+        font-size: clamp(2rem, 4vw, 3.1rem);
+        font-weight: 900;
+        letter-spacing: 0.05em;
+    }
+
+    .invoice-number {
+        margin-bottom: 13px;
+        color: #93c5fd;
+        font-family: monospace;
+        font-size: 0.77rem;
+        font-weight: 800;
+    }
+
+    .invoice-status-stamp {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 11px;
+        font-size: 0.7rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border: 1px solid;
+        border-radius: 8px;
+    }
+
+        .invoice-status-stamp::before {
+            width: 7px;
+            height: 7px;
+            content: "";
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+    .invoice-status-paid {
+        color: #86efac;
+        border-color: rgba(34, 197, 94, 0.28);
+        background: rgba(34, 197, 94, 0.08);
+    }
+
+    .invoice-status-unpaid {
+        color: #fda4af;
+        border-color: rgba(244, 63, 94, 0.28);
+        background: rgba(244, 63, 94, 0.08);
+    }
+
+    .invoice-parties {
+        margin-bottom: 38px;
+    }
+
+    .invoice-section-label {
+        margin-bottom: 13px;
+        color: #64748b;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .invoice-party-panel {
+        height: 100%;
+        padding: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.11);
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.43);
+    }
+
+    .invoice-customer-name {
+        margin-bottom: 10px;
+        color: #f8fafc;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+    .invoice-contact-line {
+        margin-bottom: 6px;
+        color: #8fa0b7;
+        font-size: 0.76rem;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+        .invoice-contact-line:last-child {
+            margin-bottom: 0;
+        }
+
+    .invoice-address {
+        white-space: pre-line;
+    }
+
+    .invoice-reference-list {
+        display: grid;
+        gap: 10px;
+    }
+
+    .invoice-reference-row {
+        display: grid;
+        grid-template-columns: 105px 1fr;
+        gap: 13px;
+        font-size: 0.76rem;
+    }
+
+    .invoice-reference-label {
+        color: #64748b;
+        font-weight: 700;
+    }
+
+    .invoice-reference-value {
+        color: #cbd5e1;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+        .invoice-reference-value.ticket {
+            color: #7dd3fc;
+            font-family: monospace;
+        }
+
+        .invoice-reference-value.tracking {
+            color: #c4b5fd;
+            font-family: monospace;
+            letter-spacing: 0.04em;
+        }
+
+    .invoice-repair-status {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        padding: 5px 9px;
+        color: #bfdbfe;
+        font-size: 0.68rem;
+        font-weight: 800;
+        border: 1px solid rgba(96, 165, 250, 0.25);
+        border-radius: 999px;
+        background: rgba(96, 165, 250, 0.09);
+    }
+
+    .invoice-tracking-panel {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin: -13px 0 35px;
+        padding: 16px 18px;
+        border: 1px solid rgba(139, 92, 246, 0.22);
+        border-radius: 12px;
+        background: linear-gradient( 135deg, rgba(96, 165, 250, 0.07), rgba(139, 92, 246, 0.07));
+    }
+
+    .invoice-tracking-title {
+        margin-bottom: 4px;
+        color: #dbeafe;
+        font-size: 0.78rem;
+        font-weight: 850;
+    }
+
+    .invoice-tracking-text {
+        margin: 0;
+        color: #8fa0b7;
+        font-size: 0.72rem;
+        line-height: 1.6;
+    }
+
+        .invoice-tracking-text code {
+            color: #c4b5fd;
+            font-weight: 800;
+        }
+
+    .invoice-track-link {
+        display: inline-flex;
+        min-height: 38px;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        padding: 0 13px;
+        color: #dbeafe;
+        font-size: 0.69rem;
+        font-weight: 800;
+        text-decoration: none;
+        border: 1px solid rgba(96, 165, 250, 0.28);
+        border-radius: 8px;
+        background: rgba(96, 165, 250, 0.08);
+    }
+
+        .invoice-track-link:hover {
+            color: #ffffff;
+            border-color: rgba(96, 165, 250, 0.5);
+        }
+
+    .invoice-billing-table {
+        width: 100%;
+        margin-bottom: 35px;
+        color: #cbd5e1;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 12px;
+    }
+
+        .invoice-billing-table th {
+            padding: 14px 16px;
+            color: #94a3b8;
+            font-size: 0.66rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.11);
+            background: rgba(5, 11, 20, 0.62);
+        }
+
+        .invoice-billing-table td {
+            padding: 17px 16px;
+            color: #aebdce;
+            font-size: 0.78rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+            background: rgba(15, 23, 42, 0.31);
+        }
+
+        .invoice-billing-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .invoice-billing-table .amount {
+            width: 180px;
+            color: #dbe7f5;
+            font-family: monospace;
+            font-weight: 800;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .invoice-billing-table
+        .invoice-total-row td {
+            color: #f8fafc;
+            font-weight: 850;
+            background: rgba(96, 165, 250, 0.07);
+        }
+
+        .invoice-billing-table
+        .invoice-total-row .amount {
+            color: #86efac;
+            font-size: 1rem;
+        }
+
+    .invoice-payment-section {
+        padding-top: 31px;
+        border-top: 1px solid rgba(148, 163, 184, 0.13);
+    }
+
+    .invoice-payment-information {
+        display: grid;
+        gap: 10px;
+    }
+
+    .invoice-payment-row {
+        display: flex;
+        gap: 10px;
+        color: #8fa0b7;
+        font-size: 0.75rem;
+    }
+
+        .invoice-payment-row strong {
+            color: #cbd5e1;
+            min-width: 120px;
+        }
+
+    .invoice-issued-panel {
+        text-align: right;
+    }
+
+    .invoice-issued-name {
+        margin-bottom: 5px;
+        color: #dbe7f5;
+        font-size: 0.8rem;
+        font-weight: 800;
+    }
+
+    .invoice-issued-date {
+        margin: 0;
+        color: #718096;
+        font-family: monospace;
+        font-size: 0.69rem;
+    }
+
+    .invoice-footer-message {
+        margin-top: 42px;
+        padding-top: 24px;
+        color: #64748b;
+        font-size: 0.72rem;
+        text-align: center;
+        border-top: 1px solid rgba(148, 163, 184, 0.11);
+    }
+
+        .invoice-footer-message strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #94a3b8;
+        }
+
+    @@media (max-width: 767px) {
+        .invoice-details-page {
+            padding: 27px 0 60px;
+        }
+
+        .invoice-screen-actions {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .invoice-action-buttons {
+            display: grid;
+        }
+
+        .invoice-payment-button,
+        .invoice-print-button {
+            width: 100%;
+        }
+
+        .invoice-document-inner {
+            padding: 28px 21px;
+        }
+
+        .invoice-company {
+            margin-bottom: 25px;
+        }
+
+        .invoice-document-title {
+            margin-top: 15px;
+        }
+
+        .invoice-reference-row {
+            grid-template-columns: 1fr;
+            gap: 3px;
+        }
+
+        .invoice-payment-section .row {
+            gap: 25px;
+        }
+
+        .invoice-issued-panel {
+            text-align: left;
+        }
+
+        .invoice-billing-table .amount {
+            width: auto;
+        }
+
+        .invoice-tracking-panel {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .invoice-track-link {
+            width: 100%;
+        }
+    }
+
+    @@media print {
+        @@page {
+            size: A4;
+            margin: 12mm;
+        }
+
+        html,
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            color: #111827 !important;
+            background: #ffffff !important;
+        }
+
+        header,
+        footer,
+        nav,
+        .navbar,
+        .invoice-screen-actions,
+        .no-print {
+            display: none !important;
+        }
+
+        main,
+        .invoice-details-page,
+        .container {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+            .invoice-details-page::before,
+            .invoice-document::before {
+                display: none !important;
+            }
+
+        .invoice-document {
+            overflow: visible !important;
+            color: #111827 !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            background: #ffffff !important;
+            box-shadow: none !important;
+        }
+
+        .invoice-document-inner {
+            padding: 0 !important;
+        }
+
+        .invoice-company-header {
+            margin-bottom: 25px !important;
+            padding-bottom: 20px !important;
+            border-color: #d1d5db !important;
+        }
+
+        .invoice-company-mark {
+            color: #ffffff !important;
+            background: #2563eb !important;
+            box-shadow: none !important;
+        }
+
+        .invoice-company-name,
+        .invoice-document-title,
+        .invoice-customer-name,
+        .invoice-reference-value,
+        .invoice-payment-row strong,
+        .invoice-issued-name {
+            color: #111827 !important;
+        }
+
+        .invoice-company-description,
+        .invoice-contact-line,
+        .invoice-reference-label,
+        .invoice-payment-row,
+        .invoice-issued-date,
+        .invoice-footer-message {
+            color: #4b5563 !important;
+        }
+
+        .invoice-number,
+        .invoice-reference-value.ticket,
+        .invoice-reference-value.tracking {
+            color: #1d4ed8 !important;
+        }
+
+        .invoice-repair-status {
+            color: #1e40af !important;
+            border-color: #93c5fd !important;
+            background: #dbeafe !important;
+        }
+
+        .invoice-tracking-panel {
+            color: #111827 !important;
+            border-color: #d1d5db !important;
+            background: #f9fafb !important;
+        }
+
+        .invoice-tracking-title {
+            color: #111827 !important;
+        }
+
+        .invoice-tracking-text,
+        .invoice-tracking-text code {
+            color: #374151 !important;
+        }
+
+        .invoice-party-panel {
+            color: #111827 !important;
+            border-color: #d1d5db !important;
+            background: #f9fafb !important;
+        }
+
+        .invoice-billing-table {
+            color: #111827 !important;
+            border-color: #9ca3af !important;
+        }
+
+            .invoice-billing-table th {
+                color: #ffffff !important;
+                border-color: #374151 !important;
+                background: #1f2937 !important;
+            }
+
+            .invoice-billing-table td {
+                color: #111827 !important;
+                border-color: #d1d5db !important;
+                background: #ffffff !important;
+            }
+
+            .invoice-billing-table .amount,
+            .invoice-billing-table
+            .invoice-total-row .amount {
+                color: #111827 !important;
+            }
+
+            .invoice-billing-table
+            .invoice-total-row td {
+                color: #111827 !important;
+                background: #f3f4f6 !important;
+            }
+
+        .invoice-payment-section,
+        .invoice-footer-message {
+            border-color: #d1d5db !important;
+        }
+
+        .invoice-status-paid {
+            color: #166534 !important;
+            border-color: #16a34a !important;
+            background: #dcfce7 !important;
+        }
+
+        .invoice-status-unpaid {
+            color: #991b1b !important;
+            border-color: #dc2626 !important;
+            background: #fee2e2 !important;
+        }
+
+        .invoice-document,
+        .invoice-party-panel,
+        .invoice-billing-table {
+            break-inside: avoid;
+        }
+    }
+</style>
+
+<section class="invoice-details-page">
+
+    <div class="container">
+
+        <!-- SCREEN ACTIONS -->
+        <div class="invoice-screen-actions no-print">
+
+            <a asp-controller="Invoices"
+               asp-action="Index"
+               class="invoice-back-link">
+
+                ← Back to invoices
+
+            </a>
+
+            <div class="invoice-action-buttons">
+
+                @if (!isPaid)
+                {
+                    <a asp-controller="Invoices"
+                       asp-action="MarkPaid"
+                       asp-route-id="@Model.InvoiceId"
+                       class="invoice-payment-button">
+
+                        Record Payment
+
+                    </a>
+                }
+
+                <button type="button"
+                        class="invoice-print-button"
+                        onclick="window.print()">
+
+                    Print Invoice
+
+                </button>
+
+            </div>
+
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success
+                alert-dismissible fade show
+                no-print">
+
+                @TempData["Success"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+
+            </div>
+        }
+
+        @if (TempData["Info"] != null)
+        {
+            <div class="alert alert-info
+                alert-dismissible fade show
+                no-print">
+
+                @TempData["Info"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+
+            </div>
+        }
+
+        <!-- INVOICE DOCUMENT -->
+        <article class="invoice-document">
+
+            <div class="invoice-document-inner">
+
+                <!-- COMPANY AND INVOICE HEADER -->
+                <header class="invoice-company-header">
+
+                    <div class="row align-items-start">
+
+                        <div class="col-md-7">
+
+                            <div class="invoice-company">
+
+                                <div class="invoice-company-mark">
+                                    S
+                                </div>
+
+                                <div>
+
+                                    <div class="invoice-company-name">
+                                        Secure OKCS
+                                    </div>
+
+                                    <p class="invoice-company-description">
+
+                                        OK Computer Solution
+                                        <br />
+                                        Computer Repair
+                                        Management System
+
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-5
+                            text-md-end">
+
+                            <h1 class="invoice-document-title">
+                                INVOICE
+                            </h1>
+
+                            <div class="invoice-number">
+                                @Model.InvoiceNumber
+                            </div>
+
+                            @if (isPaid)
+                            {
+                                <span class="invoice-status-stamp
+                                    invoice-status-paid">
+
+                                    Paid
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="invoice-status-stamp
+                                    invoice-status-unpaid">
+
+                                    Unpaid
+
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </header>
+
+                <!-- CUSTOMER AND REPAIR -->
+                <div class="row g-4 invoice-parties">
+
+                    <div class="col-md-6">
+
+                        <div class="invoice-section-label">
+                            Bill To
+                        </div>
+
+                        <div class="invoice-party-panel">
+
+                            <div class="invoice-customer-name">
+                                @Model.CustomerName
+                            </div>
+
+                            <div class="invoice-contact-line">
+                                @Model.CustomerEmail
+                            </div>
+
+                            <div class="invoice-contact-line">
+                                @Model.CustomerPhone
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                Model.CustomerAddress))
+                            {
+                                <div class="invoice-contact-line
+                                    invoice-address">
+
+                                    @Model.CustomerAddress
+
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <div class="invoice-section-label">
+                            Repair Reference
+                        </div>
+
+                        <div class="invoice-party-panel">
+
+                            <div class="invoice-reference-list">
+
+                                <div class="invoice-reference-row">
+
+                                    <span class="invoice-reference-label">
+
+                                        Ticket
+
+                                    </span>
+
+                                    <span class="invoice-reference-value
+                                        ticket">
+
+                                        @Model.TicketNumber
+
+                                    </span>
+
+                                </div>
+
+                                <div class="invoice-reference-row">
+
+                                    <span class="invoice-reference-label">
+
+                                        Tracking Code
+
+                                    </span>
+
+                                    <span class="invoice-reference-value
+                                        tracking">
+
+                                        @Model.TrackingCode
+
+                                    </span>
+
+                                </div>
+
+                                <div class="invoice-reference-row">
+
+                                    <span class="invoice-reference-label">
+
+                                        Current Status
+
+                                    </span>
+
+                                    <span class="invoice-repair-status">
+
+                                        @Model.RepairStatus
+
+                                    </span>
+
+                                </div>
+
+                                <div class="invoice-reference-row">
+
+                                    <span class="invoice-reference-label">
+
+                                        Device
+
+                                    </span>
+
+                                    <span class="invoice-reference-value">
+
+                                        @Model.DeviceType
+
+                                    </span>
+
+                                </div>
+
+                                <div class="invoice-reference-row">
+
+                                    <span class="invoice-reference-label">
+
+                                        Brand / Model
+
+                                    </span>
+
+                                    <span class="invoice-reference-value">
+
+                                        @Model.BrandModel
+
+                                    </span>
+
+                                </div>
+
+                                <div class="invoice-reference-row">
+
+                                    <span class="invoice-reference-label">
+
+                                        Reported Issue
+
+                                    </span>
+
+                                    <span class="invoice-reference-value">
+
+                                        @Model.ProblemDescription
+
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- REPAIR TRACKING INFORMATION -->
+                <div class="invoice-tracking-panel">
+
+                    <div>
+
+                        <div class="invoice-tracking-title">
+                            Track Your Repair
+                        </div>
+
+                        <p class="invoice-tracking-text">
+
+                            Use Tracking Code
+
+                            <code>@Model.TrackingCode</code>
+
+                            together with Ticket Number
+
+                            <code>@Model.TicketNumber</code>
+
+                            on the Track Repair page.
+
+                        </p>
+
+                    </div>
+
+                    <a asp-controller="Tracking"
+                       asp-action="Index"
+                       class="invoice-track-link no-print">
+
+                        Open Track Repair
+
+                    </a>
+
+                </div>
+
+                <!-- BILLING TABLE -->
+                <div class="table-responsive">
+
+                    <table class="invoice-billing-table">
+
+                        <thead>
+
+                            <tr>
+                                <th>Description</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+
+                                <td>
+
+                                    Repair Service —
+                                    @Model.DeviceType
+                                    @Model.BrandModel
+
+                                </td>
+
+                                <td class="amount">
+
+                                    @($"RM {Model.Subtotal:N2}")
+
+                                </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td>Tax</td>
+
+                                <td class="amount">
+
+                                    @($"RM {Model.TaxAmount:N2}")
+
+                                </td>
+
+                            </tr>
+
+                            <tr class="invoice-total-row">
+
+                                <td class="text-end">
+                                    Total Amount
+                                </td>
+
+                                <td class="amount">
+
+                                    @($"RM {Model.TotalAmount:N2}")
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <!-- PAYMENT INFORMATION -->
+                <div class="invoice-payment-section">
+
+                    <div class="row align-items-end">
+
+                        <div class="col-md-7">
+
+                            <div class="invoice-section-label">
+                                Payment Information
+                            </div>
+
+                            <div class="invoice-payment-information">
+
+                                <div class="invoice-payment-row">
+
+                                    <strong>
+                                        Payment Status
+                                    </strong>
+
+                                    <span>
+                                        @Model.PaymentStatus
+                                    </span>
+
+                                </div>
+
+                                <div class="invoice-payment-row">
+
+                                    <strong>
+                                        Payment Method
+                                    </strong>
+
+                                    <span>
+
+                                        @(string.IsNullOrWhiteSpace(
+                                            Model.PaymentMethod)
+                                            ? "-"
+                                            : Model.PaymentMethod)
+
+                                    </span>
+
+                                </div>
+
+                                <div class="invoice-payment-row">
+
+                                    <strong>
+                                        Paid Date
+                                    </strong>
+
+                                    <span>
+
+                                        @(Model.PaidAt.HasValue
+                                            ? Model.PaidAt.Value
+                                                .ToString(
+                                                    "dd MMM yyyy, hh:mm tt")
+                                            : "-")
+
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-5">
+
+                            <div class="invoice-issued-panel">
+
+                                <div class="invoice-section-label">
+                                    Issued By
+                                </div>
+
+                                <div class="invoice-issued-name">
+                                    @Model.IssuedByName
+                                </div>
+
+                                <p class="invoice-issued-date">
+
+                                    @Model.IssuedAt.ToString(
+                                        "dd MMM yyyy, hh:mm tt")
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <footer class="invoice-footer-message">
+
+                    <strong>
+                        Thank you for choosing
+                        OK Computer Solution.
+                    </strong>
+
+                    This invoice was generated through
+                    the Secure OKCS Management System.
+
+                </footer>
+
+            </div>
+
+        </article>
+
+    </div>
+
+</section>

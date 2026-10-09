@@ -1,0 +1,1107 @@
+﻿@model SecureOKCS.ViewModels.CreateStaffViewModel
+
+@{
+    ViewData["Title"] = "Add Staff Account";
+}
+
+<style>
+    .staff-create-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 45px 0 75px;
+    }
+
+        .staff-create-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 13% 18%, rgba(139, 92, 246, 0.09), transparent 28%), radial-gradient( circle at 88% 78%, rgba(0, 229, 255, 0.07), transparent 29%);
+        }
+
+    .staff-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 21px;
+    }
+
+    .staff-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        font-size: 0.81rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .staff-back:hover {
+            color: #c4b5fd;
+        }
+
+    .staff-route {
+        color: #58677d;
+        font-family: monospace;
+        font-size: 0.68rem;
+    }
+
+    .staff-shell {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 21px;
+        background: rgba(9, 17, 30, 0.95);
+        box-shadow: 0 27px 72px rgba(0, 0, 0, 0.36), 0 0 55px rgba(139, 92, 246, 0.045);
+    }
+
+    .staff-information {
+        position: relative;
+        display: flex;
+        min-height: 740px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 43px;
+        overflow: hidden;
+        border-right: 1px solid rgba(148, 163, 184, 0.12);
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.97), rgba(45, 31, 82, 0.84));
+    }
+
+        .staff-information::after {
+            position: absolute;
+            width: 295px;
+            height: 295px;
+            right: -158px;
+            bottom: -148px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.15);
+            filter: blur(57px);
+        }
+
+    .staff-information-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .staff-eyebrow {
+        margin-bottom: 12px;
+        color: #c4b5fd;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .staff-information h1 {
+        max-width: 470px;
+        margin-bottom: 16px;
+        color: #f8fafc;
+        font-size: clamp(2rem, 4vw, 3.05rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+    }
+
+    .staff-gradient {
+        color: transparent;
+        background: linear-gradient( 90deg, #a78bfa, #22d3ee);
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+
+    .staff-description {
+        max-width: 460px;
+        color: #8fa0b7;
+        font-size: 0.85rem;
+        line-height: 1.75;
+    }
+
+    .staff-role-panel {
+        margin-top: 33px;
+        padding: 20px;
+        border: 1px solid rgba(167, 139, 250, 0.18);
+        border-radius: 13px;
+        background: rgba(139, 92, 246, 0.055);
+    }
+
+    .staff-role-label {
+        margin-bottom: 7px;
+        color: #8f86a9;
+        font-size: 0.63rem;
+        font-weight: 800;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+    }
+
+    .staff-role-value {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 11px;
+        padding: 7px 10px;
+        color: #67e8f9;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border: 1px solid rgba(0, 229, 255, 0.24);
+        border-radius: 7px;
+        background: rgba(0, 229, 255, 0.06);
+    }
+
+        .staff-role-value::before {
+            width: 7px;
+            height: 7px;
+            content: "";
+            border-radius: 50%;
+            background: #00e5ff;
+            box-shadow: 0 0 9px #00e5ff;
+        }
+
+    .staff-role-description {
+        margin: 0;
+        color: #827b96;
+        font-size: 0.7rem;
+        line-height: 1.55;
+    }
+
+    .staff-security-list {
+        display: grid;
+        gap: 13px;
+        margin-top: 25px;
+    }
+
+    .staff-security-item {
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 11px;
+        align-items: start;
+    }
+
+    .staff-security-icon {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        color: #c4b5fd;
+        font-family: monospace;
+        font-size: 0.57rem;
+        font-weight: 900;
+        border: 1px solid rgba(167, 139, 250, 0.22);
+        border-radius: 8px;
+    }
+
+    .staff-security-item h3 {
+        margin: 1px 0 3px;
+        color: #dbe7f5;
+        font-size: 0.76rem;
+        font-weight: 750;
+    }
+
+    .staff-security-item p {
+        margin: 0;
+        color: #718096;
+        font-size: 0.68rem;
+        line-height: 1.5;
+    }
+
+    .staff-service-state {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #c4b5fd;
+        font-family: monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+        .staff-service-state::before {
+            width: 8px;
+            height: 8px;
+            content: "";
+            border-radius: 50%;
+            background: #a78bfa;
+            box-shadow: 0 0 11px #a78bfa;
+        }
+
+    .staff-form-area {
+        min-height: 740px;
+        padding: 43px;
+        background: linear-gradient( 145deg, rgba(7, 14, 25, 0.98), rgba(5, 11, 20, 0.98));
+    }
+
+    .staff-form-eyebrow {
+        margin-bottom: 8px;
+        color: #c4b5fd;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .staff-form-title {
+        margin-bottom: 8px;
+        color: #f8fafc;
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .staff-form-description {
+        margin-bottom: 24px;
+        color: #8291a7;
+        font-size: 0.82rem;
+        line-height: 1.65;
+    }
+
+    .staff-validation {
+        margin-bottom: 20px;
+        padding: 13px 15px;
+        color: #fecaca;
+        font-size: 0.8rem;
+        border: 1px solid rgba(239, 68, 68, 0.27);
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.08);
+    }
+
+        .staff-validation:empty,
+        .staff-validation.validation-summary-valid {
+            display: none;
+        }
+
+        .staff-validation ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+    .staff-field {
+        margin-bottom: 18px;
+    }
+
+    .staff-label {
+        margin-bottom: 8px;
+        color: #cbd5e1;
+        font-size: 0.79rem;
+        font-weight: 700;
+    }
+
+    .staff-required {
+        color: #c4b5fd;
+    }
+
+    .staff-optional {
+        margin-left: 5px;
+        color: #58677d;
+        font-size: 0.67rem;
+        font-weight: 500;
+    }
+
+    .staff-input {
+        min-height: 48px;
+        color: #f8fafc !important;
+        border: 1px solid #263449;
+        border-radius: 9px;
+        background-color: rgba(15, 23, 42, 0.78) !important;
+    }
+
+        .staff-input::placeholder {
+            color: #5f6f85;
+        }
+
+        .staff-input:focus {
+            color: #ffffff;
+            border-color: #a78bfa;
+            background-color: rgba(15, 23, 42, 0.97) !important;
+            box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.09);
+        }
+
+        .staff-input:-webkit-autofill {
+            -webkit-text-fill-color: #f8fafc;
+            box-shadow: 0 0 0 1000px #0f172a inset;
+        }
+
+    .staff-error {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.74rem;
+    }
+
+    .staff-help {
+        display: block;
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 0.68rem;
+        line-height: 1.5;
+    }
+
+    .staff-password-field {
+        position: relative;
+    }
+
+        .staff-password-field .staff-input {
+            padding-right: 76px;
+        }
+
+    .staff-password-toggle {
+        position: absolute;
+        top: 50%;
+        right: 9px;
+        padding: 6px 9px;
+        color: #c4b5fd;
+        font-size: 0.69rem;
+        font-weight: 700;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        transform: translateY(-50%);
+    }
+
+        .staff-password-toggle:hover {
+            color: #ffffff;
+            background: rgba(139, 92, 246, 0.09);
+        }
+
+    .staff-password-strength {
+        margin-top: 9px;
+    }
+
+    .staff-strength-track {
+        height: 4px;
+        overflow: hidden;
+        border-radius: 99px;
+        background: #1e293b;
+    }
+
+    .staff-strength-bar {
+        width: 0;
+        height: 100%;
+        border-radius: inherit;
+        background: #ef4444;
+        transition: width 0.25s ease, background-color 0.25s ease;
+    }
+
+    .staff-strength-details {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 0.68rem;
+    }
+
+    .staff-strength-text {
+        color: #94a3b8;
+        font-weight: 700;
+    }
+
+    .staff-automatic-notice {
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        gap: 11px;
+        margin-bottom: 22px;
+        padding: 13px;
+        border: 1px solid rgba(0, 229, 255, 0.16);
+        border-radius: 10px;
+        background: rgba(0, 229, 255, 0.04);
+    }
+
+    .staff-notice-icon {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        color: #67e8f9;
+        font-family: monospace;
+        font-size: 0.57rem;
+        font-weight: 900;
+        border: 1px solid rgba(0, 229, 255, 0.22);
+        border-radius: 8px;
+    }
+
+    .staff-automatic-notice strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #bae6fd;
+        font-size: 0.75rem;
+    }
+
+    .staff-automatic-notice p {
+        margin: 0;
+        color: #77879c;
+        font-size: 0.68rem;
+        line-height: 1.5;
+    }
+
+    .staff-actions {
+        display: flex;
+        gap: 11px;
+    }
+
+    .staff-submit,
+    .staff-cancel {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 17px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 9px;
+    }
+
+    .staff-submit {
+        flex: 1;
+        color: #0b0619;
+        border: 1px solid #a78bfa;
+        background: linear-gradient( 135deg, #a78bfa, #60a5fa);
+        box-shadow: 0 0 25px rgba(139, 92, 246, 0.14);
+    }
+
+        .staff-submit:hover {
+            color: #0b0619;
+            box-shadow: 0 0 32px rgba(139, 92, 246, 0.26);
+        }
+
+    .staff-cancel {
+        color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, 0.21);
+        background: rgba(15, 23, 42, 0.6);
+    }
+
+        .staff-cancel:hover {
+            color: #c4b5fd;
+            border-color: rgba(167, 139, 250, 0.3);
+        }
+
+    @@media (max-width: 991px) {
+        .staff-information {
+            min-height: auto;
+            border-right: 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .staff-form-area {
+            min-height: auto;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .staff-create-page {
+            padding: 27px 0 60px;
+        }
+
+        .staff-route {
+            display: none;
+        }
+
+        .staff-information,
+        .staff-form-area {
+            padding: 28px 22px;
+        }
+
+            .staff-information h1 {
+                font-size: 2.1rem;
+            }
+
+        .staff-actions {
+            display: grid;
+        }
+
+        .staff-submit,
+        .staff-cancel {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="staff-create-page">
+
+    <div class="container">
+
+        <!-- NAVIGATION -->
+        <div class="staff-navigation">
+
+            <a asp-controller="Users"
+               asp-action="Index"
+               class="staff-back">
+
+                ← Back to users
+
+            </a>
+
+            <span class="staff-route">
+                ADMINISTRATION / USERS / CREATE
+            </span>
+
+        </div>
+
+        <div class="staff-shell">
+
+            <div class="row g-0">
+
+                <!-- ACCOUNT INFORMATION -->
+                <div class="col-lg-5">
+
+                    <div class="staff-information">
+
+                        <div class="staff-information-content">
+
+                            <div class="staff-eyebrow">
+                                Administrator Access Control
+                            </div>
+
+                            <h1>
+
+                                Create an authorised
+
+                                <span class="staff-gradient">
+                                    staff account.
+                                </span>
+
+                            </h1>
+
+                            <p class="staff-description">
+
+                                Add a new staff member who can
+                                manage customers, repairs, inventory
+                                and invoices through the protected
+                                Secure OKCS workspace.
+
+                            </p>
+
+                            <div class="staff-role-panel">
+
+                                <div class="staff-role-label">
+                                    Assigned Account Role
+                                </div>
+
+                                <div class="staff-role-value">
+                                    Staff
+                                </div>
+
+                                <p class="staff-role-description">
+
+                                    The role is assigned automatically
+                                    by the server and cannot be changed
+                                    through this form.
+
+                                </p>
+
+                            </div>
+
+                            <div class="staff-security-list">
+
+                                <div class="staff-security-item">
+
+                                    <div class="staff-security-icon">
+                                        PWD
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Hashed Password</h3>
+
+                                        <p>
+                                            The password is hashed
+                                            before database storage.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="staff-security-item">
+
+                                    <div class="staff-security-icon">
+                                        BIO
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Face ID Setup</h3>
+
+                                        <p>
+                                            Face ID begins as Not Enrolled
+                                            and is registered by the user.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="staff-security-item">
+
+                                    <div class="staff-security-icon">
+                                        LOG
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Administrative Activity</h3>
+
+                                        <p>
+                                            Account creation is recorded
+                                            through the system workflow.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="staff-service-state">
+                            User administration service active
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- STAFF FORM -->
+                <div class="col-lg-7">
+
+                    <div class="staff-form-area">
+
+                        <div class="staff-form-eyebrow">
+                            Staff Account Form
+                        </div>
+
+                        <h2 class="staff-form-title">
+                            Staff information
+                        </h2>
+
+                        <p class="staff-form-description">
+
+                            Complete all required information to
+                            create the new Staff account.
+
+                        </p>
+
+                        <form asp-controller="Users"
+                              asp-action="Create"
+                              method="post">
+
+                            <div asp-validation-summary="ModelOnly"
+                                 class="staff-validation"
+                                 role="alert">
+                            </div>
+
+                            <!-- FULL NAME -->
+                            <div class="staff-field">
+
+                                <label asp-for="FullName"
+                                       class="staff-label">
+
+                                    Full Name
+
+                                    <span class="staff-required">
+                                        *
+                                    </span>
+
+                                </label>
+
+                                <input asp-for="FullName"
+                                       class="form-control
+                                staff-input"
+                                       placeholder="Enter the staff member's full name"
+                                       autocomplete="name"
+                                       autofocus />
+
+                                <span asp-validation-for="FullName"
+                                      class="text-danger
+                                    staff-error">
+                                </span>
+
+                            </div>
+
+                            <div class="row">
+
+                                <!-- EMAIL -->
+                                <div class="col-md-7">
+
+                                    <div class="staff-field">
+
+                                        <label asp-for="Email"
+                                               class="staff-label">
+
+                                            Email Address
+
+                                            <span class="staff-required">
+                                                *
+                                            </span>
+
+                                        </label>
+
+                                        <input asp-for="Email"
+                                               type="email"
+                                               class="form-control
+                                        staff-input"
+                                               placeholder="staff@example.com"
+                                               autocomplete="email" />
+
+                                        <span asp-validation-for="Email"
+                                              class="text-danger
+                                            staff-error">
+                                        </span>
+
+                                        <span class="staff-help">
+                                            Email must be unique.
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- PHONE -->
+                                <div class="col-md-5">
+
+                                    <div class="staff-field">
+
+                                        <label asp-for="PhoneNumber"
+                                               class="staff-label">
+
+                                            Phone Number
+
+                                            <span class="staff-optional">
+                                                Optional
+                                            </span>
+
+                                        </label>
+
+                                        <input asp-for="PhoneNumber"
+                                               type="tel"
+                                               class="form-control
+                                        staff-input"
+                                               placeholder="0123456789"
+                                               autocomplete="tel" />
+
+                                        <span asp-validation-for="PhoneNumber"
+                                              class="text-danger
+                                            staff-error">
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <!-- PASSWORD -->
+                            <div class="staff-field">
+
+                                <label asp-for="Password"
+                                       class="staff-label">
+
+                                    Temporary Password
+
+                                    <span class="staff-required">
+                                        *
+                                    </span>
+
+                                </label>
+
+                                <div class="staff-password-field">
+
+                                    <input asp-for="Password"
+                                           id="staffPassword"
+                                           class="form-control
+                                    staff-input"
+                                           placeholder="Create a secure password"
+                                           autocomplete="new-password" />
+
+                                    <button type="button"
+                                            class="staff-password-toggle"
+                                            data-password-target="staffPassword"
+                                            aria-label="Show password">
+
+                                        Show
+
+                                    </button>
+
+                                </div>
+
+                                <div class="staff-password-strength">
+
+                                    <div class="staff-strength-track">
+
+                                        <div class="staff-strength-bar"
+                                             id="staffStrengthBar">
+                                        </div>
+
+                                    </div>
+
+                                    <div class="staff-strength-details">
+
+                                        <span>
+                                            Minimum 8 characters
+                                        </span>
+
+                                        <span class="staff-strength-text"
+                                              id="staffStrengthText">
+
+                                            Not entered
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <span asp-validation-for="Password"
+                                      class="text-danger
+                                    staff-error">
+                                </span>
+
+                            </div>
+
+                            <!-- CONFIRM PASSWORD -->
+                            <div class="staff-field">
+
+                                <label asp-for="ConfirmPassword"
+                                       class="staff-label">
+
+                                    Confirm Password
+
+                                    <span class="staff-required">
+                                        *
+                                    </span>
+
+                                </label>
+
+                                <div class="staff-password-field">
+
+                                    <input asp-for="ConfirmPassword"
+                                           id="staffConfirmPassword"
+                                           class="form-control
+                                    staff-input"
+                                           placeholder="Enter the password again"
+                                           autocomplete="new-password" />
+
+                                    <button type="button"
+                                            class="staff-password-toggle"
+                                            data-password-target="staffConfirmPassword"
+                                            aria-label="Show password">
+
+                                        Show
+
+                                    </button>
+
+                                </div>
+
+                                <span asp-validation-for="ConfirmPassword"
+                                      class="text-danger
+                                    staff-error">
+                                </span>
+
+                            </div>
+
+                            <div class="staff-automatic-notice">
+
+                                <div class="staff-notice-icon">
+                                    AUTO
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        Automatic Account Setup
+                                    </strong>
+
+                                    <p>
+                                        The new account is assigned the
+                                        Staff role, activated immediately
+                                        and begins with Face ID marked
+                                        as Not Enrolled.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <div class="staff-actions">
+
+                                <button type="submit"
+                                        class="btn staff-submit">
+
+                                    Create Staff Account →
+
+                                </button>
+
+                                <a asp-controller="Users"
+                                   asp-action="Index"
+                                   class="staff-cancel">
+
+                                    Cancel
+
+                                </a>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+            const toggleButtons =
+                document.querySelectorAll(
+                    "[data-password-target]");
+
+            toggleButtons.forEach(button => {
+                button.addEventListener(
+                    "click",
+                    () => {
+                        const targetId =
+                            button.getAttribute(
+                                "data-password-target");
+
+                        const input =
+                            document.getElementById(
+                                targetId);
+
+                        if (!input) {
+                            return;
+                        }
+
+                        const isHidden =
+                            input.type === "password";
+
+                        input.type =
+                            isHidden
+                                ? "text"
+                                : "password";
+
+                        button.textContent =
+                            isHidden
+                                ? "Hide"
+                                : "Show";
+
+                        button.setAttribute(
+                            "aria-label",
+                            isHidden
+                                ? "Hide password"
+                                : "Show password");
+                    });
+            });
+
+            const passwordInput =
+                document.getElementById(
+                    "staffPassword");
+
+            const strengthBar =
+                document.getElementById(
+                    "staffStrengthBar");
+
+            const strengthText =
+                document.getElementById(
+                    "staffStrengthText");
+
+            if (!passwordInput ||
+                !strengthBar ||
+                !strengthText) {
+                return;
+            }
+
+            const levels = [
+                {
+                    width: "0%",
+                    text: "Not entered",
+                    colour: "#475569"
+                },
+                {
+                    width: "25%",
+                    text: "Weak",
+                    colour: "#ef4444"
+                },
+                {
+                    width: "50%",
+                    text: "Fair",
+                    colour: "#f59e0b"
+                },
+                {
+                    width: "75%",
+                    text: "Good",
+                    colour: "#38bdf8"
+                },
+                {
+                    width: "100%",
+                    text: "Strong",
+                    colour: "#22c55e"
+                }
+            ];
+
+            passwordInput.addEventListener(
+                "input",
+                () => {
+                    const password =
+                        passwordInput.value;
+
+                    if (!password) {
+                        updateStrength(0);
+                        return;
+                    }
+
+                    let score = 0;
+
+                    if (password.length >= 8) {
+                        score++;
+                    }
+
+                    if (/[a-z]/.test(password) &&
+                        /[A-Z]/.test(password)) {
+                        score++;
+                    }
+
+                    if (/\d/.test(password)) {
+                        score++;
+                    }
+
+                    if (/[^A-Za-z0-9]/.test(
+                        password)) {
+                        score++;
+                    }
+
+                    updateStrength(
+                        Math.max(1, score));
+                });
+
+            function updateStrength(level) {
+                const selectedLevel =
+                    levels[level];
+
+                strengthBar.style.width =
+                    selectedLevel.width;
+
+                strengthBar.style.backgroundColor =
+                    selectedLevel.colour;
+
+                strengthText.textContent =
+                    selectedLevel.text;
+
+                strengthText.style.color =
+                    selectedLevel.colour;
+            }
+        })();
+    </script>
+}

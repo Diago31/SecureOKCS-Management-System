@@ -1,0 +1,1016 @@
+﻿@model IEnumerable<SecureOKCS.ViewModels.InvoiceDisplayViewModel>
+
+@{
+    ViewData["Title"] = "Invoice Management";
+
+    var invoiceList =
+        Model?.ToList()
+        ?? new List<
+            SecureOKCS.ViewModels.InvoiceDisplayViewModel>();
+
+    int paidCount =
+        invoiceList.Count(invoice =>
+            invoice.PaymentStatus == "Paid");
+
+    int unpaidCount =
+        invoiceList.Count(invoice =>
+            invoice.PaymentStatus != "Paid");
+
+    decimal totalInvoiceValue =
+        invoiceList.Sum(invoice =>
+            invoice.TotalAmount);
+}
+
+<style>
+    .invoice-list-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 42px 0 75px;
+    }
+
+        .invoice-list-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 12% 15%, rgba(96, 165, 250, 0.08), transparent 27%), radial-gradient( circle at 90% 78%, rgba(139, 92, 246, 0.07), transparent 28%);
+        }
+
+    .invoice-list-header {
+        position: relative;
+        margin-bottom: 24px;
+        padding: 32px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 19px;
+        background: linear-gradient( 125deg, rgba(13, 23, 38, 0.97), rgba(24, 42, 86, 0.85));
+        box-shadow: 0 21px 55px rgba(0, 0, 0, 0.24);
+    }
+
+        .invoice-list-header::after {
+            position: absolute;
+            width: 270px;
+            height: 270px;
+            top: -165px;
+            right: -70px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(96, 165, 250, 0.15);
+            filter: blur(53px);
+        }
+
+    .invoice-header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .invoice-eyebrow {
+        margin-bottom: 9px;
+        color: #93c5fd;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .invoice-page-title {
+        margin-bottom: 9px;
+        color: #f8fafc;
+        font-size: clamp(1.9rem, 4vw, 2.8rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+    }
+
+    .invoice-page-description {
+        max-width: 650px;
+        margin: 0;
+        color: #8fa0b7;
+        font-size: 0.87rem;
+        line-height: 1.7;
+    }
+
+    .invoice-header-action {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .invoice-repair-button {
+        display: inline-flex;
+        min-height: 45px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 16px;
+        color: #dbeafe;
+        font-size: 0.77rem;
+        font-weight: 800;
+        text-decoration: none;
+        border: 1px solid rgba(96, 165, 250, 0.3);
+        border-radius: 9px;
+        background: rgba(37, 99, 235, 0.1);
+    }
+
+        .invoice-repair-button:hover {
+            color: #ffffff;
+            border-color: rgba(96, 165, 250, 0.5);
+            box-shadow: 0 0 25px rgba(37, 99, 235, 0.14);
+        }
+
+    .invoice-summary {
+        margin-bottom: 24px;
+    }
+
+    .invoice-summary-card {
+        --summary-colour: #60a5fa;
+        display: flex;
+        height: 100%;
+        align-items: center;
+        gap: 14px;
+        padding: 18px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 14px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.88), rgba(7, 14, 25, 0.94));
+    }
+
+    .invoice-summary-paid {
+        --summary-colour: #34d399;
+    }
+
+    .invoice-summary-unpaid {
+        --summary-colour: #fb7185;
+    }
+
+    .invoice-summary-value {
+        --summary-colour: #a78bfa;
+    }
+
+    .invoice-summary-icon {
+        display: grid;
+        width: 43px;
+        height: 43px;
+        flex: 0 0 43px;
+        place-items: center;
+        color: var(--summary-colour);
+        font-family: monospace;
+        font-size: 0.62rem;
+        font-weight: 900;
+        border: 1px solid color-mix( in srgb, var(--summary-colour) 27%, transparent);
+        border-radius: 10px;
+        background: color-mix( in srgb, var(--summary-colour) 7%, transparent);
+    }
+
+    .invoice-summary-label {
+        margin-bottom: 3px;
+        color: #64748b;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+    }
+
+    .invoice-summary-number {
+        color: #e2e8f0;
+        font-size: 1.03rem;
+        font-weight: 800;
+    }
+
+        .invoice-summary-number.currency {
+            font-family: monospace;
+            font-size: 0.91rem;
+        }
+
+    .invoice-toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 210px auto;
+        gap: 12px;
+        margin-bottom: 17px;
+        padding: 15px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 13px;
+        background: rgba(13, 23, 38, 0.76);
+    }
+
+    .invoice-search {
+        position: relative;
+    }
+
+    .invoice-search-label {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 13px;
+        color: #93c5fd;
+        font-family: monospace;
+        font-size: 0.63rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+    }
+
+    .invoice-search-input {
+        min-height: 44px;
+        padding-left: 54px;
+        color: #f8fafc !important;
+        border: 1px solid #27364b;
+        border-radius: 9px;
+        background: rgba(5, 11, 20, 0.68) !important;
+    }
+
+        .invoice-search-input::placeholder {
+            color: #64748b;
+        }
+
+        .invoice-search-input:focus,
+        .invoice-filter:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.09);
+        }
+
+    .invoice-filter {
+        min-height: 44px;
+        color: #cbd5e1;
+        border: 1px solid #27364b;
+        border-radius: 9px;
+        background-color: #0b1422;
+    }
+
+        .invoice-filter option {
+            background: #0b1422;
+        }
+
+    .invoice-result-count {
+        display: flex;
+        align-items: center;
+        color: #718096;
+        font-family: monospace;
+        font-size: 0.7rem;
+        white-space: nowrap;
+    }
+
+    .invoice-table-card {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 16px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.94), rgba(7, 14, 25, 0.97));
+        box-shadow: 0 20px 52px rgba(0, 0, 0, 0.2);
+    }
+
+    .invoice-table {
+        min-width: 1150px;
+        margin: 0;
+        color: #cbd5e1;
+    }
+
+        .invoice-table thead th {
+            padding: 15px;
+            color: #8494aa;
+            font-size: 0.64rem;
+            font-weight: 800;
+            letter-spacing: 0.07em;
+            white-space: nowrap;
+            text-transform: uppercase;
+            border-color: rgba(148, 163, 184, 0.1);
+            background: rgba(5, 11, 20, 0.73);
+        }
+
+        .invoice-table tbody td {
+            padding: 16px 15px;
+            color: #aebdce;
+            font-size: 0.76rem;
+            vertical-align: middle;
+            border-color: rgba(148, 163, 184, 0.08);
+            background: transparent;
+        }
+
+        .invoice-table tbody tr {
+            transition: background-color 0.18s ease;
+        }
+
+            .invoice-table tbody tr:hover {
+                background: rgba(96, 165, 250, 0.028);
+            }
+
+    .invoice-number {
+        color: #93c5fd;
+        font-family: monospace;
+        font-size: 0.72rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .invoice-ticket {
+        color: #67e8f9;
+        font-family: monospace;
+        font-size: 0.69rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .invoice-customer {
+        color: #e2e8f0;
+        font-weight: 750;
+    }
+
+    .invoice-amount {
+        color: #86efac;
+        font-family: monospace;
+        font-size: 0.75rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .invoice-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 9px;
+        font-size: 0.64rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        border: 1px solid;
+        border-radius: 7px;
+    }
+
+        .invoice-status::before {
+            width: 6px;
+            height: 6px;
+            content: "";
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+    .invoice-status-paid {
+        color: #86efac;
+        border-color: rgba(34, 197, 94, 0.25);
+        background: rgba(34, 197, 94, 0.07);
+    }
+
+    .invoice-status-unpaid {
+        color: #fda4af;
+        border-color: rgba(244, 63, 94, 0.25);
+        background: rgba(244, 63, 94, 0.07);
+    }
+
+    .invoice-issued-by {
+        color: #cbd5e1;
+    }
+
+    .invoice-date {
+        color: #8291a7;
+        font-family: monospace;
+        font-size: 0.68rem;
+        white-space: nowrap;
+    }
+
+    .invoice-actions {
+        display: flex;
+        justify-content: center;
+        gap: 7px;
+    }
+
+    .invoice-view-button,
+    .invoice-paid-button {
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 10px;
+        font-size: 0.67rem;
+        font-weight: 800;
+        text-decoration: none;
+        border: 1px solid;
+        border-radius: 7px;
+        white-space: nowrap;
+    }
+
+    .invoice-view-button {
+        color: #bfdbfe;
+        border-color: rgba(96, 165, 250, 0.23);
+        background: rgba(37, 99, 235, 0.06);
+    }
+
+        .invoice-view-button:hover {
+            color: #ffffff;
+            border-color: rgba(96, 165, 250, 0.42);
+        }
+
+    .invoice-paid-button {
+        color: #86efac;
+        border-color: rgba(34, 197, 94, 0.23);
+        background: rgba(34, 197, 94, 0.06);
+    }
+
+        .invoice-paid-button:hover {
+            color: #ffffff;
+            border-color: rgba(34, 197, 94, 0.42);
+        }
+
+    .invoice-empty {
+        padding: 65px 20px !important;
+        text-align: center;
+    }
+
+    .invoice-empty-icon {
+        display: grid;
+        width: 54px;
+        height: 54px;
+        margin: 0 auto 15px;
+        place-items: center;
+        color: #64748b;
+        font-family: monospace;
+        font-weight: 900;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.55);
+    }
+
+    .invoice-empty-title {
+        margin-bottom: 6px;
+        color: #cbd5e1;
+        font-weight: 800;
+    }
+
+    .invoice-empty-text {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.77rem;
+    }
+
+    @@media (max-width: 991px) {
+        .invoice-header-action {
+            justify-content: flex-start;
+            margin-top: 21px;
+        }
+
+        .invoice-toolbar {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .invoice-list-page {
+            padding: 27px 0 60px;
+        }
+
+        .invoice-list-header {
+            padding: 26px 21px;
+        }
+
+        .invoice-repair-button {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="invoice-list-page">
+
+    <div class="container">
+
+        <!-- PAGE HEADER -->
+        <header class="invoice-list-header">
+
+            <div class="invoice-header-content">
+
+                <div class="row align-items-center">
+
+                    <div class="col-lg-8">
+
+                        <div class="invoice-eyebrow">
+                            Finance / Customer Invoices
+                        </div>
+
+                        <h1 class="invoice-page-title">
+                            Invoice Management
+                        </h1>
+
+                        <p class="invoice-page-description">
+
+                            Review customer invoices, monitor
+                            payment status, record payments and
+                            print completed invoice documents.
+
+                        </p>
+
+                    </div>
+
+                    <div class="col-lg-4">
+
+                        <div class="invoice-header-action">
+
+                            <a asp-controller="Repairs"
+                               asp-action="Index"
+                               class="invoice-repair-button">
+
+                                View Repair Tickets →
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success
+                alert-dismissible fade show">
+
+                @TempData["Success"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+
+            </div>
+        }
+
+        @if (TempData["Info"] != null)
+        {
+            <div class="alert alert-info
+                alert-dismissible fade show">
+
+                @TempData["Info"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+
+            </div>
+        }
+
+        <!-- SUMMARY -->
+        <div class="row g-3 invoice-summary">
+
+            <div class="col-6 col-xl-3">
+
+                <div class="invoice-summary-card">
+
+                    <div class="invoice-summary-icon">
+                        INV
+                    </div>
+
+                    <div>
+
+                        <div class="invoice-summary-label">
+                            Total Invoices
+                        </div>
+
+                        <div class="invoice-summary-number">
+                            @invoiceList.Count
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="invoice-summary-card
+                    invoice-summary-paid">
+
+                    <div class="invoice-summary-icon">
+                        PAID
+                    </div>
+
+                    <div>
+
+                        <div class="invoice-summary-label">
+                            Paid Invoices
+                        </div>
+
+                        <div class="invoice-summary-number">
+                            @paidCount
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="invoice-summary-card
+                    invoice-summary-unpaid">
+
+                    <div class="invoice-summary-icon">
+                        DUE
+                    </div>
+
+                    <div>
+
+                        <div class="invoice-summary-label">
+                            Unpaid Invoices
+                        </div>
+
+                        <div class="invoice-summary-number">
+                            @unpaidCount
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="invoice-summary-card
+                    invoice-summary-value">
+
+                    <div class="invoice-summary-icon">
+                        RM
+                    </div>
+
+                    <div>
+
+                        <div class="invoice-summary-label">
+                            Total Invoice Value
+                        </div>
+
+                        <div class="invoice-summary-number
+                            currency">
+
+                            @($"RM {totalInvoiceValue:N2}")
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SEARCH AND FILTER -->
+        <div class="invoice-toolbar">
+
+            <div class="invoice-search">
+
+                <span class="invoice-search-label">
+                    FIND
+                </span>
+
+                <input type="search"
+                       id="invoiceSearch"
+                       class="form-control
+                invoice-search-input"
+                       placeholder="Search invoice, ticket, customer or issuer"
+                       autocomplete="off"
+                       aria-label="Search invoices" />
+
+            </div>
+
+            <select id="invoiceStatusFilter"
+                    class="form-select invoice-filter"
+                    aria-label="Filter payment status">
+
+                <option value="">
+                    All Payment Statuses
+                </option>
+
+                <option value="paid">
+                    Paid
+                </option>
+
+                <option value="unpaid">
+                    Unpaid
+                </option>
+
+            </select>
+
+            <div class="invoice-result-count"
+                 id="invoiceResultCount">
+
+                Showing @invoiceList.Count invoice(s)
+
+            </div>
+
+        </div>
+
+        <!-- INVOICE TABLE -->
+        <div class="invoice-table-card">
+
+            <div class="table-responsive">
+
+                <table class="table invoice-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Invoice Number</th>
+                            <th>Repair Ticket</th>
+                            <th>Customer</th>
+                            <th>Total Amount</th>
+                            <th>Payment Status</th>
+                            <th>Issued By</th>
+                            <th>Issued Date</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @if (!invoiceList.Any())
+                        {
+                            <tr>
+
+                                <td colspan="8"
+                                    class="invoice-empty">
+
+                                    <div class="invoice-empty-icon">
+                                        INV
+                                    </div>
+
+                                    <div class="invoice-empty-title">
+                                        No invoices found
+                                    </div>
+
+                                    <p class="invoice-empty-text">
+                                        Generate an invoice from
+                                        a repair ticket.
+                                    </p>
+
+                                </td>
+
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var invoice
+                                in invoiceList)
+                            {
+                                bool isPaid =
+                                    invoice.PaymentStatus == "Paid";
+
+                                string normalizedPaymentStatus =
+                                    isPaid
+                                        ? "paid"
+                                        : "unpaid";
+
+                                string searchableContent =
+                                    string.Join(
+                                        " ",
+                                        invoice.InvoiceNumber,
+                                        invoice.TicketNumber,
+                                        invoice.CustomerName,
+                                        invoice.IssuedByName)
+                                    .ToLowerInvariant();
+
+                                <tr data-invoice-row
+                                    data-search="@searchableContent"
+                                    data-status="@normalizedPaymentStatus">
+
+                                    <td>
+
+                                        <span class="invoice-number">
+                                            @invoice.InvoiceNumber
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="invoice-ticket">
+                                            @invoice.TicketNumber
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="invoice-customer">
+                                            @invoice.CustomerName
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="invoice-amount">
+
+                                            @($"RM {invoice.TotalAmount:N2}")
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (isPaid)
+                                        {
+                                            <span class="invoice-status
+                                                invoice-status-paid">
+
+                                                Paid
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="invoice-status
+                                                invoice-status-unpaid">
+
+                                                Unpaid
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="invoice-issued-by">
+                                            @invoice.IssuedByName
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="invoice-date">
+
+                                            @invoice.IssuedAt.ToString(
+                                                "dd MMM yyyy")
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="invoice-actions">
+
+                                            <a asp-controller="Invoices"
+                                               asp-action="Details"
+                                               asp-route-id="@invoice.InvoiceId"
+                                               class="invoice-view-button">
+
+                                                View Invoice
+
+                                            </a>
+
+                                            @if (!isPaid)
+                                            {
+                                                <a asp-controller="Invoices"
+                                                   asp-action="MarkPaid"
+                                                   asp-route-id="@invoice.InvoiceId"
+                                                   class="invoice-paid-button">
+
+                                                    Record Payment
+
+                                                </a>
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+                        <tr id="noInvoiceResults"
+                            style="display: none;">
+
+                            <td colspan="8"
+                                class="invoice-empty">
+
+                                <div class="invoice-empty-icon">
+                                    404
+                                </div>
+
+                                <div class="invoice-empty-title">
+                                    No matching invoice found
+                                </div>
+
+                                <p class="invoice-empty-text">
+                                    Change the search text or
+                                    payment status filter.
+                                </p>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <script>
+        (() => {
+            const searchInput =
+                document.getElementById(
+                    "invoiceSearch");
+
+            const statusFilter =
+                document.getElementById(
+                    "invoiceStatusFilter");
+
+            const resultCount =
+                document.getElementById(
+                    "invoiceResultCount");
+
+            const noResultsRow =
+                document.getElementById(
+                    "noInvoiceResults");
+
+            const invoiceRows =
+                Array.from(
+                    document.querySelectorAll(
+                        "[data-invoice-row]"));
+
+            if (!searchInput ||
+                !statusFilter ||
+                !resultCount) {
+                return;
+            }
+
+            function filterInvoices() {
+                const searchValue =
+                    searchInput.value
+                        .trim()
+                        .toLowerCase();
+
+                const statusValue =
+                    statusFilter.value
+                        .trim()
+                        .toLowerCase();
+
+                let visibleCount = 0;
+
+                invoiceRows.forEach(row => {
+                    const searchableContent =
+                        row.dataset.search ?? "";
+
+                    const paymentStatus =
+                        row.dataset.status ?? "";
+
+                    const matchesSearch =
+                        searchableContent.includes(
+                            searchValue);
+
+                    const matchesStatus =
+                        !statusValue ||
+                        paymentStatus === statusValue;
+
+                    const shouldDisplay =
+                        matchesSearch &&
+                        matchesStatus;
+
+                    row.style.display =
+                        shouldDisplay
+                            ? ""
+                            : "none";
+
+                    if (shouldDisplay) {
+                        visibleCount++;
+                    }
+                });
+
+                resultCount.textContent =
+                    `Showing ${visibleCount} invoice(s)`;
+
+                if (noResultsRow) {
+                    noResultsRow.style.display =
+                        invoiceRows.length > 0 &&
+                            visibleCount === 0
+                            ? ""
+                            : "none";
+                }
+            }
+
+            searchInput.addEventListener(
+                "input",
+                filterInvoices);
+
+            statusFilter.addEventListener(
+                "change",
+                filterInvoices);
+        })();
+    </script>
+}

@@ -1,0 +1,525 @@
+﻿@model SecureOKCS.ViewModels.FaceVerificationViewModel
+
+@{
+    ViewData["Title"] = "Face ID Verification";
+
+    string fullName =
+        ViewBag.FullName as string ??
+        "SecureOKCS User";
+
+    int attemptsRemaining =
+        ViewBag.AttemptsRemaining is int attempts
+            ? attempts
+            : 3;
+
+    Layout = "_Layout";
+}
+
+<style>
+    .verification-page {
+        max-width: 1050px;
+        margin: 0 auto;
+    }
+
+    .verification-header {
+        background: linear-gradient( 135deg, #111827, #1e3a5f);
+        color: white;
+        border-radius: 22px;
+    }
+
+    .verification-card {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .camera-stage {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        overflow: hidden;
+        background: #030712;
+        border-radius: 16px;
+    }
+
+        .camera-stage video,
+        .camera-stage canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        .camera-stage canvas {
+            pointer-events: none;
+        }
+
+    .face-guide {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 44%;
+        height: 68%;
+        transform: translate(-50%, -50%);
+        border: 3px solid rgba(255, 255, 255, 0.9);
+        border-radius: 48%;
+        box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.25);
+        pointer-events: none;
+    }
+
+    .camera-message {
+        position: absolute;
+        left: 50%;
+        bottom: 20px;
+        width: calc(100% - 40px);
+        transform: translateX(-50%);
+        color: white;
+        background: rgba(0, 0, 0, 0.75);
+        border-radius: 12px;
+        padding: 11px 16px;
+        text-align: center;
+        font-weight: 600;
+        backdrop-filter: blur(6px);
+    }
+
+    .camera-loading {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        background: rgba(3, 7, 18, 0.94);
+    }
+
+        .camera-loading.d-none {
+            display: none !important;
+        }
+
+    .security-check {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 14px;
+        margin-bottom: 10px;
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+    }
+
+    .check-indicator {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        flex: 0 0 28px;
+        width: 28px;
+        height: 28px;
+        color: #6b7280;
+        background: #e5e7eb;
+        border-radius: 50%;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .security-check.passed {
+        color: #166534;
+        background: #f0fdf4;
+        border-color: #86efac;
+    }
+
+        .security-check.passed
+        .check-indicator {
+            color: white;
+            background: #16a34a;
+        }
+
+    .verification-status {
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+
+    .privacy-notice {
+        color: #1e3a5f;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 14px;
+    }
+
+    .attempt-notice {
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        border-radius: 14px;
+    }
+
+    .progress {
+        height: 10px;
+        border-radius: 50px;
+    }
+
+    .validation-summary-valid {
+        display: none;
+    }
+
+    @@media (max-width: 767.98px) {
+        .verification-header {
+            border-radius: 16px;
+        }
+
+        .face-guide {
+            width: 52%;
+            height: 66%;
+        }
+    }
+</style>
+
+<div class="verification-page">
+
+    <div class="verification-header
+        shadow-sm p-4 p-md-5 mb-4">
+
+        <div class="d-md-flex
+            justify-content-between
+            align-items-center">
+
+            <div>
+
+                <p class="text-info
+                    fw-semibold mb-2">
+                    SECURE LOGIN
+                </p>
+
+                <h1 class="fw-bold mb-2">
+                    Verify Your Identity
+                </h1>
+
+                <p class="text-light mb-0">
+                    Welcome, @fullName.
+                    Complete Face ID verification
+                    to continue.
+                </p>
+
+            </div>
+
+            <div class="mt-3 mt-md-0">
+
+                <span class="badge bg-primary
+                    fs-6 px-4 py-2">
+
+                    Step 2 of 2
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div asp-validation-summary="ModelOnly"
+         class="alert alert-danger">
+    </div>
+
+    <div class="attempt-notice p-3 mb-4">
+
+        <strong>
+            Attempts remaining:
+        </strong>
+
+        <span class="badge bg-warning
+            text-dark ms-1">
+            @attemptsRemaining
+        </span>
+
+        <span class="text-muted ms-2">
+            The verification session expires
+            after three minutes.
+        </span>
+
+    </div>
+
+    <form asp-controller="FaceVerification"
+          asp-action="Verify"
+          method="post"
+          id="faceVerificationForm">
+
+        @Html.AntiForgeryToken()
+
+        <input asp-for="DescriptorJson"
+               type="hidden"
+               id="DescriptorJson" />
+
+        <input asp-for="LivenessScore"
+               type="hidden"
+               id="LivenessScore" />
+
+        <div class="row g-4">
+
+            <div class="col-lg-7">
+
+                <div class="card border-0 shadow-sm
+                    verification-card h-100">
+
+                    <div class="card-body p-3 p-md-4">
+
+                        <div class="d-flex
+                            justify-content-between
+                            align-items-center mb-3">
+
+                            <div>
+
+                                <h4 class="fw-bold mb-1">
+                                    Live Verification
+                                </h4>
+
+                                <small class="text-muted">
+                                    Face the camera directly.
+                                </small>
+
+                            </div>
+
+                            <span id="verificationStatus"
+                                  class="badge bg-secondary
+                                verification-status">
+                                Camera Off
+                            </span>
+
+                        </div>
+
+                        <div class="camera-stage">
+
+                            <video id="verificationVideo"
+                                   autoplay
+                                   muted
+                                   playsinline>
+                            </video>
+
+                            <canvas id="verificationCanvas">
+                            </canvas>
+
+                            <div class="face-guide"></div>
+
+                            <div id="verificationLoading"
+                                 class="camera-loading d-none">
+
+                                <div class="spinner-border
+                                    text-info mb-3">
+                                </div>
+
+                                <strong id="verificationLoadingMessage">
+                                    Loading secure models...
+                                </strong>
+
+                            </div>
+
+                            <div id="verificationMessage"
+                                 class="camera-message">
+
+                                Press Start Verification
+                                to continue.
+
+                            </div>
+
+                        </div>
+
+                        <div class="mt-4">
+
+                            <div class="d-flex
+                                justify-content-between mb-2">
+
+                                <small class="fw-semibold">
+                                    Verification progress
+                                </small>
+
+                                <small id="verificationProgressText">
+                                    0%
+                                </small>
+
+                            </div>
+
+                            <div class="progress">
+
+                                <div id="verificationProgress"
+                                     class="progress-bar bg-info"
+                                     style="width: 0%"
+                                     role="progressbar"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100"
+                                     aria-valuenow="0">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="d-flex
+                            flex-wrap gap-2 mt-4">
+
+                            <button type="button"
+                                    id="startVerificationButton"
+                                    class="btn btn-primary">
+
+                                Start Verification
+
+                            </button>
+
+                            <button type="button"
+                                    id="retryVerificationButton"
+                                    class="btn
+                                btn-outline-secondary"
+                                    hidden>
+
+                                Scan Again
+
+                            </button>
+
+                            <a asp-controller="Account"
+                               asp-action="Login"
+                               class="btn btn-secondary">
+
+                                Cancel
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-5">
+
+                <div class="card border-0 shadow-sm
+                    verification-card">
+
+                    <div class="card-body p-4">
+
+                        <h4 class="fw-bold mb-1">
+                            Identity Check
+                        </h4>
+
+                        <p class="text-muted mb-4">
+                            Complete all security checks.
+                        </p>
+
+                        <div id="verifyFaceCount"
+                             class="security-check">
+
+                            <span class="check-indicator">
+                                1
+                            </span>
+
+                            <span>
+                                One face detected
+                            </span>
+
+                        </div>
+
+                        <div id="verifyPosition"
+                             class="security-check">
+
+                            <span class="check-indicator">
+                                2
+                            </span>
+
+                            <span>
+                                Face centred correctly
+                            </span>
+
+                        </div>
+
+                        <div id="verifyQuality"
+                             class="security-check">
+
+                            <span class="check-indicator">
+                                3
+                            </span>
+
+                            <span>
+                                Face quality accepted
+                            </span>
+
+                        </div>
+
+                        <div id="verifyBlink"
+                             class="security-check">
+
+                            <span class="check-indicator">
+                                4
+                            </span>
+
+                            <span>
+                                Natural blink detected
+                            </span>
+
+                        </div>
+
+                        <div id="verifyLiveness"
+                             class="security-check">
+
+                            <span class="check-indicator">
+                                5
+                            </span>
+
+                            <span>
+                                Liveness check passed
+                            </span>
+
+                        </div>
+
+                        <div class="privacy-notice p-3 mt-4">
+
+                            <strong>
+                                Private verification
+                            </strong>
+
+                            <p class="small mb-0 mt-1">
+
+                                Camera images are processed
+                                temporarily in your browser.
+                                No photograph or video is
+                                uploaded or stored.
+
+                            </p>
+
+                        </div>
+
+                        <span asp-validation-for="DescriptorJson"
+                              class="text-danger small d-block mt-3">
+                        </span>
+
+                        <span asp-validation-for="LivenessScore"
+                              class="text-danger small d-block">
+                        </span>
+
+                        <button type="submit"
+                                id="verifyFaceButton"
+                                class="btn btn-success
+                            w-100 mt-4"
+                                disabled>
+
+                            Verify and Login
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+<script type="module"
+        src="~/js/face-verification.js"
+        asp-append-version="true">
+</script>

@@ -1,0 +1,1077 @@
+﻿@model SecureOKCS.ViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Create Account";
+}
+
+<style>
+    .register-page {
+        position: relative;
+        display: flex;
+        min-height: calc(100vh - 76px);
+        align-items: center;
+        padding: 65px 0;
+        overflow: hidden;
+    }
+
+        .register-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -3;
+            content: "";
+            background: radial-gradient( circle at 15% 25%, rgba(0, 229, 255, 0.14), transparent 31%), radial-gradient( circle at 88% 78%, rgba(139, 92, 246, 0.14), transparent 34%), #050b14;
+        }
+
+    .register-grid {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        opacity: 0.18;
+        background-image: linear-gradient( rgba(0, 229, 255, 0.12) 1px, transparent 1px), linear-gradient( 90deg, rgba(0, 229, 255, 0.12) 1px, transparent 1px);
+        background-size: 50px 50px;
+        mask-image: linear-gradient( to bottom, black, transparent);
+    }
+
+    .register-shell {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        border-radius: 24px;
+        background: rgba(9, 17, 30, 0.95);
+        box-shadow: 0 35px 90px rgba(0, 0, 0, 0.48), 0 0 70px rgba(0, 229, 255, 0.06);
+        backdrop-filter: blur(18px);
+    }
+
+    .register-information {
+        position: relative;
+        display: flex;
+        min-height: 790px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 55px;
+        overflow: hidden;
+        border-right: 1px solid rgba(148, 163, 184, 0.12);
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.97), rgba(12, 31, 55, 0.93));
+    }
+
+        .register-information::before {
+            position: absolute;
+            width: 340px;
+            height: 340px;
+            right: -170px;
+            bottom: -150px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.18);
+            filter: blur(65px);
+        }
+
+        .register-information::after {
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            top: -130px;
+            left: -120px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.15);
+            filter: blur(65px);
+        }
+
+    .register-info-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .register-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        color: #f8fafc;
+        font-size: 1.05rem;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+        .register-brand:hover {
+            color: #ffffff;
+        }
+
+    .register-brand-mark {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        place-items: center;
+        color: #031019;
+        font-weight: 900;
+        border-radius: 12px;
+        background: linear-gradient( 135deg, #00e5ff, #60a5fa);
+        box-shadow: 0 0 24px rgba(0, 229, 255, 0.23);
+    }
+
+    .register-eyebrow {
+        margin: 85px 0 16px;
+        color: #67e8f9;
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+    }
+
+    .register-information h1 {
+        max-width: 530px;
+        margin-bottom: 20px;
+        color: #f8fafc;
+        font-size: clamp(2.25rem, 4vw, 3.5rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+    }
+
+    .register-gradient {
+        color: transparent;
+        background: linear-gradient( 90deg, #00e5ff, #60a5fa, #a78bfa);
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+
+    .register-description {
+        max-width: 500px;
+        color: #94a3b8;
+        font-size: 0.96rem;
+        line-height: 1.8;
+    }
+
+    .register-feature-list {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 16px;
+        margin-top: 40px;
+    }
+
+    .register-feature {
+        display: grid;
+        grid-template-columns: 38px 1fr;
+        gap: 13px;
+        align-items: start;
+    }
+
+    .register-feature-number {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        color: #00e5ff;
+        font-family: monospace;
+        font-size: 0.72rem;
+        font-weight: 900;
+        border: 1px solid rgba(0, 229, 255, 0.28);
+        border-radius: 10px;
+        background: rgba(0, 229, 255, 0.07);
+    }
+
+    .register-feature h3 {
+        margin: 0 0 4px;
+        color: #dbe7f5;
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .register-feature p {
+        margin: 0;
+        color: #8291a7;
+        font-size: 0.79rem;
+        line-height: 1.55;
+    }
+
+    .register-system-state {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #7dd3fc;
+        font-family: monospace;
+        font-size: 0.73rem;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+    }
+
+    .register-state-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #22c55e;
+        box-shadow: 0 0 13px #22c55e;
+    }
+
+    .register-form-area {
+        display: flex;
+        min-height: 790px;
+        align-items: center;
+        padding: 45px;
+        background: linear-gradient( 145deg, rgba(7, 14, 25, 0.98), rgba(5, 11, 20, 0.98));
+    }
+
+    .register-form-container {
+        width: 100%;
+        max-width: 480px;
+        margin: auto;
+    }
+
+    .register-mobile-brand {
+        display: none;
+        margin-bottom: 30px;
+    }
+
+    .register-form-eyebrow {
+        margin-bottom: 10px;
+        color: #00e5ff;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .register-form-title {
+        margin-bottom: 10px;
+        color: #f8fafc;
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .register-form-subtitle {
+        margin-bottom: 27px;
+        color: #8291a7;
+        font-size: 0.89rem;
+        line-height: 1.65;
+    }
+
+    .register-validation {
+        margin-bottom: 20px;
+        padding: 13px 15px;
+        color: #fecaca;
+        font-size: 0.83rem;
+        border: 1px solid rgba(239, 68, 68, 0.28);
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.08);
+    }
+
+        .register-validation:empty,
+        .register-validation.validation-summary-valid {
+            display: none;
+        }
+
+        .register-validation ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+    .register-field {
+        margin-bottom: 18px;
+    }
+
+    .register-label {
+        margin-bottom: 8px;
+        color: #dbe7f5;
+        font-size: 0.84rem;
+        font-weight: 700;
+    }
+
+    .register-required {
+        color: #67e8f9;
+    }
+
+    .register-input {
+        min-height: 49px;
+        color: #f8fafc !important;
+        border: 1px solid #263449;
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.75) !important;
+    }
+
+        .register-input::placeholder {
+            color: #64748b;
+        }
+
+        .register-input:focus {
+            color: #ffffff;
+            border-color: #00e5ff;
+            background: rgba(15, 23, 42, 0.95);
+            box-shadow: 0 0 0 0.2rem rgba(0, 229, 255, 0.11);
+        }
+
+        .register-input:-webkit-autofill {
+            -webkit-text-fill-color: #f8fafc;
+            box-shadow: 0 0 0 1000px #0f172a inset;
+        }
+
+    .register-field-error {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.77rem;
+    }
+
+    .register-help {
+        display: block;
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 0.73rem;
+    }
+
+    .register-password-field {
+        position: relative;
+    }
+
+        .register-password-field .register-input {
+            padding-right: 76px;
+        }
+
+    .register-password-toggle {
+        position: absolute;
+        top: 50%;
+        right: 9px;
+        padding: 6px 9px;
+        color: #7dd3fc;
+        font-size: 0.71rem;
+        font-weight: 700;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        transform: translateY(-50%);
+    }
+
+        .register-password-toggle:hover {
+            color: #ffffff;
+            background: rgba(0, 229, 255, 0.08);
+        }
+
+    .password-strength {
+        margin-top: 9px;
+    }
+
+    .password-strength-track {
+        height: 4px;
+        overflow: hidden;
+        border-radius: 99px;
+        background: #1e293b;
+    }
+
+    .password-strength-bar {
+        width: 0;
+        height: 100%;
+        border-radius: inherit;
+        background: #ef4444;
+        transition: width 0.25s ease, background-color 0.25s ease;
+    }
+
+    .password-strength-details {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 0.7rem;
+    }
+
+    .password-strength-text {
+        color: #94a3b8;
+        font-weight: 700;
+    }
+
+    .register-terms {
+        margin: 6px 0 23px;
+        padding: 13px;
+        color: #8190a5;
+        font-size: 0.75rem;
+        line-height: 1.55;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 9px;
+        background: rgba(15, 23, 42, 0.42);
+    }
+
+    .register-submit {
+        width: 100%;
+        min-height: 52px;
+        color: #031019;
+        font-weight: 800;
+        border: 1px solid #00e5ff;
+        border-radius: 10px;
+        background: linear-gradient( 135deg, #00e5ff, #60a5fa);
+        box-shadow: 0 0 27px rgba(0, 229, 255, 0.17);
+    }
+
+        .register-submit:hover {
+            color: #031019;
+            border-color: #67e8f9;
+            box-shadow: 0 0 36px rgba(0, 229, 255, 0.29);
+        }
+
+    .register-divider {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin: 24px 0;
+        color: #58677d;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+    }
+
+        .register-divider::before,
+        .register-divider::after {
+            height: 1px;
+            flex: 1;
+            content: "";
+            background: rgba(148, 163, 184, 0.14);
+        }
+
+    .register-login-link {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        color: #dbe7f5;
+        font-size: 0.86rem;
+        font-weight: 700;
+        text-align: center;
+        text-decoration: none;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.55);
+    }
+
+        .register-login-link:hover {
+            color: #67e8f9;
+            border-color: rgba(0, 229, 255, 0.35);
+            background: rgba(0, 229, 255, 0.05);
+        }
+
+    .register-home-link {
+        display: block;
+        margin-top: 21px;
+        color: #64748b;
+        font-size: 0.78rem;
+        text-align: center;
+        text-decoration: none;
+    }
+
+        .register-home-link:hover {
+            color: #7dd3fc;
+        }
+
+    @@media (max-width: 991px) {
+        .register-page {
+            padding: 45px 0;
+        }
+
+        .register-information {
+            display: none;
+        }
+
+        .register-form-area {
+            min-height: auto;
+            padding: 45px;
+        }
+
+        .register-mobile-brand {
+            display: inline-flex;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .register-page {
+            align-items: flex-start;
+            padding: 25px 0;
+        }
+
+        .register-shell {
+            border-radius: 17px;
+        }
+
+        .register-form-area {
+            padding: 31px 22px;
+        }
+
+        .register-form-title {
+            font-size: 1.75rem;
+        }
+    }
+</style>
+
+<section class="register-page">
+
+    <div class="register-grid"
+         aria-hidden="true">
+    </div>
+
+    <div class="container">
+
+        <div class="register-shell">
+
+            <div class="row g-0">
+
+                <!-- ACCOUNT INFORMATION -->
+                <div class="col-lg-7">
+
+                    <div class="register-information">
+
+                        <div class="register-info-content">
+
+                            <a asp-controller="Home"
+                               asp-action="Index"
+                               class="register-brand">
+
+                                <span class="register-brand-mark">
+                                    S
+                                </span>
+
+                                <span>
+                                    Secure OKCS
+                                </span>
+
+                            </a>
+
+                            <div class="register-eyebrow">
+                                Customer Registration
+                            </div>
+
+                            <h1>
+
+                                One secure account.
+
+                                <span class="register-gradient">
+                                    Complete repair visibility.
+                                </span>
+
+                            </h1>
+
+                            <p class="register-description">
+
+                                Create your customer account to access
+                                Secure OKCS services and follow your
+                                device repair information through a
+                                protected system.
+
+                            </p>
+
+                            <div class="register-feature-list">
+
+                                <div class="register-feature">
+
+                                    <div class="register-feature-number">
+                                        01
+                                    </div>
+
+                                    <div>
+
+                                        <h3>
+                                            Secure Customer Account
+                                        </h3>
+
+                                        <p>
+                                            Your password is protected
+                                            using secure password hashing.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="register-feature">
+
+                                    <div class="register-feature-number">
+                                        02
+                                    </div>
+
+                                    <div>
+
+                                        <h3>
+                                            Repair Status Tracking
+                                        </h3>
+
+                                        <p>
+                                            Check the latest device status
+                                            and repair progress history.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="register-feature">
+
+                                    <div class="register-feature-number">
+                                        03
+                                    </div>
+
+                                    <div>
+
+                                        <h3>
+                                            Protected Information
+                                        </h3>
+
+                                        <p>
+                                            Sensitive customer records
+                                            are encrypted and access
+                                            controlled.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="register-system-state">
+
+                            <span class="register-state-dot"></span>
+
+                            Secure registration services online
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- REGISTRATION FORM -->
+                <div class="col-lg-5">
+
+                    <div class="register-form-area">
+
+                        <div class="register-form-container">
+
+                            <a asp-controller="Home"
+                               asp-action="Index"
+                               class="register-brand
+                                register-mobile-brand">
+
+                                <span class="register-brand-mark">
+                                    S
+                                </span>
+
+                                <span>
+                                    Secure OKCS
+                                </span>
+
+                            </a>
+
+                            <div class="register-form-eyebrow">
+                                Create Customer Account
+                            </div>
+
+                            <h2 class="register-form-title">
+                                Get started
+                            </h2>
+
+                            <p class="register-form-subtitle">
+
+                                Complete the information below to
+                                create your Secure OKCS account.
+
+                            </p>
+
+                            <form asp-controller="Account"
+                                  asp-action="Register"
+                                  method="post">
+
+                                <div asp-validation-summary="ModelOnly"
+                                     class="register-validation"
+                                     role="alert">
+                                </div>
+
+                                <!-- FULL NAME -->
+                                <div class="register-field">
+
+                                    <label asp-for="FullName"
+                                           class="register-label">
+
+                                        Full Name
+
+                                        <span class="register-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <input asp-for="FullName"
+                                           class="form-control
+                                    register-input"
+                                           placeholder="Enter your full name"
+                                           autocomplete="name"
+                                           autofocus />
+
+                                    <span asp-validation-for="FullName"
+                                          class="text-danger
+                                        register-field-error">
+                                    </span>
+
+                                </div>
+
+                                <!-- EMAIL -->
+                                <div class="register-field">
+
+                                    <label asp-for="Email"
+                                           class="register-label">
+
+                                        Email Address
+
+                                        <span class="register-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <input asp-for="Email"
+                                           type="email"
+                                           class="form-control
+                                    register-input"
+                                           placeholder="name@example.com"
+                                           autocomplete="email" />
+
+                                    <span asp-validation-for="Email"
+                                          class="text-danger
+                                        register-field-error">
+                                    </span>
+
+                                </div>
+
+                                <!-- PHONE NUMBER -->
+                                <div class="register-field">
+
+                                    <label asp-for="PhoneNumber"
+                                           class="register-label">
+
+                                        Phone Number
+
+                                    </label>
+
+                                    <input asp-for="PhoneNumber"
+                                           type="tel"
+                                           class="form-control
+                                    register-input"
+                                           placeholder="Example: 0123456789"
+                                           autocomplete="tel" />
+
+                                    <span asp-validation-for="PhoneNumber"
+                                          class="text-danger
+                                        register-field-error">
+                                    </span>
+
+                                </div>
+
+                                <!-- PASSWORD -->
+                                <div class="register-field">
+
+                                    <label asp-for="Password"
+                                           class="register-label">
+
+                                        Password
+
+                                        <span class="register-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <div class="register-password-field">
+
+                                        <input asp-for="Password"
+                                               class="form-control
+                                        register-input"
+                                               placeholder="Create a secure password"
+                                               autocomplete="new-password"
+                                               id="registerPassword" />
+
+                                        <button type="button"
+                                                class="register-password-toggle"
+                                                data-password-target="registerPassword"
+                                                aria-label="Show password">
+
+                                            Show
+
+                                        </button>
+
+                                    </div>
+
+                                    <div class="password-strength">
+
+                                        <div class="password-strength-track">
+
+                                            <div class="password-strength-bar"
+                                                 id="passwordStrengthBar">
+                                            </div>
+
+                                        </div>
+
+                                        <div class="password-strength-details">
+
+                                            <span>
+                                                Minimum 8 characters
+                                            </span>
+
+                                            <span class="password-strength-text"
+                                                  id="passwordStrengthText">
+
+                                                Not entered
+
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                    <span asp-validation-for="Password"
+                                          class="text-danger
+                                        register-field-error">
+                                    </span>
+
+                                </div>
+
+                                <!-- CONFIRM PASSWORD -->
+                                <div class="register-field">
+
+                                    <label asp-for="ConfirmPassword"
+                                           class="register-label">
+
+                                        Confirm Password
+
+                                        <span class="register-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <div class="register-password-field">
+
+                                        <input asp-for="ConfirmPassword"
+                                               class="form-control
+                                        register-input"
+                                               placeholder="Enter the password again"
+                                               autocomplete="new-password"
+                                               id="confirmPassword" />
+
+                                        <button type="button"
+                                                class="register-password-toggle"
+                                                data-password-target="confirmPassword"
+                                                aria-label="Show password">
+
+                                            Show
+
+                                        </button>
+
+                                    </div>
+
+                                    <span asp-validation-for="ConfirmPassword"
+                                          class="text-danger
+                                        register-field-error">
+                                    </span>
+
+                                </div>
+
+                                <div class="register-terms">
+
+                                    By creating an account, you confirm
+                                    that the information provided is
+                                    accurate and will be used for Secure
+                                    OKCS customer and repair services.
+
+                                </div>
+
+                                <button type="submit"
+                                        class="btn register-submit">
+
+                                    Create Secure Account
+
+                                    <span class="ms-1"
+                                          aria-hidden="true">
+                                        →
+                                    </span>
+
+                                </button>
+
+                            </form>
+
+                            <div class="register-divider">
+                                Already registered
+                            </div>
+
+                            <a asp-controller="Account"
+                               asp-action="Login"
+                               class="register-login-link">
+
+                                Sign In to Your Account
+
+                            </a>
+
+                            <a asp-controller="Home"
+                               asp-action="Index"
+                               class="register-home-link">
+
+                                ← Return to homepage
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+            const toggleButtons =
+                document.querySelectorAll(
+                    "[data-password-target]");
+
+            toggleButtons.forEach(button => {
+                button.addEventListener(
+                    "click",
+                    () => {
+                        const targetId =
+                            button.getAttribute(
+                                "data-password-target");
+
+                        const passwordInput =
+                            document.getElementById(
+                                targetId);
+
+                        if (!passwordInput) {
+                            return;
+                        }
+
+                        const isHidden =
+                            passwordInput.type ===
+                            "password";
+
+                        passwordInput.type =
+                            isHidden
+                                ? "text"
+                                : "password";
+
+                        button.textContent =
+                            isHidden
+                                ? "Hide"
+                                : "Show";
+
+                        button.setAttribute(
+                            "aria-label",
+                            isHidden
+                                ? "Hide password"
+                                : "Show password");
+                    });
+            });
+
+            const passwordInput =
+                document.getElementById(
+                    "registerPassword");
+
+            const strengthBar =
+                document.getElementById(
+                    "passwordStrengthBar");
+
+            const strengthText =
+                document.getElementById(
+                    "passwordStrengthText");
+
+            if (!passwordInput ||
+                !strengthBar ||
+                !strengthText) {
+                return;
+            }
+
+            const levels = [
+                {
+                    width: "0%",
+                    text: "Not entered",
+                    color: "#475569"
+                },
+                {
+                    width: "25%",
+                    text: "Weak",
+                    color: "#ef4444"
+                },
+                {
+                    width: "50%",
+                    text: "Fair",
+                    color: "#f59e0b"
+                },
+                {
+                    width: "75%",
+                    text: "Good",
+                    color: "#38bdf8"
+                },
+                {
+                    width: "100%",
+                    text: "Strong",
+                    color: "#22c55e"
+                }
+            ];
+
+            passwordInput.addEventListener(
+                "input",
+                () => {
+                    const password =
+                        passwordInput.value;
+
+                    if (!password) {
+                        updateStrength(0);
+                        return;
+                    }
+
+                    let score = 0;
+
+                    if (password.length >= 8) {
+                        score++;
+                    }
+
+                    if (/[a-z]/.test(password) &&
+                        /[A-Z]/.test(password)) {
+                        score++;
+                    }
+
+                    if (/\d/.test(password)) {
+                        score++;
+                    }
+
+                    if (/[^A-Za-z0-9]/.test(
+                        password)) {
+                        score++;
+                    }
+
+                    updateStrength(
+                        Math.max(1, score));
+                });
+
+            function updateStrength(level) {
+                const selectedLevel =
+                    levels[level];
+
+                strengthBar.style.width =
+                    selectedLevel.width;
+
+                strengthBar.style.backgroundColor =
+                    selectedLevel.color;
+
+                strengthText.textContent =
+                    selectedLevel.text;
+
+                strengthText.style.color =
+                    selectedLevel.color;
+            }
+        })();
+    </script>
+}

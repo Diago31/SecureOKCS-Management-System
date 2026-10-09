@@ -1,0 +1,948 @@
+﻿@model SecureOKCS.ViewModels.InvoicePaymentViewModel
+
+@{
+    ViewData["Title"] = "Record Payment";
+}
+
+<style>
+    .payment-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 50px 0 75px;
+    }
+
+        .payment-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 13% 18%, rgba(34, 197, 94, 0.08), transparent 28%), radial-gradient( circle at 88% 78%, rgba(96, 165, 250, 0.08), transparent 29%);
+        }
+
+    .payment-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        max-width: 1000px;
+        margin: 0 auto 21px;
+    }
+
+    .payment-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        font-size: 0.81rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .payment-back:hover {
+            color: #86efac;
+        }
+
+    .payment-route {
+        color: #58677d;
+        font-family: monospace;
+        font-size: 0.68rem;
+    }
+
+    .payment-shell {
+        max-width: 1000px;
+        margin: auto;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 21px;
+        background: rgba(9, 17, 30, 0.95);
+        box-shadow: 0 27px 72px rgba(0, 0, 0, 0.36), 0 0 55px rgba(34, 197, 94, 0.04);
+    }
+
+    .payment-information {
+        position: relative;
+        display: flex;
+        min-height: 600px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 43px;
+        overflow: hidden;
+        border-right: 1px solid rgba(148, 163, 184, 0.12);
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.97), rgba(12, 52, 43, 0.8));
+    }
+
+        .payment-information::after {
+            position: absolute;
+            width: 290px;
+            height: 290px;
+            right: -155px;
+            bottom: -145px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(34, 197, 94, 0.14);
+            filter: blur(57px);
+        }
+
+    .payment-information-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .payment-eyebrow {
+        margin-bottom: 12px;
+        color: #86efac;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .payment-information h1 {
+        max-width: 460px;
+        margin-bottom: 16px;
+        color: #f8fafc;
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+    }
+
+    .payment-gradient {
+        color: transparent;
+        background: linear-gradient( 90deg, #34d399, #60a5fa);
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+
+    .payment-description {
+        max-width: 450px;
+        color: #8fa0b7;
+        font-size: 0.85rem;
+        line-height: 1.75;
+    }
+
+    .payment-invoice-panel {
+        margin-top: 34px;
+        padding: 21px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 13px;
+        background: rgba(5, 11, 20, 0.48);
+    }
+
+    .payment-invoice-label {
+        margin-bottom: 6px;
+        color: #64748b;
+        font-size: 0.63rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .payment-invoice-number {
+        margin-bottom: 22px;
+        color: #93c5fd;
+        font-family: monospace;
+        font-size: 0.83rem;
+        font-weight: 900;
+    }
+
+    .payment-amount-label {
+        margin-bottom: 6px;
+        color: #64748b;
+        font-size: 0.63rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .payment-total-amount {
+        color: #86efac;
+        font-family: monospace;
+        font-size: 1.65rem;
+        font-weight: 900;
+    }
+
+    .payment-security-list {
+        display: grid;
+        gap: 13px;
+        margin-top: 26px;
+    }
+
+    .payment-security-item {
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 11px;
+        align-items: start;
+    }
+
+    .payment-security-icon {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        color: #86efac;
+        font-family: monospace;
+        font-size: 0.58rem;
+        font-weight: 900;
+        border: 1px solid rgba(34, 197, 94, 0.22);
+        border-radius: 8px;
+    }
+
+    .payment-security-item h3 {
+        margin: 1px 0 3px;
+        color: #dbe7f5;
+        font-size: 0.77rem;
+        font-weight: 750;
+    }
+
+    .payment-security-item p {
+        margin: 0;
+        color: #718096;
+        font-size: 0.69rem;
+        line-height: 1.5;
+    }
+
+    .payment-service-state {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #86efac;
+        font-family: monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+        .payment-service-state::before {
+            width: 8px;
+            height: 8px;
+            content: "";
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 11px #22c55e;
+        }
+
+    .payment-form-area {
+        display: flex;
+        min-height: 600px;
+        align-items: center;
+        padding: 43px;
+        background: linear-gradient( 145deg, rgba(7, 14, 25, 0.98), rgba(5, 11, 20, 0.98));
+    }
+
+    .payment-form-container {
+        width: 100%;
+        max-width: 470px;
+        margin: auto;
+    }
+
+    .payment-form-eyebrow {
+        margin-bottom: 8px;
+        color: #86efac;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .payment-form-title {
+        margin-bottom: 8px;
+        color: #f8fafc;
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .payment-form-description {
+        margin-bottom: 24px;
+        color: #8291a7;
+        font-size: 0.82rem;
+        line-height: 1.65;
+    }
+
+    .payment-validation {
+        margin-bottom: 20px;
+        padding: 13px 15px;
+        color: #fecaca;
+        font-size: 0.8rem;
+        border: 1px solid rgba(239, 68, 68, 0.27);
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.08);
+    }
+
+        .payment-validation:empty,
+        .payment-validation.validation-summary-valid {
+            display: none;
+        }
+
+        .payment-validation ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+    .payment-method-label {
+        margin-bottom: 12px;
+        color: #cbd5e1;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .payment-required {
+        color: #86efac;
+    }
+
+    .payment-methods {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 11px;
+        margin-bottom: 8px;
+    }
+
+    .payment-method-option {
+        position: relative;
+    }
+
+    .payment-method-radio {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .payment-method-card {
+        display: flex;
+        min-height: 85px;
+        align-items: center;
+        gap: 11px;
+        padding: 13px;
+        cursor: pointer;
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        border-radius: 11px;
+        background: rgba(15, 23, 42, 0.5);
+        transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+    }
+
+        .payment-method-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(34, 197, 94, 0.28);
+            background: rgba(34, 197, 94, 0.035);
+        }
+
+    .payment-method-radio:checked +
+    .payment-method-card {
+        border-color: #34d399;
+        background: rgba(34, 197, 94, 0.08);
+        box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.07);
+    }
+
+    .payment-method-icon {
+        display: grid;
+        width: 37px;
+        height: 37px;
+        flex: 0 0 37px;
+        place-items: center;
+        color: #86efac;
+        font-family: monospace;
+        font-size: 0.57rem;
+        font-weight: 900;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+        border-radius: 9px;
+    }
+
+    .payment-method-name {
+        color: #dbe7f5;
+        font-size: 0.73rem;
+        font-weight: 800;
+        line-height: 1.4;
+    }
+
+    .payment-error {
+        display: block;
+        margin-top: 7px;
+        font-size: 0.75rem;
+    }
+
+    .payment-preview {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid rgba(96, 165, 250, 0.17);
+        border-radius: 10px;
+        background: rgba(37, 99, 235, 0.045);
+    }
+
+    .payment-preview-label {
+        margin-bottom: 6px;
+        color: #64748b;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .payment-preview-value {
+        color: #93c5fd;
+        font-family: monospace;
+        font-size: 0.78rem;
+        font-weight: 800;
+    }
+
+    .payment-confirmation-notice {
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        gap: 11px;
+        margin-bottom: 22px;
+        padding: 13px;
+        border: 1px solid rgba(250, 204, 21, 0.18);
+        border-radius: 10px;
+        background: rgba(250, 204, 21, 0.045);
+    }
+
+    .payment-notice-icon {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.57rem;
+        font-weight: 900;
+        border: 1px solid rgba(250, 204, 21, 0.22);
+        border-radius: 8px;
+    }
+
+    .payment-confirmation-notice strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #fef3c7;
+        font-size: 0.75rem;
+    }
+
+    .payment-confirmation-notice p {
+        margin: 0;
+        color: #8f876b;
+        font-size: 0.68rem;
+        line-height: 1.5;
+    }
+
+    .payment-actions {
+        display: flex;
+        gap: 11px;
+    }
+
+    .payment-submit,
+    .payment-cancel {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 17px;
+        font-size: 0.76rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 9px;
+    }
+
+    .payment-submit {
+        flex: 1;
+        color: #03140f;
+        border: 1px solid #34d399;
+        background: linear-gradient( 135deg, #34d399, #60a5fa);
+        box-shadow: 0 0 25px rgba(34, 197, 94, 0.14);
+    }
+
+        .payment-submit:hover {
+            color: #03140f;
+            box-shadow: 0 0 32px rgba(34, 197, 94, 0.26);
+        }
+
+    .payment-cancel {
+        color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, 0.21);
+        background: rgba(15, 23, 42, 0.6);
+    }
+
+        .payment-cancel:hover {
+            color: #86efac;
+            border-color: rgba(34, 197, 94, 0.28);
+        }
+
+    @@media (max-width: 991px) {
+        .payment-information {
+            min-height: auto;
+            border-right: 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .payment-form-area {
+            min-height: auto;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .payment-page {
+            padding: 27px 0 60px;
+        }
+
+        .payment-route {
+            display: none;
+        }
+
+        .payment-information,
+        .payment-form-area {
+            padding: 28px 22px;
+        }
+
+            .payment-information h1 {
+                font-size: 2.1rem;
+            }
+
+        .payment-methods {
+            grid-template-columns: 1fr;
+        }
+
+        .payment-actions {
+            display: grid;
+        }
+
+        .payment-submit,
+        .payment-cancel {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="payment-page">
+
+    <div class="container">
+
+        <!-- NAVIGATION -->
+        <div class="payment-navigation">
+
+            <a asp-controller="Invoices"
+               asp-action="Details"
+               asp-route-id="@Model.InvoiceId"
+               class="payment-back">
+
+                ← Back to invoice
+
+            </a>
+
+            <span class="payment-route">
+                FINANCE / INVOICES / PAYMENT
+            </span>
+
+        </div>
+
+        <div class="payment-shell">
+
+            <div class="row g-0">
+
+                <!-- INVOICE INFORMATION -->
+                <div class="col-lg-5">
+
+                    <div class="payment-information">
+
+                        <div class="payment-information-content">
+
+                            <div class="payment-eyebrow">
+                                Payment Confirmation
+                            </div>
+
+                            <h1>
+
+                                Record a completed
+
+                                <span class="payment-gradient">
+                                    customer payment.
+                                </span>
+
+                            </h1>
+
+                            <p class="payment-description">
+
+                                Select the payment method used by
+                                the customer and confirm the full
+                                invoice payment.
+
+                            </p>
+
+                            <div class="payment-invoice-panel">
+
+                                <div class="payment-invoice-label">
+                                    Invoice Number
+                                </div>
+
+                                <div class="payment-invoice-number">
+                                    @Model.InvoiceNumber
+                                </div>
+
+                                <div class="payment-amount-label">
+                                    Total Amount Due
+                                </div>
+
+                                <div class="payment-total-amount">
+
+                                    @($"RM {Model.TotalAmount:N2}")
+
+                                </div>
+
+                            </div>
+
+                            <div class="payment-security-list">
+
+                                <div class="payment-security-item">
+
+                                    <div class="payment-security-icon">
+                                        PAY
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Payment Status</h3>
+
+                                        <p>
+                                            Invoice status changes
+                                            from Unpaid to Paid.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="payment-security-item">
+
+                                    <div class="payment-security-icon">
+                                        TIME
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Payment Timestamp</h3>
+
+                                        <p>
+                                            The paid date and time
+                                            are recorded automatically.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="payment-security-item">
+
+                                    <div class="payment-security-icon">
+                                        DOC
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Updated Invoice</h3>
+
+                                        <p>
+                                            The printed invoice will
+                                            display payment details.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="payment-service-state">
+                            Payment recording service active
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- PAYMENT FORM -->
+                <div class="col-lg-7">
+
+                    <div class="payment-form-area">
+
+                        <div class="payment-form-container">
+
+                            <div class="payment-form-eyebrow">
+                                Payment Method
+                            </div>
+
+                            <h2 class="payment-form-title">
+                                Confirm payment information
+                            </h2>
+
+                            <p class="payment-form-description">
+
+                                Choose the exact method used by the
+                                customer before recording the payment.
+
+                            </p>
+
+                            <form asp-controller="Invoices"
+                                  asp-action="MarkPaid"
+                                  method="post"
+                                  id="paymentForm">
+
+                                <input asp-for="InvoiceId"
+                                       type="hidden" />
+
+                                <div asp-validation-summary="ModelOnly"
+                                     class="payment-validation"
+                                     role="alert">
+                                </div>
+
+                                <div class="payment-method-label">
+
+                                    Select Payment Method
+
+                                    <span class="payment-required">
+                                        *
+                                    </span>
+
+                                </div>
+
+                                <div class="payment-methods">
+
+                                    <!-- CASH -->
+                                    <div class="payment-method-option">
+
+                                        <input asp-for="PaymentMethod"
+                                               type="radio"
+                                               value="Cash"
+                                               id="paymentCash"
+                                               class="payment-method-radio" />
+
+                                        <label for="paymentCash"
+                                               class="payment-method-card">
+
+                                            <span class="payment-method-icon">
+                                                CASH
+                                            </span>
+
+                                            <span class="payment-method-name">
+                                                Cash
+                                            </span>
+
+                                        </label>
+
+                                    </div>
+
+                                    <!-- CARD -->
+                                    <div class="payment-method-option">
+
+                                        <input asp-for="PaymentMethod"
+                                               type="radio"
+                                               value="Debit / Credit Card"
+                                               id="paymentCard"
+                                               class="payment-method-radio" />
+
+                                        <label for="paymentCard"
+                                               class="payment-method-card">
+
+                                            <span class="payment-method-icon">
+                                                CARD
+                                            </span>
+
+                                            <span class="payment-method-name">
+
+                                                Debit / Credit Card
+
+                                            </span>
+
+                                        </label>
+
+                                    </div>
+
+                                    <!-- ONLINE BANKING -->
+                                    <div class="payment-method-option">
+
+                                        <input asp-for="PaymentMethod"
+                                               type="radio"
+                                               value="Online Banking"
+                                               id="paymentBanking"
+                                               class="payment-method-radio" />
+
+                                        <label for="paymentBanking"
+                                               class="payment-method-card">
+
+                                            <span class="payment-method-icon">
+                                                BANK
+                                            </span>
+
+                                            <span class="payment-method-name">
+
+                                                Online Banking
+
+                                            </span>
+
+                                        </label>
+
+                                    </div>
+
+                                    <!-- E-WALLET -->
+                                    <div class="payment-method-option">
+
+                                        <input asp-for="PaymentMethod"
+                                               type="radio"
+                                               value="E-Wallet"
+                                               id="paymentWallet"
+                                               class="payment-method-radio" />
+
+                                        <label for="paymentWallet"
+                                               class="payment-method-card">
+
+                                            <span class="payment-method-icon">
+                                                EWAL
+                                            </span>
+
+                                            <span class="payment-method-name">
+                                                E-Wallet
+                                            </span>
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                                <span asp-validation-for="PaymentMethod"
+                                      class="text-danger
+                                    payment-error">
+                                </span>
+
+                                <div class="payment-preview">
+
+                                    <div class="payment-preview-label">
+                                        Payment Confirmation Preview
+                                    </div>
+
+                                    <div class="payment-preview-value"
+                                         id="paymentPreview">
+
+                                        RM @Model.TotalAmount.ToString("N2")
+                                        — Select a payment method
+
+                                    </div>
+
+                                </div>
+
+                                <div class="payment-confirmation-notice">
+
+                                    <div class="payment-notice-icon">
+                                        WARN
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            Confirm Before Saving
+                                        </strong>
+
+                                        <p>
+                                            This action marks the invoice
+                                            as Paid and records the current
+                                            date and time. Confirm that the
+                                            payment was received.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="payment-actions">
+
+                                    <button type="submit"
+                                            class="btn payment-submit">
+
+                                        Confirm Payment Received →
+
+                                    </button>
+
+                                    <a asp-controller="Invoices"
+                                       asp-action="Details"
+                                       asp-route-id="@Model.InvoiceId"
+                                       class="payment-cancel">
+
+                                        Cancel
+
+                                    </a>
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (() => {
+            const paymentMethods =
+                Array.from(
+                    document.querySelectorAll(
+                        'input[name="PaymentMethod"]'));
+
+            const paymentPreview =
+                document.getElementById(
+                    "paymentPreview");
+
+            const totalAmount =
+                        @Model.TotalAmount
+                            .ToString(
+                System.Globalization
+                    .CultureInfo.InvariantCulture);
+
+            if (!paymentPreview) {
+                return;
+            }
+
+            const currencyFormatter =
+                new Intl.NumberFormat(
+                    "en-MY",
+                    {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+            function updatePaymentPreview() {
+                const selectedMethod =
+                    paymentMethods.find(
+                        method => method.checked);
+
+                paymentPreview.textContent =
+                    selectedMethod
+                        ? `RM ${currencyFormatter
+                            .format(totalAmount)} — ` +
+                        selectedMethod.value
+                        : `RM ${currencyFormatter
+                            .format(totalAmount)} — ` +
+                        "Select a payment method";
+            }
+
+            paymentMethods.forEach(method => {
+                method.addEventListener(
+                    "change",
+                    updatePaymentPreview);
+            });
+
+            updatePaymentPreview();
+        })();
+    </script>
+}

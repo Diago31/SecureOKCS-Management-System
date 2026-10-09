@@ -1,0 +1,1247 @@
+﻿@model IEnumerable<SecureOKCS.Models.InventoryItem>
+
+@{
+    ViewData["Title"] = "Inventory Management";
+
+    var inventoryItems =
+        Model?.ToList()
+        ?? new List<SecureOKCS.Models.InventoryItem>();
+
+    int totalItemCount =
+        ViewBag.TotalItemCount is int total
+            ? total
+            : 0;
+
+    int lowStockCount =
+        ViewBag.LowStockCount is int low
+            ? low
+            : 0;
+
+    int outOfStockCount =
+        ViewBag.OutOfStockCount is int empty
+            ? empty
+            : 0;
+
+    int totalStockUnits =
+        ViewBag.TotalStockUnits is int units
+            ? units
+            : 0;
+
+    bool lowStockOnly =
+        ViewBag.LowStockOnly is bool selected &&
+        selected;
+
+    string searchValue =
+        ViewBag.Search as string
+        ?? string.Empty;
+}
+
+<style>
+    .inventory-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 42px 0 75px;
+    }
+
+        .inventory-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 12% 15%, rgba(250, 204, 21, 0.07), transparent 27%), radial-gradient( circle at 90% 78%, rgba(0, 229, 255, 0.07), transparent 28%);
+        }
+
+    .inventory-header {
+        position: relative;
+        margin-bottom: 24px;
+        padding: 32px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 19px;
+        background: linear-gradient( 125deg, rgba(13, 23, 38, 0.97), rgba(55, 45, 12, 0.76));
+        box-shadow: 0 21px 55px rgba(0, 0, 0, 0.24);
+    }
+
+        .inventory-header::after {
+            position: absolute;
+            width: 270px;
+            height: 270px;
+            top: -165px;
+            right: -70px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(250, 204, 21, 0.14);
+            filter: blur(53px);
+        }
+
+    .inventory-header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .inventory-eyebrow {
+        margin-bottom: 9px;
+        color: #fde68a;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .inventory-title {
+        margin-bottom: 9px;
+        color: #f8fafc;
+        font-size: clamp(1.9rem, 4vw, 2.8rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+    }
+
+    .inventory-description {
+        max-width: 650px;
+        margin: 0;
+        color: #8fa0b7;
+        font-size: 0.87rem;
+        line-height: 1.7;
+    }
+
+    .inventory-header-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .inventory-scan-button,
+    .inventory-add-button {
+        display: inline-flex;
+        min-height: 45px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 16px;
+        font-size: 0.77rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 9px;
+    }
+
+    .inventory-scan-button {
+        color: #dbe7f5;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: rgba(5, 11, 20, 0.58);
+    }
+
+        .inventory-scan-button:hover {
+            color: #67e8f9;
+            border-color: rgba(0, 229, 255, 0.32);
+        }
+
+    .inventory-add-button {
+        color: #171403;
+        border: 1px solid #facc15;
+        background: linear-gradient( 135deg, #facc15, #f59e0b);
+        box-shadow: 0 0 23px rgba(250, 204, 21, 0.13);
+    }
+
+        .inventory-add-button:hover {
+            color: #171403;
+            box-shadow: 0 0 31px rgba(250, 204, 21, 0.24);
+        }
+
+    .inventory-alert {
+        border-radius: 11px;
+    }
+
+    .stock-warning-panel {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 17px;
+        margin-bottom: 22px;
+        padding: 16px 18px;
+        color: #fde68a;
+        border: 1px solid rgba(250, 204, 21, 0.21);
+        border-radius: 12px;
+        background: rgba(250, 204, 21, 0.055);
+    }
+
+    .stock-warning-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.79rem;
+    }
+
+    .stock-warning-icon {
+        display: grid;
+        width: 37px;
+        height: 37px;
+        flex: 0 0 37px;
+        place-items: center;
+        font-family: monospace;
+        font-size: 0.61rem;
+        font-weight: 900;
+        border: 1px solid rgba(250, 204, 21, 0.24);
+        border-radius: 9px;
+    }
+
+    .stock-warning-button {
+        display: inline-flex;
+        min-height: 37px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 12px;
+        color: #fde68a;
+        font-size: 0.69rem;
+        font-weight: 800;
+        text-decoration: none;
+        border: 1px solid rgba(250, 204, 21, 0.27);
+        border-radius: 8px;
+        background: rgba(250, 204, 21, 0.07);
+        white-space: nowrap;
+    }
+
+        .stock-warning-button:hover {
+            color: #ffffff;
+            border-color: rgba(250, 204, 21, 0.48);
+        }
+
+    .inventory-summary {
+        margin-bottom: 24px;
+    }
+
+    .inventory-summary-card {
+        --summary-colour: #00e5ff;
+        display: flex;
+        height: 100%;
+        align-items: center;
+        gap: 14px;
+        padding: 18px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 14px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.88), rgba(7, 14, 25, 0.94));
+    }
+
+    .inventory-summary-low {
+        --summary-colour: #facc15;
+    }
+
+    .inventory-summary-empty {
+        --summary-colour: #fb7185;
+    }
+
+    .inventory-summary-units {
+        --summary-colour: #34d399;
+    }
+
+    .inventory-summary-icon {
+        display: grid;
+        width: 43px;
+        height: 43px;
+        flex: 0 0 43px;
+        place-items: center;
+        color: var(--summary-colour);
+        font-family: monospace;
+        font-size: 0.64rem;
+        font-weight: 900;
+        border: 1px solid color-mix( in srgb, var(--summary-colour) 27%, transparent);
+        border-radius: 10px;
+        background: color-mix( in srgb, var(--summary-colour) 7%, transparent);
+    }
+
+    .inventory-summary-label {
+        margin-bottom: 3px;
+        color: #64748b;
+        font-size: 0.63rem;
+        font-weight: 800;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+    }
+
+    .inventory-summary-value {
+        color: #e2e8f0;
+        font-size: 1.04rem;
+        font-weight: 800;
+    }
+
+    .inventory-toolbar {
+        margin-bottom: 17px;
+        padding: 15px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 13px;
+        background: rgba(13, 23, 38, 0.76);
+    }
+
+    .inventory-search {
+        position: relative;
+    }
+
+    .inventory-search-label {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 13px;
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.63rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+    }
+
+    .inventory-search-input {
+        min-height: 44px;
+        padding-left: 54px;
+        color: #f8fafc !important;
+        border: 1px solid #27364b;
+        border-radius: 9px;
+        background: rgba(5, 11, 20, 0.68) !important;
+    }
+
+        .inventory-search-input::placeholder {
+            color: #64748b;
+        }
+
+        .inventory-search-input:focus {
+            border-color: #facc15;
+            box-shadow: 0 0 0 0.2rem rgba(250, 204, 21, 0.08);
+        }
+
+    .inventory-search-button,
+    .inventory-reset-button {
+        display: flex;
+        min-height: 44px;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        font-size: 0.72rem;
+        font-weight: 800;
+        border-radius: 9px;
+    }
+
+    .inventory-search-button {
+        color: #171403;
+        border: 1px solid #facc15;
+        background: linear-gradient( 135deg, #facc15, #f59e0b);
+    }
+
+    .inventory-reset-button {
+        color: #cbd5e1;
+        text-decoration: none;
+        border: 1px solid rgba(148, 163, 184, 0.21);
+        background: rgba(15, 23, 42, 0.58);
+    }
+
+        .inventory-reset-button:hover {
+            color: #fde68a;
+            border-color: rgba(250, 204, 21, 0.28);
+        }
+
+    .inventory-filter-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 9px;
+        margin-top: 13px;
+    }
+
+    .inventory-filter-link {
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 11px;
+        color: #94a3b8;
+        font-size: 0.67rem;
+        font-weight: 800;
+        text-decoration: none;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 7px;
+        background: rgba(15, 23, 42, 0.48);
+    }
+
+        .inventory-filter-link:hover,
+        .inventory-filter-link.active {
+            color: #fde68a;
+            border-color: rgba(250, 204, 21, 0.3);
+            background: rgba(250, 204, 21, 0.07);
+        }
+
+    .inventory-table-card {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 16px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.94), rgba(7, 14, 25, 0.97));
+        box-shadow: 0 20px 52px rgba(0, 0, 0, 0.2);
+    }
+
+    .inventory-table {
+        min-width: 1250px;
+        margin: 0;
+        color: #cbd5e1;
+    }
+
+        .inventory-table thead th {
+            padding: 15px;
+            color: #8494aa;
+            font-size: 0.64rem;
+            font-weight: 800;
+            letter-spacing: 0.07em;
+            white-space: nowrap;
+            text-transform: uppercase;
+            border-color: rgba(148, 163, 184, 0.1);
+            background: rgba(5, 11, 20, 0.73);
+        }
+
+        .inventory-table tbody td {
+            padding: 16px 15px;
+            color: #aebdce;
+            font-size: 0.76rem;
+            vertical-align: middle;
+            border-color: rgba(148, 163, 184, 0.08);
+            background: transparent;
+        }
+
+        .inventory-table tbody tr {
+            transition: background-color 0.18s ease;
+        }
+
+            .inventory-table tbody tr:hover {
+                background: rgba(250, 204, 21, 0.023);
+            }
+
+    .inventory-row-low {
+        background: rgba(250, 204, 21, 0.025);
+    }
+
+    .inventory-row-empty {
+        background: rgba(244, 63, 94, 0.025);
+    }
+
+    .inventory-item-code {
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.72rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .inventory-item-name {
+        color: #e2e8f0;
+        font-weight: 750;
+    }
+
+    .inventory-category {
+        color: #94a3b8;
+    }
+
+    .inventory-barcode {
+        color: #7dd3fc;
+        font-family: monospace;
+        font-size: 0.68rem;
+    }
+
+    .inventory-quantity {
+        color: #dbe7f5;
+        font-family: monospace;
+        font-size: 0.83rem;
+        font-weight: 900;
+    }
+
+        .inventory-quantity.low {
+            color: #fde68a;
+        }
+
+        .inventory-quantity.empty {
+            color: #fda4af;
+        }
+
+    .inventory-price {
+        color: #86efac;
+        font-family: monospace;
+        font-size: 0.71rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .inventory-stock-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 9px;
+        font-size: 0.64rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        text-transform: uppercase;
+        border: 1px solid;
+        border-radius: 7px;
+    }
+
+        .inventory-stock-status::before {
+            width: 6px;
+            height: 6px;
+            content: "";
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+    .stock-status-available {
+        color: #86efac;
+        border-color: rgba(34, 197, 94, 0.25);
+        background: rgba(34, 197, 94, 0.07);
+    }
+
+    .stock-status-low {
+        color: #fde68a;
+        border-color: rgba(250, 204, 21, 0.25);
+        background: rgba(250, 204, 21, 0.07);
+    }
+
+    .stock-status-empty {
+        color: #fda4af;
+        border-color: rgba(244, 63, 94, 0.25);
+        background: rgba(244, 63, 94, 0.07);
+    }
+
+    .inventory-actions {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .inventory-action {
+        display: inline-flex;
+        min-height: 33px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 9px;
+        font-size: 0.66rem;
+        font-weight: 800;
+        text-decoration: none;
+        border: 1px solid;
+        border-radius: 7px;
+    }
+
+    .inventory-action-edit {
+        color: #fde68a;
+        border-color: rgba(250, 204, 21, 0.23);
+        background: rgba(250, 204, 21, 0.06);
+    }
+
+    .inventory-action-stock {
+        color: #67e8f9;
+        border-color: rgba(0, 229, 255, 0.22);
+        background: rgba(0, 229, 255, 0.05);
+    }
+
+    .inventory-action-history {
+        color: #c4b5fd;
+        border-color: rgba(167, 139, 250, 0.22);
+        background: rgba(139, 92, 246, 0.05);
+    }
+
+    .inventory-action-deactivate {
+        color: #fda4af;
+        border-color: rgba(244, 63, 94, 0.23);
+        background: rgba(244, 63, 94, 0.05);
+    }
+
+    .inventory-action:hover:not(:disabled) {
+        color: #ffffff;
+        filter: brightness(1.25);
+    }
+
+    .inventory-action:disabled {
+        cursor: not-allowed;
+        opacity: 0.35;
+    }
+
+    .inventory-empty-state {
+        padding: 65px 20px !important;
+        text-align: center;
+    }
+
+    .inventory-empty-icon {
+        display: grid;
+        width: 54px;
+        height: 54px;
+        margin: 0 auto 15px;
+        place-items: center;
+        color: #64748b;
+        font-family: monospace;
+        font-weight: 900;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.55);
+    }
+
+    .inventory-empty-title {
+        margin-bottom: 6px;
+        color: #cbd5e1;
+        font-weight: 800;
+    }
+
+    .inventory-empty-text {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.77rem;
+    }
+
+    @@media (max-width: 991px) {
+        .inventory-header-actions {
+            justify-content: flex-start;
+            margin-top: 21px;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .inventory-page {
+            padding: 27px 0 60px;
+        }
+
+        .inventory-header {
+            padding: 26px 21px;
+        }
+
+        .inventory-scan-button,
+        .inventory-add-button {
+            flex: 1;
+        }
+
+        .stock-warning-panel {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .stock-warning-button {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="inventory-page">
+
+    <div class="container">
+
+        <!-- PAGE HEADER -->
+        <header class="inventory-header">
+
+            <div class="inventory-header-content">
+
+                <div class="row align-items-center">
+
+                    <div class="col-lg-7">
+
+                        <div class="inventory-eyebrow">
+                            Operations / Stock Control
+                        </div>
+
+                        <h1 class="inventory-title">
+                            Inventory Management
+                        </h1>
+
+                        <p class="inventory-description">
+
+                            Manage spare parts, monitor stock levels,
+                            scan barcodes and review inventory
+                            transaction history.
+
+                        </p>
+
+                    </div>
+
+                    <div class="col-lg-5">
+
+                        <div class="inventory-header-actions">
+
+                            <a asp-controller="Inventory"
+                               asp-action="Scan"
+                               class="inventory-scan-button">
+
+                                Scan Barcode
+
+                            </a>
+
+                            <a asp-controller="Inventory"
+                               asp-action="Create"
+                               class="inventory-add-button">
+
+                                <span aria-hidden="true">＋</span>
+                                Add Inventory Item
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success
+                alert-dismissible fade show
+                inventory-alert">
+
+                @TempData["Success"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+
+            </div>
+        }
+
+        @if (TempData["Warning"] != null)
+        {
+            <div class="alert alert-warning
+                alert-dismissible fade show
+                inventory-alert">
+
+                <strong>Stock Warning:</strong>
+                @TempData["Warning"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger
+                alert-dismissible fade show
+                inventory-alert">
+
+                <strong>Unable to complete operation:</strong>
+                @TempData["Error"]
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+
+            </div>
+        }
+
+        @if (lowStockCount > 0)
+        {
+            <div class="stock-warning-panel">
+
+                <div class="stock-warning-content">
+
+                    <div class="stock-warning-icon">
+                        WARN
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Inventory attention required.
+                        </strong>
+
+                        <br />
+
+                        @lowStockCount item(s) have reached
+                        or fallen below the minimum stock level.
+
+                    </div>
+
+                </div>
+
+                <a asp-action="Index"
+                   asp-route-lowStockOnly="true"
+                   class="stock-warning-button">
+
+                    View Low Stock Items →
+
+                </a>
+
+            </div>
+        }
+
+        <!-- INVENTORY SUMMARY -->
+        <div class="row g-3 inventory-summary">
+
+            <div class="col-6 col-xl-3">
+
+                <div class="inventory-summary-card">
+
+                    <div class="inventory-summary-icon">
+                        SKU
+                    </div>
+
+                    <div>
+
+                        <div class="inventory-summary-label">
+                            Active Items
+                        </div>
+
+                        <div class="inventory-summary-value">
+                            @totalItemCount
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="inventory-summary-card
+                    inventory-summary-low">
+
+                    <div class="inventory-summary-icon">
+                        LOW
+                    </div>
+
+                    <div>
+
+                        <div class="inventory-summary-label">
+                            Low Stock
+                        </div>
+
+                        <div class="inventory-summary-value">
+                            @lowStockCount
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="inventory-summary-card
+                    inventory-summary-empty">
+
+                    <div class="inventory-summary-icon">
+                        OUT
+                    </div>
+
+                    <div>
+
+                        <div class="inventory-summary-label">
+                            Out of Stock
+                        </div>
+
+                        <div class="inventory-summary-value">
+                            @outOfStockCount
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="inventory-summary-card
+                    inventory-summary-units">
+
+                    <div class="inventory-summary-icon">
+                        QTY
+                    </div>
+
+                    <div>
+
+                        <div class="inventory-summary-label">
+                            Total Stock Units
+                        </div>
+
+                        <div class="inventory-summary-value">
+                            @totalStockUnits
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SEARCH AND FILTER -->
+        <div class="inventory-toolbar">
+
+            <form asp-controller="Inventory"
+                  asp-action="Index"
+                  method="get">
+
+                <input type="hidden"
+                       name="lowStockOnly"
+                       value="@lowStockOnly
+                .ToString()
+                .ToLowerInvariant()" />
+
+                <div class="row g-2">
+
+                    <div class="col-md-8">
+
+                        <div class="inventory-search">
+
+                            <span class="inventory-search-label">
+                                FIND
+                            </span>
+
+                            <input type="search"
+                                   name="search"
+                                   value="@searchValue"
+                                   class="form-control
+                            inventory-search-input"
+                                   placeholder="Search item code, name or barcode"
+                                   autocomplete="off" />
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <button type="submit"
+                                class="inventory-search-button">
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <a asp-action="Index"
+                           class="inventory-reset-button">
+
+                            Reset
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+            <div class="inventory-filter-links">
+
+                <a asp-action="Index"
+                   asp-route-search="@searchValue"
+                   class="inventory-filter-link
+                    @(!lowStockOnly ? "active" : "")">
+
+                    All Active Items
+
+                </a>
+
+                <a asp-action="Index"
+                   asp-route-search="@searchValue"
+                   asp-route-lowStockOnly="true"
+                   class="inventory-filter-link
+                    @(lowStockOnly ? "active" : "")">
+
+                    Low Stock Only
+                    (@lowStockCount)
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- INVENTORY TABLE -->
+        <div class="inventory-table-card">
+
+            <div class="table-responsive">
+
+                <table class="table inventory-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Item Code</th>
+                            <th>Item Name</th>
+                            <th>Category</th>
+                            <th>Barcode</th>
+                            <th>Quantity</th>
+                            <th>Minimum</th>
+                            <th>Unit Price</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @if (!inventoryItems.Any())
+                        {
+                            <tr>
+
+                                <td colspan="9"
+                                    class="inventory-empty-state">
+
+                                    <div class="inventory-empty-icon">
+                                        SKU
+                                    </div>
+
+                                    <div class="inventory-empty-title">
+
+                                        @(lowStockOnly
+                                            ? "No low-stock items found"
+                                            : "No inventory items found")
+
+                                    </div>
+
+                                    <p class="inventory-empty-text">
+
+                                        @(lowStockOnly
+                                            ? "All inventory items are currently above their minimum stock level."
+                                            : "Add an inventory item to begin managing stock.")
+
+                                    </p>
+
+                                </td>
+
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item
+                                in inventoryItems)
+                            {
+                                bool isOutOfStock =
+                                    item.Quantity == 0;
+
+                                bool isLowStock =
+                                    item.Quantity <=
+                                    item.MinimumStock;
+
+                                string rowClass =
+                                    isOutOfStock
+                                        ? "inventory-row-empty"
+                                        : isLowStock
+                                            ? "inventory-row-low"
+                                            : string.Empty;
+
+                                string quantityClass =
+                                    isOutOfStock
+                                        ? "empty"
+                                        : isLowStock
+                                            ? "low"
+                                            : string.Empty;
+
+                                <tr class="@rowClass">
+
+                                    <td>
+
+                                        <span class="inventory-item-code">
+
+                                            @(string.IsNullOrWhiteSpace(
+                                                item.ItemCode)
+                                                ? "-"
+                                                : item.ItemCode)
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="inventory-item-name">
+                                            @item.ItemName
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="inventory-category">
+
+                                            @(string.IsNullOrWhiteSpace(
+                                                item.Category)
+                                                ? "-"
+                                                : item.Category)
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (string.IsNullOrWhiteSpace(
+                                            item.Barcode))
+                                        {
+                                            <span>-</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inventory-barcode">
+                                                @item.Barcode
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="inventory-quantity
+                                            @quantityClass">
+
+                                            @item.Quantity
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+                                        @item.MinimumStock
+                                    </td>
+
+                                    <td>
+
+                                        <span class="inventory-price">
+
+                                            @($"RM {item.UnitPrice:N2}")
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (isOutOfStock)
+                                        {
+                                            <span class="inventory-stock-status
+                                                stock-status-empty">
+
+                                                Out of Stock
+
+                                            </span>
+                                        }
+                                        else if (isLowStock)
+                                        {
+                                            <span class="inventory-stock-status
+                                                stock-status-low">
+
+                                                Low Stock
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inventory-stock-status
+                                                stock-status-available">
+
+                                                In Stock
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="inventory-actions">
+
+                                            <a asp-controller="Inventory"
+                                               asp-action="Edit"
+                                               asp-route-id="@item.InventoryId"
+                                               class="inventory-action
+                                                inventory-action-edit">
+
+                                                Edit
+
+                                            </a>
+
+                                            <a asp-controller="Inventory"
+                                               asp-action="Stock"
+                                               asp-route-id="@item.InventoryId"
+                                               class="inventory-action
+                                                inventory-action-stock">
+
+                                                Update Stock
+
+                                            </a>
+
+                                            <a asp-controller="Inventory"
+                                               asp-action="History"
+                                               asp-route-id="@item.InventoryId"
+                                               class="inventory-action
+                                                inventory-action-history">
+
+                                                History
+
+                                            </a>
+
+                                            @if (User.IsInRole("Admin"))
+                                            {
+                                                @if (item.Quantity == 0)
+                                                {
+                                                    <form asp-controller="Inventory"
+                                                          asp-action="Deactivate"
+                                                          method="post"
+                                                          asp-antiforgery="true"
+                                                          class="d-inline"
+                                                          onsubmit="return confirm('Deactivate this inventory item?');">
+
+                                                        <input type="hidden"
+                                                               name="id"
+                                                               value="@item.InventoryId" />
+
+                                                        <button type="submit"
+                                                                class="inventory-action
+                                                            inventory-action-deactivate">
+
+                                                            Deactivate
+
+                                                        </button>
+
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <button type="button"
+                                                            class="inventory-action
+                                                        inventory-action-deactivate"
+                                                            title="Stock quantity must be zero before deactivation."
+                                                            disabled>
+
+                                                        Deactivate
+
+                                                    </button>
+                                                }
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>

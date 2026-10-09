@@ -1,0 +1,1017 @@
+﻿@model SecureOKCS.ViewModels.RepairCreateViewModel
+
+@{
+    ViewData["Title"] = "Create Repair Ticket";
+}
+
+<style>
+    .repair-create-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 45px 0 75px;
+    }
+
+        .repair-create-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 13% 18%, rgba(34, 197, 94, 0.08), transparent 28%), radial-gradient( circle at 88% 78%, rgba(0, 229, 255, 0.08), transparent 29%);
+        }
+
+    .repair-create-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 22px;
+    }
+
+    .repair-create-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .repair-create-back:hover {
+            color: #5eead4;
+        }
+
+    .repair-create-route {
+        color: #58677d;
+        font-family: monospace;
+        font-size: 0.69rem;
+    }
+
+    .repair-create-shell {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 21px;
+        background: rgba(9, 17, 30, 0.95);
+        box-shadow: 0 27px 72px rgba(0, 0, 0, 0.36), 0 0 55px rgba(34, 197, 94, 0.04);
+    }
+
+    .repair-create-information {
+        position: relative;
+        display: flex;
+        min-height: 810px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 44px;
+        overflow: hidden;
+        border-right: 1px solid rgba(148, 163, 184, 0.12);
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.97), rgba(10, 43, 44, 0.91));
+    }
+
+        .repair-create-information::after {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            right: -160px;
+            bottom: -150px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(34, 197, 94, 0.15);
+            filter: blur(58px);
+        }
+
+    .repair-create-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .repair-create-eyebrow {
+        margin-bottom: 13px;
+        color: #5eead4;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .repair-create-information h1 {
+        max-width: 480px;
+        margin-bottom: 17px;
+        color: #f8fafc;
+        font-size: clamp(2rem, 4vw, 3.15rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+    }
+
+    .repair-create-gradient {
+        color: transparent;
+        background: linear-gradient( 90deg, #34d399, #22d3ee);
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+
+    .repair-create-description {
+        max-width: 470px;
+        color: #8fa0b7;
+        font-size: 0.87rem;
+        line-height: 1.75;
+    }
+
+    .repair-create-workflow {
+        display: grid;
+        gap: 17px;
+        margin-top: 37px;
+    }
+
+    .repair-workflow-item {
+        display: grid;
+        grid-template-columns: 40px 1fr;
+        gap: 13px;
+        align-items: start;
+    }
+
+    .repair-workflow-number {
+        display: grid;
+        width: 40px;
+        height: 40px;
+        place-items: center;
+        color: #5eead4;
+        font-family: monospace;
+        font-size: 0.68rem;
+        font-weight: 900;
+        border: 1px solid rgba(52, 211, 153, 0.25);
+        border-radius: 10px;
+        background: rgba(34, 197, 94, 0.06);
+    }
+
+    .repair-workflow-item h3 {
+        margin: 1px 0 4px;
+        color: #dbe7f5;
+        font-size: 0.87rem;
+        font-weight: 750;
+    }
+
+    .repair-workflow-item p {
+        margin: 0;
+        color: #718096;
+        font-size: 0.74rem;
+        line-height: 1.55;
+    }
+
+    .repair-create-state {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #86efac;
+        font-family: monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+        .repair-create-state::before {
+            width: 8px;
+            height: 8px;
+            content: "";
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 11px #22c55e;
+        }
+
+    .repair-create-form-area {
+        min-height: 810px;
+        padding: 43px;
+        background: linear-gradient( 145deg, rgba(7, 14, 25, 0.98), rgba(5, 11, 20, 0.98));
+    }
+
+    .repair-form-heading {
+        margin-bottom: 26px;
+    }
+
+    .repair-form-eyebrow {
+        margin-bottom: 8px;
+        color: #5eead4;
+        font-size: 0.69rem;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .repair-form-title {
+        margin-bottom: 9px;
+        color: #f8fafc;
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .repair-form-description {
+        margin: 0;
+        color: #8291a7;
+        font-size: 0.83rem;
+        line-height: 1.65;
+    }
+
+    .repair-validation {
+        margin-bottom: 20px;
+        padding: 13px 15px;
+        color: #fecaca;
+        font-size: 0.81rem;
+        border: 1px solid rgba(239, 68, 68, 0.27);
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.08);
+    }
+
+        .repair-validation:empty,
+        .repair-validation.validation-summary-valid {
+            display: none;
+        }
+
+        .repair-validation ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+    .repair-form-section {
+        margin-bottom: 27px;
+        padding-bottom: 25px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+        .repair-form-section:last-of-type {
+            margin-bottom: 20px;
+            padding-bottom: 0;
+            border-bottom: 0;
+        }
+
+    .repair-section-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 18px;
+        color: #dbe7f5;
+        font-size: 0.88rem;
+        font-weight: 800;
+    }
+
+    .repair-section-number {
+        display: grid;
+        width: 25px;
+        height: 25px;
+        place-items: center;
+        color: #5eead4;
+        font-family: monospace;
+        font-size: 0.62rem;
+        font-weight: 900;
+        border: 1px solid rgba(52, 211, 153, 0.24);
+        border-radius: 7px;
+        background: rgba(34, 197, 94, 0.05);
+    }
+
+    .repair-field {
+        margin-bottom: 17px;
+    }
+
+        .repair-field:last-child {
+            margin-bottom: 0;
+        }
+
+    .repair-label {
+        margin-bottom: 8px;
+        color: #cbd5e1;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .repair-required {
+        color: #5eead4;
+    }
+
+    .repair-optional {
+        margin-left: 5px;
+        color: #58677d;
+        font-size: 0.68rem;
+        font-weight: 500;
+    }
+
+    .repair-input,
+    .repair-select {
+        min-height: 48px;
+        color: #f8fafc !important;
+        border: 1px solid #263449;
+        border-radius: 9px;
+        background-color: rgba( 15, 23, 42, 0.78) !important;
+    }
+
+    textarea.repair-input {
+        min-height: 115px;
+        resize: vertical;
+    }
+
+    .repair-input::placeholder {
+        color: #5f6f85;
+    }
+
+    .repair-input:focus,
+    .repair-select:focus {
+        color: #ffffff;
+        border-color: #34d399;
+        background-color: rgba(15, 23, 42, 0.97) !important;
+        box-shadow: 0 0 0 0.2rem rgba(34, 197, 94, 0.09);
+    }
+
+    .repair-select option {
+        color: #e2e8f0;
+        background: #0b1422;
+    }
+
+    .repair-error {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.75rem;
+    }
+
+    .repair-help {
+        display: block;
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 0.7rem;
+        line-height: 1.5;
+    }
+
+    .repair-money-field {
+        position: relative;
+    }
+
+    .repair-money-prefix {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 13px;
+        color: #86efac;
+        font-family: monospace;
+        font-size: 0.72rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+    }
+
+    .repair-money-field .repair-input {
+        padding-left: 48px;
+    }
+
+    .repair-automatic-notice {
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        gap: 11px;
+        margin-bottom: 22px;
+        padding: 13px;
+        border: 1px solid rgba(0, 229, 255, 0.16);
+        border-radius: 10px;
+        background: rgba(0, 229, 255, 0.04);
+    }
+
+    .repair-notice-icon {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        color: #67e8f9;
+        font-family: monospace;
+        font-size: 0.61rem;
+        font-weight: 900;
+        border: 1px solid rgba(0, 229, 255, 0.22);
+        border-radius: 8px;
+    }
+
+    .repair-automatic-notice strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #bae6fd;
+        font-size: 0.77rem;
+    }
+
+    .repair-automatic-notice p {
+        margin: 0;
+        color: #77879c;
+        font-size: 0.7rem;
+        line-height: 1.5;
+    }
+
+    .repair-create-actions {
+        display: flex;
+        gap: 11px;
+    }
+
+    .repair-submit,
+    .repair-cancel {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 17px;
+        font-size: 0.77rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 9px;
+    }
+
+    .repair-submit {
+        flex: 1;
+        color: #03140f;
+        border: 1px solid #34d399;
+        background: linear-gradient( 135deg, #34d399, #22d3ee);
+        box-shadow: 0 0 25px rgba(34, 197, 94, 0.14);
+    }
+
+        .repair-submit:hover {
+            color: #03140f;
+            box-shadow: 0 0 32px rgba(34, 197, 94, 0.26);
+        }
+
+    .repair-cancel {
+        color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, 0.21);
+        background: rgba(15, 23, 42, 0.6);
+    }
+
+        .repair-cancel:hover {
+            color: #5eead4;
+            border-color: rgba(52, 211, 153, 0.3);
+        }
+
+    @@media (max-width: 991px) {
+        .repair-create-information {
+            min-height: auto;
+            border-right: 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .repair-create-form-area {
+            min-height: auto;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .repair-create-page {
+            padding: 27px 0 60px;
+        }
+
+        .repair-create-route {
+            display: none;
+        }
+
+        .repair-create-information,
+        .repair-create-form-area {
+            padding: 28px 22px;
+        }
+
+            .repair-create-information h1 {
+                font-size: 2.15rem;
+            }
+
+        .repair-create-actions {
+            display: grid;
+        }
+
+        .repair-submit,
+        .repair-cancel {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="repair-create-page">
+
+    <div class="container">
+
+        <!-- NAVIGATION -->
+        <div class="repair-create-navigation">
+
+            <a asp-controller="Repairs"
+               asp-action="Index"
+               class="repair-create-back">
+
+                ← Back to repair tickets
+
+            </a>
+
+            <span class="repair-create-route">
+                OPERATIONS / REPAIRS / CREATE
+            </span>
+
+        </div>
+
+        <div class="repair-create-shell">
+
+            <div class="row g-0">
+
+                <!-- INFORMATION PANEL -->
+                <div class="col-lg-5">
+
+                    <div class="repair-create-information">
+
+                        <div class="repair-create-content">
+
+                            <div class="repair-create-eyebrow">
+                                New Repair Registration
+                            </div>
+
+                            <h1>
+
+                                Start a transparent
+
+                                <span class="repair-create-gradient">
+                                    repair workflow.
+                                </span>
+
+                            </h1>
+
+                            <p class="repair-create-description">
+
+                                Register the customer device,
+                                reported problem, assigned technician
+                                and initial repair estimate.
+
+                            </p>
+
+                            <div class="repair-create-workflow">
+
+                                <div class="repair-workflow-item">
+
+                                    <div class="repair-workflow-number">
+                                        01
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Select Customer</h3>
+
+                                        <p>
+                                            Connect the ticket to an
+                                            existing customer record.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="repair-workflow-item">
+
+                                    <div class="repair-workflow-number">
+                                        02
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Register Device</h3>
+
+                                        <p>
+                                            Record the device type,
+                                            brand, model and serial number.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="repair-workflow-item">
+
+                                    <div class="repair-workflow-number">
+                                        03
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Describe the Problem</h3>
+
+                                        <p>
+                                            Record the issue reported
+                                            by the customer accurately.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="repair-workflow-item">
+
+                                    <div class="repair-workflow-number">
+                                        04
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Generate Ticket</h3>
+
+                                        <p>
+                                            The system creates a unique
+                                            ticket with Received status.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="repair-create-state">
+                            Repair registration service active
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- CREATE FORM -->
+                <div class="col-lg-7">
+
+                    <div class="repair-create-form-area">
+
+                        <div class="repair-form-heading">
+
+                            <div class="repair-form-eyebrow">
+                                Repair Ticket Form
+                            </div>
+
+                            <h2 class="repair-form-title">
+                                Device and service details
+                            </h2>
+
+                            <p class="repair-form-description">
+
+                                Complete all required information
+                                before creating the repair ticket.
+
+                            </p>
+
+                        </div>
+
+                        <form asp-controller="Repairs"
+                              asp-action="Create"
+                              method="post">
+
+                            <div asp-validation-summary="ModelOnly"
+                                 class="repair-validation"
+                                 role="alert">
+                            </div>
+
+                            <!-- CUSTOMER AND TECHNICIAN -->
+                            <div class="repair-form-section">
+
+                                <h3 class="repair-section-title">
+
+                                    <span class="repair-section-number">
+                                        01
+                                    </span>
+
+                                    Customer and assignment
+
+                                </h3>
+
+                                <div class="row">
+
+                                    <div class="col-md-6">
+
+                                        <div class="repair-field">
+
+                                            <label asp-for="CustomerId"
+                                                   class="repair-label">
+
+                                                Customer
+
+                                                <span class="repair-required">
+                                                    *
+                                                </span>
+
+                                            </label>
+
+                                            <select asp-for="CustomerId"
+                                                    asp-items="ViewBag.Customers"
+                                                    class="form-select
+                                                repair-select">
+
+                                                <option value="">
+                                                    Select a customer
+                                                </option>
+
+                                            </select>
+
+                                            <span asp-validation-for="CustomerId"
+                                                  class="text-danger
+                                                repair-error">
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-6">
+
+                                        <div class="repair-field">
+
+                                            <label asp-for="TechnicianId"
+                                                   class="repair-label">
+
+                                                Assigned Technician
+
+                                                <span class="repair-optional">
+                                                    Optional
+                                                </span>
+
+                                            </label>
+
+                                            <select asp-for="TechnicianId"
+                                                    asp-items="ViewBag.Technicians"
+                                                    class="form-select
+                                                repair-select">
+
+                                                <option value="">
+                                                    Not assigned
+                                                </option>
+
+                                            </select>
+
+                                            <span asp-validation-for="TechnicianId"
+                                                  class="text-danger
+                                                repair-error">
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <!-- DEVICE INFORMATION -->
+                            <div class="repair-form-section">
+
+                                <h3 class="repair-section-title">
+
+                                    <span class="repair-section-number">
+                                        02
+                                    </span>
+
+                                    Device information
+
+                                </h3>
+
+                                <div class="row">
+
+                                    <div class="col-md-6">
+
+                                        <div class="repair-field">
+
+                                            <label asp-for="DeviceType"
+                                                   class="repair-label">
+
+                                                Device Type
+
+                                                <span class="repair-required">
+                                                    *
+                                                </span>
+
+                                            </label>
+
+                                            <input asp-for="DeviceType"
+                                                   list="deviceTypeOptions"
+                                                   class="form-control
+                                            repair-input"
+                                                   placeholder="Example: Laptop" />
+
+                                            <datalist id="deviceTypeOptions">
+                                                <option value="Laptop"></option>
+                                                <option value="Desktop PC"></option>
+                                                <option value="MacBook"></option>
+                                                <option value="All-in-One PC"></option>
+                                                <option value="Tablet"></option>
+                                                <option value="Monitor"></option>
+                                                <option value="Printer"></option>
+                                                <option value="Other"></option>
+                                            </datalist>
+
+                                            <span asp-validation-for="DeviceType"
+                                                  class="text-danger
+                                                repair-error">
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-6">
+
+                                        <div class="repair-field">
+
+                                            <label asp-for="BrandModel"
+                                                   class="repair-label">
+
+                                                Brand and Model
+
+                                                <span class="repair-required">
+                                                    *
+                                                </span>
+
+                                            </label>
+
+                                            <input asp-for="BrandModel"
+                                                   class="form-control
+                                            repair-input"
+                                                   placeholder="Example: Acer Aspire 5" />
+
+                                            <span asp-validation-for="BrandModel"
+                                                  class="text-danger
+                                                repair-error">
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-6">
+
+                                        <div class="repair-field">
+
+                                            <label asp-for="SerialNumber"
+                                                   class="repair-label">
+
+                                                Serial Number
+
+                                                <span class="repair-optional">
+                                                    Optional
+                                                </span>
+
+                                            </label>
+
+                                            <input asp-for="SerialNumber"
+                                                   class="form-control
+                                            repair-input"
+                                                   placeholder="Enter the device serial number"
+                                                   autocomplete="off" />
+
+                                            <span asp-validation-for="SerialNumber"
+                                                  class="text-danger
+                                                repair-error">
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-6">
+
+                                        <div class="repair-field">
+
+                                            <label asp-for="EstimatedCost"
+                                                   class="repair-label">
+
+                                                Estimated Cost
+
+                                                <span class="repair-required">
+                                                    *
+                                                </span>
+
+                                            </label>
+
+                                            <div class="repair-money-field">
+
+                                                <span class="repair-money-prefix">
+                                                    RM
+                                                </span>
+
+                                                <input asp-for="EstimatedCost"
+                                                       type="number"
+                                                       min="0"
+                                                       step="0.01"
+                                                       class="form-control
+                                                repair-input"
+                                                       placeholder="0.00" />
+
+                                            </div>
+
+                                            <span asp-validation-for="EstimatedCost"
+                                                  class="text-danger
+                                                repair-error">
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <!-- PROBLEM DESCRIPTION -->
+                            <div class="repair-form-section">
+
+                                <h3 class="repair-section-title">
+
+                                    <span class="repair-section-number">
+                                        03
+                                    </span>
+
+                                    Reported problem
+
+                                </h3>
+
+                                <div class="repair-field">
+
+                                    <label asp-for="ProblemDescription"
+                                           class="repair-label">
+
+                                        Problem Description
+
+                                        <span class="repair-required">
+                                            *
+                                        </span>
+
+                                    </label>
+
+                                    <textarea asp-for="ProblemDescription"
+                                              class="form-control
+                                    repair-input"
+                                              placeholder="Describe the problem reported by the customer">
+                                    </textarea>
+
+                                    <span asp-validation-for="ProblemDescription"
+                                          class="text-danger
+                                        repair-error">
+                                    </span>
+
+                                    <span class="repair-help">
+
+                                        Record the customer complaint
+                                        clearly before technical inspection.
+
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <div class="repair-automatic-notice">
+
+                                <div class="repair-notice-icon">
+                                    AUTO
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        Automatic Ticket Setup
+                                    </strong>
+
+                                    <p>
+                                        A unique repair ticket number
+                                        will be generated with the initial
+                                        status set to Received.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <div class="repair-create-actions">
+
+                                <button type="submit"
+                                        class="btn repair-submit">
+
+                                    Create Repair Ticket →
+
+                                </button>
+
+                                <a asp-controller="Repairs"
+                                   asp-action="Index"
+                                   class="repair-cancel">
+
+                                    Cancel
+
+                                </a>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

@@ -1,0 +1,900 @@
+﻿@model IEnumerable<SecureOKCS.Models.InventoryTransaction>
+
+@{
+    ViewData["Title"] = "Inventory History";
+
+    var transactions =
+        Model?.ToList()
+        ?? new List<
+            SecureOKCS.Models.InventoryTransaction>();
+
+    string itemName =
+        ViewBag.ItemName as string
+        ?? "Inventory Item";
+
+    string itemCode =
+        ViewBag.ItemCode as string
+        ?? "-";
+
+    int inboundUnits =
+        transactions
+            .Where(transaction =>
+                transaction.QuantityChanged > 0)
+            .Sum(transaction =>
+                transaction.QuantityChanged);
+
+    int outboundUnits =
+        Math.Abs(
+            transactions
+                .Where(transaction =>
+                    transaction.QuantityChanged < 0)
+                .Sum(transaction =>
+                    transaction.QuantityChanged));
+
+    int currentBalance =
+        transactions
+            .OrderByDescending(transaction =>
+                transaction.CreatedAt)
+            .FirstOrDefault()
+            ?.BalanceAfter ?? 0;
+
+    int? inventoryId =
+        transactions
+            .FirstOrDefault()
+            ?.InventoryId;
+
+    string GetTransactionClass(
+        string? transactionType)
+    {
+        return transactionType?
+            .Trim()
+            .ToLowerInvariant() switch
+        {
+            "initial stock" =>
+                "transaction-initial",
+
+            "stock in" =>
+                "transaction-in",
+
+            "stock out" =>
+                "transaction-out",
+
+            _ =>
+                "transaction-default"
+        };
+    }
+
+    string GetTransactionSymbol(
+        string? transactionType)
+    {
+        return transactionType?
+            .Trim()
+            .ToLowerInvariant() switch
+        {
+            "initial stock" => "INI",
+            "stock in" => "IN",
+            "stock out" => "OUT",
+            _ => "LOG"
+        };
+    }
+}
+
+<style>
+    .history-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 43px 0 75px;
+    }
+
+        .history-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 12% 15%, rgba(250, 204, 21, 0.07), transparent 27%), radial-gradient( circle at 90% 78%, rgba(139, 92, 246, 0.07), transparent 28%);
+        }
+
+    .history-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 21px;
+    }
+
+    .history-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        font-size: 0.81rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .history-back:hover {
+            color: #fde68a;
+        }
+
+    .history-route {
+        color: #58677d;
+        font-family: monospace;
+        font-size: 0.68rem;
+    }
+
+    .history-header {
+        position: relative;
+        margin-bottom: 24px;
+        padding: 31px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 19px;
+        background: linear-gradient( 125deg, rgba(13, 23, 38, 0.97), rgba(54, 44, 12, 0.76));
+        box-shadow: 0 21px 55px rgba(0, 0, 0, 0.24);
+    }
+
+        .history-header::after {
+            position: absolute;
+            width: 270px;
+            height: 270px;
+            top: -165px;
+            right: -70px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(250, 204, 21, 0.14);
+            filter: blur(53px);
+        }
+
+    .history-header-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .history-eyebrow {
+        margin-bottom: 8px;
+        color: #fde68a;
+        font-size: 0.69rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .history-title {
+        margin-bottom: 8px;
+        color: #f8fafc;
+        font-size: clamp(1.85rem, 4vw, 2.75rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+    }
+
+    .history-description {
+        max-width: 650px;
+        margin: 0;
+        color: #8fa0b7;
+        font-size: 0.85rem;
+        line-height: 1.7;
+    }
+
+    .history-item-identity {
+        display: inline-grid;
+        min-width: 220px;
+        gap: 5px;
+        padding: 15px;
+        text-align: left;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 11px;
+        background: rgba(5, 11, 20, 0.55);
+    }
+
+    .history-item-code {
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.71rem;
+        font-weight: 900;
+    }
+
+    .history-item-name {
+        color: #dbe7f5;
+        font-size: 0.83rem;
+        font-weight: 750;
+    }
+
+    .history-summary {
+        margin-bottom: 24px;
+    }
+
+    .history-summary-card {
+        --summary-colour: #00e5ff;
+        display: flex;
+        height: 100%;
+        align-items: center;
+        gap: 14px;
+        padding: 18px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 14px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.88), rgba(7, 14, 25, 0.94));
+    }
+
+    .summary-transactions {
+        --summary-colour: #a78bfa;
+    }
+
+    .summary-inbound {
+        --summary-colour: #34d399;
+    }
+
+    .summary-outbound {
+        --summary-colour: #fb7185;
+    }
+
+    .summary-balance {
+        --summary-colour: #facc15;
+    }
+
+    .history-summary-icon {
+        display: grid;
+        width: 43px;
+        height: 43px;
+        flex: 0 0 43px;
+        place-items: center;
+        color: var(--summary-colour);
+        font-family: monospace;
+        font-size: 0.62rem;
+        font-weight: 900;
+        border: 1px solid color-mix( in srgb, var(--summary-colour) 27%, transparent);
+        border-radius: 10px;
+        background: color-mix( in srgb, var(--summary-colour) 7%, transparent);
+    }
+
+    .history-summary-label {
+        margin-bottom: 3px;
+        color: #64748b;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+    }
+
+    .history-summary-value {
+        color: #e2e8f0;
+        font-size: 1.04rem;
+        font-weight: 800;
+    }
+
+    .history-table-card {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 16px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.94), rgba(7, 14, 25, 0.97));
+        box-shadow: 0 20px 52px rgba(0, 0, 0, 0.2);
+    }
+
+    .history-table-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 20px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        background: rgba(5, 11, 20, 0.45);
+    }
+
+    .history-table-title {
+        margin: 0;
+        color: #f8fafc;
+        font-size: 0.94rem;
+        font-weight: 800;
+    }
+
+    .history-record-count {
+        color: #c4b5fd;
+        font-family: monospace;
+        font-size: 0.67rem;
+    }
+
+    .history-table {
+        min-width: 1100px;
+        margin: 0;
+        color: #cbd5e1;
+    }
+
+        .history-table thead th {
+            padding: 15px;
+            color: #8494aa;
+            font-size: 0.64rem;
+            font-weight: 800;
+            letter-spacing: 0.07em;
+            white-space: nowrap;
+            text-transform: uppercase;
+            border-color: rgba(148, 163, 184, 0.1);
+            background: rgba(5, 11, 20, 0.72);
+        }
+
+        .history-table tbody td {
+            padding: 16px 15px;
+            color: #aebdce;
+            font-size: 0.76rem;
+            vertical-align: middle;
+            border-color: rgba(148, 163, 184, 0.08);
+            background: transparent;
+        }
+
+        .history-table tbody tr:hover {
+            background: rgba(250, 204, 21, 0.022);
+        }
+
+    .transaction-type {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 9px;
+        font-size: 0.64rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        border: 1px solid;
+        border-radius: 7px;
+        white-space: nowrap;
+    }
+
+        .transaction-type::before {
+            width: 6px;
+            height: 6px;
+            content: "";
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+    .transaction-initial {
+        color: #c4b5fd;
+        border-color: rgba(167, 139, 250, 0.24);
+        background: rgba(139, 92, 246, 0.06);
+    }
+
+    .transaction-in {
+        color: #86efac;
+        border-color: rgba(34, 197, 94, 0.24);
+        background: rgba(34, 197, 94, 0.06);
+    }
+
+    .transaction-out {
+        color: #fda4af;
+        border-color: rgba(244, 63, 94, 0.24);
+        background: rgba(244, 63, 94, 0.06);
+    }
+
+    .transaction-default {
+        color: #cbd5e1;
+        border-color: rgba(148, 163, 184, 0.22);
+        background: rgba(148, 163, 184, 0.06);
+    }
+
+    .quantity-change {
+        font-family: monospace;
+        font-size: 0.82rem;
+        font-weight: 900;
+    }
+
+        .quantity-change.positive {
+            color: #86efac;
+        }
+
+        .quantity-change.negative {
+            color: #fda4af;
+        }
+
+    .balance-after {
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.8rem;
+        font-weight: 900;
+    }
+
+    .transaction-user {
+        color: #dbe7f5;
+        font-weight: 700;
+    }
+
+    .transaction-code {
+        color: #7dd3fc;
+        font-family: monospace;
+        font-size: 0.68rem;
+    }
+
+    .transaction-note {
+        display: block;
+        max-width: 260px;
+        color: #8291a7;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .transaction-date {
+        color: #8291a7;
+        font-family: monospace;
+        font-size: 0.68rem;
+        white-space: nowrap;
+    }
+
+    .history-empty {
+        padding: 65px 20px !important;
+        text-align: center;
+    }
+
+    .history-empty-icon {
+        display: grid;
+        width: 54px;
+        height: 54px;
+        margin: 0 auto 15px;
+        place-items: center;
+        color: #64748b;
+        font-family: monospace;
+        font-weight: 900;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.55);
+    }
+
+    .history-empty-title {
+        margin-bottom: 6px;
+        color: #cbd5e1;
+        font-weight: 800;
+    }
+
+    .history-empty-text {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.77rem;
+    }
+
+    .history-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 22px;
+    }
+
+    .history-primary-action,
+    .history-secondary-action {
+        display: inline-flex;
+        min-height: 44px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 15px;
+        font-size: 0.74rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 9px;
+    }
+
+    .history-primary-action {
+        color: #171403;
+        border: 1px solid #facc15;
+        background: linear-gradient( 135deg, #facc15, #f59e0b);
+    }
+
+        .history-primary-action:hover {
+            color: #171403;
+            box-shadow: 0 0 25px rgba(250, 204, 21, 0.2);
+        }
+
+    .history-secondary-action {
+        color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, 0.21);
+        background: rgba(15, 23, 42, 0.58);
+    }
+
+        .history-secondary-action:hover {
+            color: #fde68a;
+            border-color: rgba(250, 204, 21, 0.28);
+        }
+
+    @@media (max-width: 767px) {
+        .history-page {
+            padding: 27px 0 60px;
+        }
+
+        .history-route {
+            display: none;
+        }
+
+        .history-header {
+            padding: 25px 21px;
+        }
+
+        .history-item-identity {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .history-actions {
+            display: grid;
+        }
+
+        .history-primary-action,
+        .history-secondary-action {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="history-page">
+
+    <div class="container">
+
+        <!-- NAVIGATION -->
+        <div class="history-navigation">
+
+            <a asp-controller="Inventory"
+               asp-action="Index"
+               class="history-back">
+
+                ← Back to inventory
+
+            </a>
+
+            <span class="history-route">
+                OPERATIONS / INVENTORY / HISTORY
+            </span>
+
+        </div>
+
+        <!-- PAGE HEADER -->
+        <header class="history-header">
+
+            <div class="history-header-content">
+
+                <div class="row align-items-center">
+
+                    <div class="col-md-8">
+
+                        <div class="history-eyebrow">
+                            Stock Movement Audit Trail
+                        </div>
+
+                        <h1 class="history-title">
+                            Inventory Transaction History
+                        </h1>
+
+                        <p class="history-description">
+
+                            Review every recorded stock movement,
+                            authorised user and resulting balance
+                            for this inventory item.
+
+                        </p>
+
+                    </div>
+
+                    <div class="col-md-4
+                        text-md-end">
+
+                        <div class="history-item-identity">
+
+                            <span class="history-item-code">
+                                @itemCode
+                            </span>
+
+                            <span class="history-item-name">
+                                @itemName
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- SUMMARY -->
+        <div class="row g-3 history-summary">
+
+            <div class="col-6 col-xl-3">
+
+                <div class="history-summary-card
+                    summary-transactions">
+
+                    <div class="history-summary-icon">
+                        LOG
+                    </div>
+
+                    <div>
+
+                        <div class="history-summary-label">
+                            Transactions
+                        </div>
+
+                        <div class="history-summary-value">
+                            @transactions.Count
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="history-summary-card
+                    summary-inbound">
+
+                    <div class="history-summary-icon">
+                        IN
+                    </div>
+
+                    <div>
+
+                        <div class="history-summary-label">
+                            Inbound Units
+                        </div>
+
+                        <div class="history-summary-value">
+                            @inboundUnits
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="history-summary-card
+                    summary-outbound">
+
+                    <div class="history-summary-icon">
+                        OUT
+                    </div>
+
+                    <div>
+
+                        <div class="history-summary-label">
+                            Outbound Units
+                        </div>
+
+                        <div class="history-summary-value">
+                            @outboundUnits
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-6 col-xl-3">
+
+                <div class="history-summary-card
+                    summary-balance">
+
+                    <div class="history-summary-icon">
+                        QTY
+                    </div>
+
+                    <div>
+
+                        <div class="history-summary-label">
+                            Current Balance
+                        </div>
+
+                        <div class="history-summary-value">
+                            @currentBalance
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- TRANSACTION TABLE -->
+        <div class="history-table-card">
+
+            <div class="history-table-header">
+
+                <h2 class="history-table-title">
+                    Recorded stock movements
+                </h2>
+
+                <span class="history-record-count">
+
+                    @transactions.Count record(s)
+
+                </span>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table history-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Transaction Type</th>
+                            <th>Quantity Change</th>
+                            <th>Balance After</th>
+                            <th>Authorised User</th>
+                            <th>Scanned Code</th>
+                            <th>Notes</th>
+                            <th>Date and Time</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @if (!transactions.Any())
+                        {
+                            <tr>
+
+                                <td colspan="7"
+                                    class="history-empty">
+
+                                    <div class="history-empty-icon">
+                                        LOG
+                                    </div>
+
+                                    <div class="history-empty-title">
+                                        No transactions recorded
+                                    </div>
+
+                                    <p class="history-empty-text">
+                                        Stock movements for this item
+                                        will appear here.
+                                    </p>
+
+                                </td>
+
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var transaction
+                                in transactions)
+                            {
+                                bool isPositive =
+                                    transaction.QuantityChanged >= 0;
+
+                                string transactionClass =
+                                    GetTransactionClass(
+                                        transaction.TransactionType);
+
+                                <tr>
+
+                                    <td>
+
+                                        <span class="transaction-type
+                                            @transactionClass">
+
+                                            @transaction.TransactionType
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="quantity-change
+                                            @(isPositive
+                                                ? "positive"
+                                                : "negative")">
+
+                                            @(isPositive
+                                                ? "+"
+                                                : "")
+                                            @transaction.QuantityChanged
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="balance-after">
+                                            @transaction.BalanceAfter
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="transaction-user">
+
+                                            @(transaction.User?.FullName
+                                                ?? "Unknown User")
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (string.IsNullOrWhiteSpace(
+                                            transaction.ScannedCode))
+                                        {
+                                            <span>-</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="transaction-code">
+
+                                                @transaction.ScannedCode
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="transaction-note">
+
+                                            @(string.IsNullOrWhiteSpace(
+                                                transaction.TransactionNotes)
+                                                ? "No notes"
+                                                : transaction.TransactionNotes)
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="transaction-date">
+
+                                            @transaction.CreatedAt
+                                            .ToString(
+                                            "dd MMM yyyy, hh:mm:ss tt")
+
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        <div class="history-actions">
+
+            @if (inventoryId.HasValue)
+            {
+                <a asp-controller="Inventory"
+                   asp-action="Stock"
+                   asp-route-id="@inventoryId.Value"
+                   class="history-primary-action">
+
+                    Record New Stock Movement →
+
+                </a>
+            }
+
+            <a asp-controller="Inventory"
+               asp-action="Index"
+               class="history-secondary-action">
+
+                Back to Inventory
+
+            </a>
+
+        </div>
+
+    </div>
+
+</section>

@@ -1,0 +1,1131 @@
+﻿@model SecureOKCS.ViewModels.InventoryCreateViewModel
+
+@{
+    ViewData["Title"] = "Add Inventory Item";
+
+    bool createdFromScanner =
+        ViewBag.CreatedFromScanner is bool value &&
+        value;
+
+    string? scannerInformation =
+        TempData["Info"]?.ToString();
+}
+
+<style>
+    .inventory-create-page {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        padding: 45px 0 75px;
+    }
+
+        .inventory-create-page::before {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            content: "";
+            background: radial-gradient( circle at 13% 18%, rgba(250, 204, 21, 0.08), transparent 28%), radial-gradient( circle at 88% 78%, rgba(0, 229, 255, 0.07), transparent 29%);
+        }
+
+    .inventory-create-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 21px;
+    }
+
+    .inventory-create-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
+        font-size: 0.81rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .inventory-create-back:hover {
+            color: #fde68a;
+        }
+
+    .inventory-create-route {
+        color: #58677d;
+        font-family: monospace;
+        font-size: 0.68rem;
+    }
+
+    .inventory-create-shell {
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 21px;
+        background: rgba(9, 17, 30, 0.95);
+        box-shadow: 0 27px 72px rgba(0, 0, 0, 0.36), 0 0 55px rgba(250, 204, 21, 0.04);
+    }
+
+    .inventory-create-information {
+        position: relative;
+        display: flex;
+        min-height: 790px;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 43px;
+        overflow: hidden;
+        border-right: 1px solid rgba(148, 163, 184, 0.12);
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.97), rgba(54, 44, 12, 0.77));
+    }
+
+        .inventory-create-information::after {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            right: -160px;
+            bottom: -150px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(250, 204, 21, 0.14);
+            filter: blur(58px);
+        }
+
+    .inventory-create-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .inventory-create-eyebrow {
+        margin-bottom: 13px;
+        color: #fde68a;
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .inventory-create-information h1 {
+        max-width: 470px;
+        margin-bottom: 17px;
+        color: #f8fafc;
+        font-size: clamp(2rem, 4vw, 3.1rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+    }
+
+    .inventory-create-gradient {
+        color: transparent;
+        background: linear-gradient( 90deg, #facc15, #22d3ee);
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+
+    .inventory-create-description {
+        max-width: 470px;
+        color: #8fa0b7;
+        font-size: 0.86rem;
+        line-height: 1.75;
+    }
+
+    .inventory-create-process {
+        display: grid;
+        gap: 17px;
+        margin-top: 37px;
+    }
+
+    .inventory-process-item {
+        display: grid;
+        grid-template-columns: 39px 1fr;
+        gap: 13px;
+        align-items: start;
+    }
+
+    .inventory-process-number {
+        display: grid;
+        width: 39px;
+        height: 39px;
+        place-items: center;
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.67rem;
+        font-weight: 900;
+        border: 1px solid rgba(250, 204, 21, 0.24);
+        border-radius: 10px;
+        background: rgba(250, 204, 21, 0.06);
+    }
+
+    .inventory-process-item h3 {
+        margin: 1px 0 4px;
+        color: #dbe7f5;
+        font-size: 0.85rem;
+        font-weight: 750;
+    }
+
+    .inventory-process-item p {
+        margin: 0;
+        color: #718096;
+        font-size: 0.72rem;
+        line-height: 1.55;
+    }
+
+    .inventory-create-state {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.69rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+        .inventory-create-state::before {
+            width: 8px;
+            height: 8px;
+            content: "";
+            border-radius: 50%;
+            background: #facc15;
+            box-shadow: 0 0 11px #facc15;
+        }
+
+    .inventory-create-form-area {
+        min-height: 790px;
+        padding: 43px;
+        background: linear-gradient( 145deg, rgba(7, 14, 25, 0.98), rgba(5, 11, 20, 0.98));
+    }
+
+    .inventory-form-eyebrow {
+        margin-bottom: 8px;
+        color: #fde68a;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .inventory-form-title {
+        margin-bottom: 8px;
+        color: #f8fafc;
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .inventory-form-description {
+        margin-bottom: 25px;
+        color: #8291a7;
+        font-size: 0.82rem;
+        line-height: 1.65;
+    }
+
+    .inventory-validation {
+        margin-bottom: 20px;
+        padding: 13px 15px;
+        color: #fecaca;
+        font-size: 0.8rem;
+        border: 1px solid rgba(239, 68, 68, 0.27);
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.08);
+    }
+
+        .inventory-validation:empty,
+        .inventory-validation.validation-summary-valid {
+            display: none;
+        }
+
+        .inventory-validation ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+    .inventory-form-section {
+        margin-bottom: 27px;
+        padding-bottom: 25px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+        .inventory-form-section:last-of-type {
+            margin-bottom: 20px;
+            padding-bottom: 0;
+            border-bottom: 0;
+        }
+
+    .inventory-section-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 18px;
+        color: #dbe7f5;
+        font-size: 0.87rem;
+        font-weight: 800;
+    }
+
+    .inventory-section-number {
+        display: grid;
+        width: 25px;
+        height: 25px;
+        place-items: center;
+        color: #fde68a;
+        font-family: monospace;
+        font-size: 0.61rem;
+        font-weight: 900;
+        border: 1px solid rgba(250, 204, 21, 0.23);
+        border-radius: 7px;
+        background: rgba(250, 204, 21, 0.05);
+    }
+
+    .inventory-field {
+        margin-bottom: 17px;
+    }
+
+        .inventory-field:last-child {
+            margin-bottom: 0;
+        }
+
+    .inventory-label {
+        margin-bottom: 8px;
+        color: #cbd5e1;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .inventory-required {
+        color: #fde68a;
+    }
+
+    .inventory-optional {
+        margin-left: 5px;
+        color: #58677d;
+        font-size: 0.68rem;
+        font-weight: 500;
+    }
+
+    .inventory-input {
+        min-height: 48px;
+        color: #f8fafc !important;
+        border: 1px solid #263449;
+        border-radius: 9px;
+        background-color: rgba(15, 23, 42, 0.78) !important;
+    }
+
+    textarea.inventory-input {
+        min-height: 105px;
+        resize: vertical;
+    }
+
+    .inventory-input::placeholder {
+        color: #5f6f85;
+    }
+
+    .inventory-input:focus {
+        color: #ffffff;
+        border-color: #facc15;
+        background-color: rgba(15, 23, 42, 0.97) !important;
+        box-shadow: 0 0 0 0.2rem rgba(250, 204, 21, 0.08);
+    }
+
+    .inventory-input:-webkit-autofill {
+        -webkit-text-fill-color: #f8fafc;
+        box-shadow: 0 0 0 1000px #0f172a inset;
+    }
+
+    .inventory-error {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.75rem;
+    }
+
+    .inventory-help {
+        display: block;
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 0.69rem;
+        line-height: 1.5;
+    }
+
+    .inventory-money-field {
+        position: relative;
+    }
+
+    .inventory-money-prefix {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 13px;
+        color: #86efac;
+        font-family: monospace;
+        font-size: 0.71rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+    }
+
+    .inventory-money-field .inventory-input {
+        padding-left: 48px;
+    }
+
+    .inventory-barcode-field {
+        position: relative;
+    }
+
+    .inventory-barcode-prefix {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 13px;
+        color: #67e8f9;
+        font-family: monospace;
+        font-size: 0.62rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+    }
+
+    .inventory-barcode-field .inventory-input {
+        padding-left: 57px;
+        font-family: monospace;
+        text-transform: uppercase;
+    }
+
+    .inventory-automatic-notice {
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        gap: 11px;
+        margin-bottom: 22px;
+        padding: 13px;
+        border: 1px solid rgba(0, 229, 255, 0.16);
+        border-radius: 10px;
+        background: rgba(0, 229, 255, 0.04);
+    }
+
+    .inventory-notice-icon {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        color: #67e8f9;
+        font-family: monospace;
+        font-size: 0.58rem;
+        font-weight: 900;
+        border: 1px solid rgba(0, 229, 255, 0.22);
+        border-radius: 8px;
+    }
+
+    .inventory-automatic-notice strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #bae6fd;
+        font-size: 0.76rem;
+    }
+
+    .inventory-automatic-notice p {
+        margin: 0;
+        color: #77879c;
+        font-size: 0.69rem;
+        line-height: 1.5;
+    }
+
+    .inventory-scanner-notice {
+        border-color: rgba(34, 197, 94, 0.24);
+        background: rgba(34, 197, 94, 0.06);
+    }
+
+        .inventory-scanner-notice .inventory-notice-icon {
+            color: #86efac;
+            border-color: rgba(34, 197, 94, 0.27);
+        }
+
+        .inventory-scanner-notice strong {
+            color: #bbf7d0;
+        }
+
+    .inventory-scanner-code {
+        color: #fde68a;
+        font-family: monospace;
+        font-weight: 800;
+    }
+
+    .inventory-create-actions {
+        display: flex;
+        gap: 11px;
+    }
+
+    .inventory-submit,
+    .inventory-cancel {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 17px;
+        font-size: 0.76rem;
+        font-weight: 800;
+        text-decoration: none;
+        border-radius: 9px;
+    }
+
+    .inventory-submit {
+        flex: 1;
+        color: #171403;
+        border: 1px solid #facc15;
+        background: linear-gradient( 135deg, #facc15, #f59e0b);
+        box-shadow: 0 0 25px rgba(250, 204, 21, 0.13);
+    }
+
+        .inventory-submit:hover {
+            color: #171403;
+            box-shadow: 0 0 32px rgba(250, 204, 21, 0.24);
+        }
+
+    .inventory-cancel {
+        color: #cbd5e1;
+        border: 1px solid rgba(148, 163, 184, 0.21);
+        background: rgba(15, 23, 42, 0.6);
+    }
+
+        .inventory-cancel:hover {
+            color: #fde68a;
+            border-color: rgba(250, 204, 21, 0.28);
+        }
+
+    @@media (max-width: 991px) {
+        .inventory-create-information {
+            min-height: auto;
+            border-right: 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .inventory-create-form-area {
+            min-height: auto;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .inventory-create-page {
+            padding: 27px 0 60px;
+        }
+
+        .inventory-create-route {
+            display: none;
+        }
+
+        .inventory-create-information,
+        .inventory-create-form-area {
+            padding: 28px 22px;
+        }
+
+            .inventory-create-information h1 {
+                font-size: 2.1rem;
+            }
+
+        .inventory-create-actions {
+            display: grid;
+        }
+
+        .inventory-submit,
+        .inventory-cancel {
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="inventory-create-page">
+
+    <div class="container">
+
+        <!-- NAVIGATION -->
+        <div class="inventory-create-navigation">
+
+            <a asp-controller="Inventory"
+               asp-action="@(createdFromScanner
+                                   ? "Scan"
+                                   : "Index")"
+               class="inventory-create-back">
+
+                @(createdFromScanner
+                    ? "← Back to scanner"
+                    : "← Back to inventory")
+
+            </a>
+
+            <span class="inventory-create-route">
+                OPERATIONS / INVENTORY / CREATE
+            </span>
+
+        </div>
+
+        <div class="inventory-create-shell">
+
+            <div class="row g-0">
+
+                <!-- INFORMATION PANEL -->
+                <div class="col-lg-5">
+
+                    <div class="inventory-create-information">
+
+                        <div class="inventory-create-content">
+
+                            <div class="inventory-create-eyebrow">
+                                New Stock Registration
+                            </div>
+
+                            <h1>
+
+                                Add a controlled
+
+                                <span class="inventory-create-gradient">
+                                    inventory item.
+                                </span>
+
+                            </h1>
+
+                            <p class="inventory-create-description">
+
+                                Register a spare part or inventory
+                                item with its identification,
+                                stock threshold and unit price.
+
+                            </p>
+
+                            <div class="inventory-create-process">
+
+                                <div class="inventory-process-item">
+
+                                    <div class="inventory-process-number">
+                                        01
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Item Identification</h3>
+
+                                        <p>
+                                            Create a unique item code
+                                            and optional barcode.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="inventory-process-item">
+
+                                    <div class="inventory-process-number">
+                                        02
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Stock Configuration</h3>
+
+                                        <p>
+                                            Set the opening quantity
+                                            and minimum stock level.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="inventory-process-item">
+
+                                    <div class="inventory-process-number">
+                                        03
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Initial Transaction</h3>
+
+                                        <p>
+                                            Opening stock is recorded
+                                            automatically in history.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="inventory-process-item">
+
+                                    <div class="inventory-process-number">
+                                        04
+                                    </div>
+
+                                    <div>
+
+                                        <h3>Audit Activity</h3>
+
+                                        <p>
+                                            The user and creation event
+                                            are recorded in Audit Logs.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="inventory-create-state">
+                            Inventory control service active
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- CREATE FORM -->
+                <div class="col-lg-7">
+
+                    <div class="inventory-create-form-area">
+
+                        <div class="inventory-form-eyebrow">
+
+                            @(createdFromScanner
+                                ? "Scanner Registration"
+                                : "Inventory Item Form")
+
+                        </div>
+
+                        <h2 class="inventory-form-title">
+                            Item and stock details
+                        </h2>
+
+                        <p class="inventory-form-description">
+
+                            @(createdFromScanner
+                                ? "Complete the new item information. The captured barcode and opening quantity are already filled in."
+                                : "Complete all required information before creating the inventory item.")
+
+                        </p>
+
+                        @if (createdFromScanner)
+                        {
+                            <div class="inventory-automatic-notice
+                                inventory-scanner-notice">
+
+                                <div class="inventory-notice-icon">
+                                    SCAN
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        New Barcode Detected
+                                    </strong>
+
+                                    <p>
+                                        @(scannerInformation ??
+                                            "This barcode is not registered yet.")
+
+                                        Captured value:
+
+                                        <span class="inventory-scanner-code">
+                                            @(Model.Barcode ?? "-")
+                                        </span>
+                                    </p>
+
+                                </div>
+
+                            </div>
+                        }
+
+                        <form asp-controller="Inventory"
+                              asp-action="Create"
+                              method="post">
+
+                            <input type="hidden"
+                                   name="returnToScanner"
+                                   value="@(createdFromScanner
+                                                                    ? "true"
+                                                                    : "false")" />
+
+                            <div asp-validation-summary="ModelOnly"
+                                 class="inventory-validation"
+                                 role="alert">
+                            </div>
+
+                            <!-- ITEM IDENTIFICATION -->
+                            <div class="inventory-form-section">
+
+                                <h3 class="inventory-section-title">
+
+                                    <span class="inventory-section-number">
+                                        01
+                                    </span>
+
+                                    Item identification
+
+                                </h3>
+
+                                <div class="row">
+
+                                    <div class="col-md-6">
+
+                                        <div class="inventory-field">
+
+                                            <label asp-for="ItemCode"
+                                                   class="inventory-label">
+
+                                                Item Code
+
+                                                <span class="inventory-required">
+                                                    *
+                                                </span>
+
+                                            </label>
+
+                                            <input asp-for="ItemCode"
+                                                   class="form-control
+                                            inventory-input"
+                                                   placeholder="Example: RAM-001"
+                                                   autocomplete="off"
+                                                   style="text-transform: uppercase;"
+                                                   autofocus />
+
+                                            <span asp-validation-for="ItemCode"
+                                                  class="text-danger
+                                                inventory-error">
+                                            </span>
+
+                                            <span class="inventory-help">
+                                                Item code must be unique.
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-6">
+
+                                        <div class="inventory-field">
+
+                                            <label asp-for="Barcode"
+                                                   class="inventory-label">
+
+                                                Barcode
+
+                                                <span class="inventory-optional">
+                                                    Optional
+                                                </span>
+
+                                            </label>
+
+                                            <div class="inventory-barcode-field">
+
+                                                <span class="inventory-barcode-prefix">
+
+                                                    CODE
+
+                                                </span>
+
+                                                <input asp-for="Barcode"
+                                                       class="form-control
+                                                inventory-input"
+                                                       placeholder="Scan or enter barcode"
+                                                       autocomplete="off" />
+
+                                            </div>
+
+                                            <span asp-validation-for="Barcode"
+                                                  class="text-danger
+                                                inventory-error">
+                                            </span>
+
+                                            <span class="inventory-help">
+                                                Barcode must be unique
+                                                when provided.
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-7">
+
+                                        <div class="inventory-field">
+
+                                            <label asp-for="ItemName"
+                                                   class="inventory-label">
+
+                                                Item Name
+
+                                                <span class="inventory-required">
+                                                    *
+                                                </span>
+
+                                            </label>
+
+                                            <input asp-for="ItemName"
+                                                   class="form-control
+                                            inventory-input"
+                                                   placeholder="Example: 8GB DDR4 RAM" />
+
+                                            <span asp-validation-for="ItemName"
+                                                  class="text-danger
+                                                inventory-error">
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-5">
+
+                                        <div class="inventory-field">
+
+                                            <label asp-for="Category"
+                                                   class="inventory-label">
+
+                                                Category
+
+                                                <span class="inventory-optional">
+                                                    Optional
+                                                </span>
+
+                                            </label>
+
+                                            <input asp-for="Category"
+                                                   list="inventoryCategories"
+                                                   class="form-control
+                                            inventory-input"
+                                                   placeholder="Select or enter" />
+
+                                            <datalist id="inventoryCategories">
+                                                <option value="Memory"></option>
+                                                <option value="Storage"></option>
+                                                <option value="Display"></option>
+                                                <option value="Battery"></option>
+                                                <option value="Power Supply"></option>
+                                                <option value="Cooling"></option>
+                                                <option value="Keyboard"></option>
+                                                <option value="Networking"></option>
+                                                <option value="Cable"></option>
+                                                <option value="Accessory"></option>
+                                                <option value="Other"></option>
+                                            </datalist>
+
+                                            <span asp-validation-for="Category"
+                                                  class="text-danger
+                                                inventory-error">
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="inventory-field">
+
+                                    <label asp-for="Description"
+                                           class="inventory-label">
+
+                                        Description
+
+                                        <span class="inventory-optional">
+                                            Optional
+                                        </span>
+
+                                    </label>
+
+                                    <textarea asp-for="Description"
+                                              class="form-control
+                                    inventory-input"
+                                              placeholder="Describe the item, compatibility or additional information">
+                                    </textarea>
+
+                                    <span asp-validation-for="Description"
+                                          class="text-danger
+                                        inventory-error">
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <!-- STOCK AND PRICE -->
+                            <div class="inventory-form-section">
+
+                                <h3 class="inventory-section-title">
+
+                                    <span class="inventory-section-number">
+                                        02
+                                    </span>
+
+                                    Stock and pricing
+
+                                </h3>
+
+                                <div class="row">
+
+                                    <div class="col-md-4">
+
+                                        <div class="inventory-field">
+
+                                            <label asp-for="Quantity"
+                                                   class="inventory-label">
+
+                                                Initial Quantity
+
+                                                <span class="inventory-required">
+                                                    *
+                                                </span>
+
+                                            </label>
+
+                                            <input asp-for="Quantity"
+                                                   type="number"
+                                                   min="0"
+                                                   step="1"
+                                                   class="form-control
+                                            inventory-input"
+                                                   placeholder="0" />
+
+                                            <span asp-validation-for="Quantity"
+                                                  class="text-danger
+                                                inventory-error">
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-4">
+
+                                        <div class="inventory-field">
+
+                                            <label asp-for="MinimumStock"
+                                                   class="inventory-label">
+
+                                                Minimum Stock
+
+                                                <span class="inventory-required">
+                                                    *
+                                                </span>
+
+                                            </label>
+
+                                            <input asp-for="MinimumStock"
+                                                   type="number"
+                                                   min="0"
+                                                   step="1"
+                                                   class="form-control
+                                            inventory-input"
+                                                   placeholder="0" />
+
+                                            <span asp-validation-for="MinimumStock"
+                                                  class="text-danger
+                                                inventory-error">
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-4">
+
+                                        <div class="inventory-field">
+
+                                            <label asp-for="UnitPrice"
+                                                   class="inventory-label">
+
+                                                Unit Price
+
+                                                <span class="inventory-required">
+                                                    *
+                                                </span>
+
+                                            </label>
+
+                                            <div class="inventory-money-field">
+
+                                                <span class="inventory-money-prefix">
+                                                    RM
+                                                </span>
+
+                                                <input asp-for="UnitPrice"
+                                                       type="number"
+                                                       min="0"
+                                                       step="0.01"
+                                                       class="form-control
+                                                inventory-input"
+                                                       placeholder="0.00" />
+
+                                            </div>
+
+                                            <span asp-validation-for="UnitPrice"
+                                                  class="text-danger
+                                                inventory-error">
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="inventory-automatic-notice">
+
+                                <div class="inventory-notice-icon">
+                                    AUTO
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        Automatic Opening Transaction
+                                    </strong>
+
+                                    <p>
+                                        When the initial quantity is
+                                        greater than zero, an Initial
+                                        Stock transaction is created
+                                        automatically.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <div class="inventory-create-actions">
+
+                                <button type="submit"
+                                        class="btn inventory-submit">
+
+                                    Create Inventory Item →
+
+                                </button>
+
+                                <a asp-controller="Inventory"
+                                   asp-action="@(createdFromScanner
+                                                                           ? "Scan"
+                                                                           : "Index")"
+                                   class="inventory-cancel">
+
+                                    Cancel
+
+                                </a>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

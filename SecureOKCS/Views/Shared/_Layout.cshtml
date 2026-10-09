@@ -1,0 +1,872 @@
+﻿@{
+    string currentController =
+        ViewContext.RouteData.Values["controller"]?
+            .ToString() ?? string.Empty;
+
+    string currentAction =
+        ViewContext.RouteData.Values["action"]?
+            .ToString() ?? string.Empty;
+
+    bool isAuthenticated =
+        User.Identity?.IsAuthenticated == true;
+
+    bool isAdmin =
+        User.IsInRole("Admin");
+
+    bool isStaff =
+        User.IsInRole("Staff");
+
+    bool isCustomer =
+        User.IsInRole("Customer");
+
+    bool isManagementUser =
+        isAdmin || isStaff;
+
+    bool isManagementPage =
+        currentController is
+            "Customers" or
+            "Repairs" or
+            "Inventory" or
+            "Invoices";
+
+    bool isAdministrationPage =
+        currentController is
+            "Users" or
+            "AuditLogs";
+
+    bool isHomePage =
+        currentController == "Home" &&
+        currentAction == "Index";
+
+    string roleName =
+        isAdmin
+            ? "Admin"
+            : isStaff
+                ? "Staff"
+                : isCustomer
+                    ? "Customer"
+                    : "Guest";
+
+    string pageShellClass =
+        isHomePage
+            ? "public-page-shell"
+            : "secure-page-container";
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width,
+    initial-scale=1.0" />
+
+    <meta name="description"
+          content="Secure OKCS computer repair
+    management and customer tracking system." />
+
+    <meta name="theme-color"
+          content="#050b14" />
+
+    <title>
+        @ViewData["Title"] | Secure OKCS
+    </title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/SecureOKCS.styles.css"
+          asp-append-version="true" />
+
+    @await RenderSectionAsync(
+        "Styles",
+        required: false)
+
+</head>
+
+<body class="secure-body
+    role-@roleName.ToLowerInvariant()">
+
+    <!-- ACCESSIBILITY -->
+    <a class="skip-link"
+       href="#main-content">
+
+        Skip to main content
+
+    </a>
+
+    <!-- GLOBAL HEADER -->
+    <header class="secure-header">
+
+        <nav class="navbar navbar-expand-xl
+            secure-navbar">
+
+            <div class="container-fluid
+                secure-navbar-container">
+
+                <!-- BRAND -->
+                <a class="navbar-brand
+                    secure-brand"
+                   asp-controller="Home"
+                   asp-action="Index"
+                   aria-label="Secure OKCS Home">
+
+                    <span class="secure-brand-mark"
+                          aria-hidden="true">
+
+                        S
+
+                    </span>
+
+                    <span class="secure-brand-copy">
+
+                        <span class="secure-brand-name">
+                            SECURE OKCS
+                        </span>
+
+                        <span class="secure-brand-tagline">
+                            Repair Intelligence
+                        </span>
+
+                    </span>
+
+                </a>
+
+                <!-- MOBILE MENU BUTTON -->
+                <button class="navbar-toggler
+                    secure-navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                </button>
+
+                <div class="collapse
+                    navbar-collapse"
+                     id="mainNavbar">
+
+                    <!-- LEFT NAVIGATION -->
+                    <ul class="navbar-nav
+                        secure-main-nav
+                        me-auto mb-3 mb-xl-0">
+
+                        <li class="nav-item">
+
+                            <a class="nav-link
+                                @(currentController == "Home"
+                                   ? "active"
+                                   : "")"
+                               asp-controller="Home"
+                               asp-action="Index">
+
+                                Home
+
+                            </a>
+
+                        </li>
+
+                        @if (!isAuthenticated)
+                        {
+                            <li class="nav-item">
+
+                                <a class="nav-link"
+                                   asp-controller="Home"
+                                   asp-action="Index"
+                                   asp-fragment="services">
+
+                                    Services
+
+                                </a>
+
+                            </li>
+
+                            <li class="nav-item">
+
+                                <a class="nav-link"
+                                   asp-controller="Home"
+                                   asp-action="Index"
+                                   asp-fragment="about">
+
+                                    About
+
+                                </a>
+
+                            </li>
+                        }
+
+                        @if (isAuthenticated)
+                        {
+                            <li class="nav-item">
+
+                                <a class="nav-link
+                                    @(currentController == "Dashboard"
+                                       ? "active"
+                                       : "")"
+                                   asp-controller="Dashboard"
+                                   asp-action="Index">
+
+                                    Dashboard
+
+                                </a>
+
+                            </li>
+                        }
+
+                        @if (isManagementUser)
+                        {
+                            <!-- MANAGEMENT -->
+                            <li class="nav-item dropdown">
+
+                                <a class="nav-link
+                                    dropdown-toggle
+                                    @(isManagementPage
+                                       ? "active"
+                                       : "")"
+                                   href="#"
+                                   role="button"
+                                   data-bs-toggle="dropdown"
+                                   aria-expanded="false">
+
+                                    Operations
+
+                                </a>
+
+                                <ul class="dropdown-menu
+                                    secure-dropdown">
+
+                                    <li>
+
+                                        <span class="dropdown-header">
+                                            SERVICE OPERATIONS
+                                        </span>
+
+                                    </li>
+
+                                    <li>
+
+                                        <a class="dropdown-item"
+                                           asp-controller="Customers"
+                                           asp-action="Index">
+
+                                            Customer Management
+
+                                        </a>
+
+                                    </li>
+
+                                    <li>
+
+                                        <a class="dropdown-item"
+                                           asp-controller="Repairs"
+                                           asp-action="Index">
+
+                                            Repair Management
+
+                                        </a>
+
+                                    </li>
+
+                                    <li>
+
+                                        <a class="dropdown-item"
+                                           asp-controller="Inventory"
+                                           asp-action="Index">
+
+                                            Inventory Management
+
+                                        </a>
+
+                                    </li>
+
+                                    <li>
+
+                                        <a class="dropdown-item"
+                                           asp-controller="Invoices"
+                                           asp-action="Index">
+
+                                            Invoice Management
+
+                                        </a>
+
+                                    </li>
+
+                                </ul>
+
+                            </li>
+
+                            <!-- SECURITY -->
+                            <li class="nav-item dropdown">
+
+                                <a class="nav-link
+                                    dropdown-toggle
+                                    @(currentController == "Face"
+                                       ? "active"
+                                       : "")"
+                                   href="#"
+                                   role="button"
+                                   data-bs-toggle="dropdown"
+                                   aria-expanded="false">
+
+                                    Security
+
+                                </a>
+
+                                <ul class="dropdown-menu
+                                    secure-dropdown">
+
+                                    <li>
+
+                                        <span class="dropdown-header">
+                                            ACCOUNT SECURITY
+                                        </span>
+
+                                    </li>
+
+                                    <li>
+
+                                        <a class="dropdown-item"
+                                           asp-controller="Face"
+                                           asp-action="Enroll">
+
+                                            Face ID Management
+
+                                        </a>
+
+                                    </li>
+
+                                    @if (isAdmin)
+                                    {
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-controller="AuditLogs"
+                                               asp-action="Index">
+
+                                                Security Audit Logs
+
+                                            </a>
+
+                                        </li>
+                                    }
+
+                                </ul>
+
+                            </li>
+                        }
+
+                        @if (isAdmin)
+                        {
+                            <!-- ADMINISTRATION -->
+                            <li class="nav-item dropdown">
+
+                                <a class="nav-link
+                                    dropdown-toggle
+                                    @(isAdministrationPage
+                                       ? "active"
+                                       : "")"
+                                   href="#"
+                                   role="button"
+                                   data-bs-toggle="dropdown"
+                                   aria-expanded="false">
+
+                                    Administration
+
+                                </a>
+
+                                <ul class="dropdown-menu
+                                    secure-dropdown">
+
+                                    <li>
+
+                                        <span class="dropdown-header">
+                                            ADMIN CONTROL
+                                        </span>
+
+                                    </li>
+
+                                    <li>
+
+                                        <a class="dropdown-item"
+                                           asp-controller="Users"
+                                           asp-action="Index">
+
+                                            User Management
+
+                                        </a>
+
+                                    </li>
+
+                                    <li>
+
+                                        <a class="dropdown-item"
+                                           asp-controller="AuditLogs"
+                                           asp-action="Index">
+
+                                            Audit Logs
+
+                                        </a>
+
+                                    </li>
+
+                                </ul>
+
+                            </li>
+                        }
+
+                        <!-- CUSTOMER TRACKING -->
+                        <li class="nav-item">
+
+                            <a class="nav-link
+                                @(currentController == "Tracking"
+                                   ? "active"
+                                   : "")"
+                               asp-controller="Tracking"
+                               asp-action="Index">
+
+                                Track Repair
+
+                            </a>
+
+                        </li>
+
+                    </ul>
+
+                    <!-- RIGHT NAVIGATION -->
+                    <ul class="navbar-nav
+                        secure-account-nav
+                        align-items-xl-center">
+
+                        @if (isAuthenticated)
+                        {
+                            <li class="nav-item
+                                me-xl-3 mb-2 mb-xl-0">
+
+                                <div class="secure-user-chip">
+
+                                    <span class="secure-user-avatar"
+                                          aria-hidden="true">
+
+                                        @(User.Identity?.Name?
+                                            .Substring(0, 1)
+                                            .ToUpperInvariant()
+                                            ?? "U")
+
+                                    </span>
+
+                                    <span class="secure-user-information">
+
+                                        <span class="secure-user-name">
+                                            @User.Identity?.Name
+                                        </span>
+
+                                        <span class="secure-user-role
+                                            role-@roleName.ToLowerInvariant()">
+
+                                            @roleName
+
+                                        </span>
+
+                                    </span>
+
+                                </div>
+
+                            </li>
+
+                            <li class="nav-item">
+
+                                <form asp-controller="Account"
+                                      asp-action="Logout"
+                                      method="post">
+
+                                    <button type="submit"
+                                            class="btn
+                                        secure-btn-outline
+                                        w-100">
+
+                                        Sign Out
+
+                                    </button>
+
+                                </form>
+
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item
+                                mb-2 mb-xl-0">
+
+                                <a class="nav-link
+                                    secure-login-link"
+                                   asp-controller="Account"
+                                   asp-action="Login">
+
+                                    Sign In
+
+                                </a>
+
+                            </li>
+
+                            <li class="nav-item
+                                ms-xl-2">
+
+                                <a class="btn
+                                    secure-btn-primary
+                                    w-100"
+                                   asp-controller="Tracking"
+                                   asp-action="Index">
+
+                                    Track Your Repair
+
+                                </a>
+
+                            </li>
+                        }
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </nav>
+
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main id="main-content"
+          class="site-main flex-grow-1">
+
+        <div class="@pageShellClass">
+
+            @RenderBody()
+
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="secure-footer">
+
+        @if (!isAuthenticated)
+        {
+            <div class="container
+                secure-footer-content">
+
+                <div class="row g-4">
+
+                    <div class="col-lg-5">
+
+                        <div class="secure-footer-brand">
+
+                            <span class="secure-brand-mark"
+                                  aria-hidden="true">
+
+                                S
+
+                            </span>
+
+                            <div>
+
+                                <h5>
+                                    Secure OKCS
+                                </h5>
+
+                                <p>
+                                    Secure computer repair
+                                    management and transparent
+                                    customer tracking.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-6 col-lg-2">
+
+                        <h6>
+                            Explore
+                        </h6>
+
+                        <ul class="list-unstyled">
+
+                            <li>
+
+                                <a asp-controller="Home"
+                                   asp-action="Index">
+
+                                    Home
+
+                                </a>
+
+                            </li>
+
+                            <li>
+
+                                <a asp-controller="Home"
+                                   asp-action="Index"
+                                   asp-fragment="services">
+
+                                    Services
+
+                                </a>
+
+                            </li>
+
+                            <li>
+
+                                <a asp-controller="Home"
+                                   asp-action="Index"
+                                   asp-fragment="about">
+
+                                    About Us
+
+                                </a>
+
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+                    <div class="col-6 col-lg-2">
+
+                        <h6>
+                            Support
+                        </h6>
+
+                        <ul class="list-unstyled">
+
+                            <li>
+
+                                <a asp-controller="Tracking"
+                                   asp-action="Index">
+
+                                    Track Repair
+
+                                </a>
+
+                            </li>
+
+                            <li>
+
+                                <a asp-controller="Account"
+                                   asp-action="Login">
+
+                                    Sign In
+
+                                </a>
+
+                            </li>
+
+                            <li>
+
+                                <a asp-controller="Account"
+                                   asp-action="Register">
+
+                                    Create Account
+
+                                </a>
+
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+                    <div class="col-lg-3">
+
+                        <h6>
+                            System Status
+                        </h6>
+
+                        <div class="secure-system-status">
+
+                            <span class="secure-status-dot">
+                            </span>
+
+                            All systems operational
+
+                        </div>
+
+                        <p class="secure-footer-note">
+                            Customer tracking is available
+                            securely at any time.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+        <div class="secure-footer-bottom">
+
+            <div class="container
+                d-md-flex
+                justify-content-between
+                align-items-center">
+
+                <p class="mb-2 mb-md-0">
+
+                    &copy; @DateTime.Now.Year
+                    Secure OKCS.
+                    All rights reserved.
+
+                </p>
+
+                <p class="mb-0">
+
+                    Computer Repair Management System
+
+                </p>
+
+            </div>
+
+        </div>
+
+        @if (User.Identity?.IsAuthenticated == true &&
+     User.IsInRole("Admin"))
+        {
+            <!-- ADMIN IDLE TIMEOUT CONFIGURATION -->
+            <div id="adminIdleTimeoutConfig"
+                 data-timeout-milliseconds="60000"
+                 data-warning-milliseconds="45000"
+                 data-keep-alive-url="@Url.Action(
+                            "KeepAlive",
+                            "Account")"
+                 hidden>
+            </div>
+
+            <!-- AUTOMATIC SESSION TIMEOUT FORM -->
+            <form id="adminSessionTimeoutForm"
+                  asp-controller="Account"
+                  asp-action="SessionTimeout"
+                  method="post"
+                  class="d-none">
+            </form>
+
+            <!-- SESSION TIMEOUT WARNING -->
+            <div class="modal fade"
+                 id="adminIdleWarningModal"
+                 tabindex="-1"
+                 aria-labelledby="adminIdleWarningTitle"
+                 aria-hidden="true"
+                 data-bs-backdrop="static"
+                 data-bs-keyboard="false">
+
+                <div class="modal-dialog
+                    modal-dialog-centered">
+
+                    <div class="modal-content
+                        border-warning shadow">
+
+                        <div class="modal-header
+                            bg-dark text-white">
+
+                            <h5 class="modal-title"
+                                id="adminIdleWarningTitle">
+
+                                Administrator Session Warning
+
+                            </h5>
+
+                        </div>
+
+                        <div class="modal-body p-4">
+
+                            <div class="alert alert-warning mb-3">
+
+                                <strong>
+                                    Your session is about to expire.
+                                </strong>
+
+                            </div>
+
+                            <p class="mb-2">
+
+                                No activity has been detected
+                                for nine minutes.
+
+                            </p>
+
+                            <p class="text-muted mb-0">
+
+                                Your administrator session will
+                                automatically end in
+
+                                <strong id="adminIdleCountdown">
+                                    1
+                                </strong>
+
+                                seconds.
+
+                            </p>
+
+                        </div>
+
+                        <div class="modal-footer">
+
+                            <button type="button"
+                                    id="adminSignOutNowButton"
+                                    class="btn btn-outline-danger">
+
+                                Sign Out Now
+
+                            </button>
+
+                            <button type="button"
+                                    id="adminContinueSessionButton"
+                                    class="btn btn-primary">
+
+                                Continue Session
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js">
+    </script>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+    <script src="~/js/site.js"
+            asp-append-version="true">
+    </script>
+
+    @await RenderSectionAsync(
+        "Scripts",
+        required: false)
+
+</body>
+
+</html>

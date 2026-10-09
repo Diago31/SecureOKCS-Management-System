@@ -1,0 +1,1469 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<style>
+    .home-page {
+        overflow: hidden;
+    }
+
+    .home-hero {
+        position: relative;
+        min-height: calc(100vh - 76px);
+        display: flex;
+        align-items: center;
+        padding: 90px 0 80px;
+        isolation: isolate;
+    }
+
+        .home-hero::before {
+            position: absolute;
+            inset: 0;
+            z-index: -3;
+            content: "";
+            background: linear-gradient( rgba(5, 11, 20, 0.78), rgba(5, 11, 20, 0.94)), radial-gradient( circle at 78% 30%, rgba(0, 229, 255, 0.16), transparent 35%), radial-gradient( circle at 20% 70%, rgba(139, 92, 246, 0.12), transparent 34%);
+        }
+
+    .home-grid {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        opacity: 0.2;
+        background-image: linear-gradient( rgba(0, 229, 255, 0.13) 1px, transparent 1px), linear-gradient( 90deg, rgba(0, 229, 255, 0.13) 1px, transparent 1px);
+        background-size: 54px 54px;
+        mask-image: linear-gradient( to bottom, black, transparent 90%);
+    }
+
+    .home-orb {
+        position: absolute;
+        z-index: -1;
+        width: 420px;
+        height: 420px;
+        top: 15%;
+        right: -180px;
+        border-radius: 50%;
+        filter: blur(85px);
+        background: rgba(37, 99, 235, 0.2);
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+        padding: 9px 15px;
+        color: #b9f7ff;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        border: 1px solid rgba(0, 229, 255, 0.32);
+        border-radius: 999px;
+        background: rgba(0, 229, 255, 0.07);
+    }
+
+    .hero-badge-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #00e5ff;
+        box-shadow: 0 0 14px #00e5ff;
+    }
+
+    .hero-title {
+        max-width: 760px;
+        margin-bottom: 24px;
+        color: #f8fafc;
+        font-size: clamp(2.7rem, 6vw, 5.4rem);
+        font-weight: 800;
+        line-height: 0.98;
+        letter-spacing: -0.055em;
+    }
+
+    .hero-gradient {
+        color: transparent;
+        background: linear-gradient( 90deg, #00e5ff, #60a5fa 48%, #a78bfa);
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+
+    .hero-description {
+        max-width: 660px;
+        margin-bottom: 32px;
+        color: #a8b5c8;
+        font-size: 1.08rem;
+        line-height: 1.8;
+    }
+
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-bottom: 34px;
+    }
+
+    .hero-primary-button,
+    .hero-secondary-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 52px;
+        padding: 0 22px;
+        text-decoration: none;
+        border-radius: 10px;
+    }
+
+    .hero-primary-button {
+        color: #031019;
+        font-weight: 800;
+        border: 1px solid #00e5ff;
+        background: linear-gradient( 135deg, #00e5ff, #60a5fa);
+        box-shadow: 0 0 28px rgba(0, 229, 255, 0.2);
+    }
+
+        .hero-primary-button:hover {
+            color: #031019;
+            box-shadow: 0 0 38px rgba(0, 229, 255, 0.38);
+        }
+
+    .hero-secondary-button {
+        color: #e2e8f0;
+        font-weight: 700;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: rgba(15, 23, 42, 0.58);
+    }
+
+        .hero-secondary-button:hover {
+            color: #ffffff;
+            border-color: rgba(0, 229, 255, 0.48);
+            background: rgba(0, 229, 255, 0.07);
+        }
+
+    .hero-features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+    }
+
+    .hero-feature {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #cbd5e1;
+        font-size: 0.88rem;
+    }
+
+    .hero-check {
+        display: grid;
+        width: 21px;
+        height: 21px;
+        place-items: center;
+        color: #00e5ff;
+        font-size: 0.7rem;
+        font-weight: 900;
+        border: 1px solid rgba(0, 229, 255, 0.35);
+        border-radius: 50%;
+        background: rgba(0, 229, 255, 0.08);
+    }
+
+    .repair-console {
+        position: relative;
+        max-width: 510px;
+        margin-left: auto;
+        padding: 1px;
+        border-radius: 22px;
+        background: linear-gradient( 145deg, rgba(0, 229, 255, 0.7), rgba(37, 99, 235, 0.12) 45%, rgba(139, 92, 246, 0.55));
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), 0 0 70px rgba(0, 229, 255, 0.08);
+    }
+
+    .repair-console-inner {
+        overflow: hidden;
+        border-radius: 21px;
+        background: linear-gradient( 145deg, rgba(13, 23, 38, 0.98), rgba(5, 11, 20, 0.98));
+    }
+
+    .console-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 17px 19px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .console-dots {
+        display: flex;
+        gap: 7px;
+    }
+
+    .console-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+    }
+
+        .console-dot.red {
+            background: #fb7185;
+        }
+
+        .console-dot.yellow {
+            background: #facc15;
+        }
+
+        .console-dot.green {
+            background: #34d399;
+        }
+
+    .console-state {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: #8cf5ff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+    }
+
+        .console-state::before {
+            width: 7px;
+            height: 7px;
+            content: "";
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 11px #22c55e;
+        }
+
+    .console-body {
+        padding: 25px;
+    }
+
+    .console-label {
+        color: #64748b;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .console-ticket {
+        margin: 7px 0 24px;
+        color: #f8fafc;
+        font-family: monospace;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .device-summary {
+        display: grid;
+        grid-template-columns: 48px 1fr auto;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 26px;
+        padding: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 13px;
+        background: rgba(15, 23, 42, 0.72);
+    }
+
+    .device-icon {
+        display: grid;
+        width: 48px;
+        height: 48px;
+        place-items: center;
+        color: #00e5ff;
+        font-family: monospace;
+        font-size: 0.72rem;
+        font-weight: 800;
+        border: 1px solid rgba(0, 229, 255, 0.28);
+        border-radius: 11px;
+        background: rgba(0, 229, 255, 0.07);
+    }
+
+    .device-name {
+        margin-bottom: 3px;
+        color: #f8fafc;
+        font-weight: 700;
+    }
+
+    .device-model {
+        color: #8291a7;
+        font-size: 0.82rem;
+    }
+
+    .device-status {
+        padding: 6px 9px;
+        color: #fde68a;
+        font-size: 0.69rem;
+        font-weight: 800;
+        border: 1px solid rgba(250, 204, 21, 0.25);
+        border-radius: 7px;
+        background: rgba(250, 204, 21, 0.08);
+    }
+
+    .console-progress {
+        display: grid;
+        gap: 15px;
+    }
+
+    .progress-item {
+        display: grid;
+        grid-template-columns: 24px 1fr auto;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .progress-marker {
+        display: grid;
+        width: 24px;
+        height: 24px;
+        place-items: center;
+        color: #031019;
+        font-size: 0.67rem;
+        font-weight: 900;
+        border-radius: 50%;
+        background: #00e5ff;
+        box-shadow: 0 0 13px rgba(0, 229, 255, 0.28);
+    }
+
+    .progress-item.pending .progress-marker {
+        color: #64748b;
+        border: 1px solid #334155;
+        background: #111827;
+        box-shadow: none;
+    }
+
+    .progress-name {
+        color: #dbe7f5;
+        font-size: 0.88rem;
+        font-weight: 600;
+    }
+
+    .progress-time {
+        color: #64748b;
+        font-size: 0.72rem;
+    }
+
+    .console-footer {
+        margin-top: 25px;
+        padding-top: 18px;
+        color: #7dd3fc;
+        font-family: monospace;
+        font-size: 0.72rem;
+        border-top: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .trust-strip {
+        position: relative;
+        z-index: 2;
+        padding-bottom: 86px;
+    }
+
+    .trust-card {
+        height: 100%;
+        padding: 24px;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 15px;
+        background: linear-gradient( 145deg, rgba(15, 23, 42, 0.82), rgba(9, 17, 30, 0.82));
+    }
+
+    .trust-value {
+        margin-bottom: 7px;
+        color: #00e5ff;
+        font-size: 1.15rem;
+        font-weight: 800;
+    }
+
+    .trust-label {
+        margin: 0;
+        color: #8fa0b7;
+        font-size: 0.87rem;
+        line-height: 1.6;
+    }
+
+    .home-section {
+        position: relative;
+        padding: 95px 0;
+    }
+
+    .home-section-soft {
+        border-top: 1px solid rgba(148, 163, 184, 0.08);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+        background: linear-gradient( 180deg, rgba(13, 23, 38, 0.62), rgba(5, 11, 20, 0.28));
+    }
+
+    .section-eyebrow {
+        margin-bottom: 13px;
+        color: #00e5ff;
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+
+    .section-title {
+        max-width: 720px;
+        margin-bottom: 17px;
+        color: #f8fafc;
+        font-size: clamp(2rem, 4vw, 3.35rem);
+        font-weight: 800;
+        line-height: 1.12;
+        letter-spacing: -0.04em;
+    }
+
+    .section-description {
+        max-width: 670px;
+        margin-bottom: 0;
+        color: #94a3b8;
+        font-size: 1rem;
+        line-height: 1.8;
+    }
+
+    .service-card {
+        position: relative;
+        height: 100%;
+        padding: 28px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 17px;
+        background: linear-gradient( 145deg, rgba(15, 23, 42, 0.86), rgba(8, 15, 27, 0.92));
+        transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+        .service-card::after {
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            right: -65px;
+            bottom: -65px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.08);
+            filter: blur(7px);
+        }
+
+        .service-card:hover {
+            transform: translateY(-7px);
+            border-color: rgba(0, 229, 255, 0.35);
+            box-shadow: 0 22px 50px rgba(0, 0, 0, 0.22);
+        }
+
+    .service-icon {
+        display: grid;
+        width: 52px;
+        height: 52px;
+        margin-bottom: 22px;
+        place-items: center;
+        color: #b9f7ff;
+        font-family: monospace;
+        font-size: 0.76rem;
+        font-weight: 900;
+        border: 1px solid rgba(0, 229, 255, 0.3);
+        border-radius: 13px;
+        background: linear-gradient( 145deg, rgba(0, 229, 255, 0.12), rgba(37, 99, 235, 0.08));
+    }
+
+    .service-card h3 {
+        margin-bottom: 12px;
+        color: #f8fafc;
+        font-size: 1.16rem;
+        font-weight: 750;
+    }
+
+    .service-card p {
+        margin: 0;
+        color: #8fa0b7;
+        font-size: 0.91rem;
+        line-height: 1.72;
+    }
+
+    .process-grid {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 18px;
+    }
+
+        .process-grid::before {
+            position: absolute;
+            top: 27px;
+            left: 9%;
+            right: 9%;
+            height: 1px;
+            content: "";
+            background: linear-gradient( 90deg, transparent, rgba(0, 229, 255, 0.48), transparent);
+        }
+
+    .process-card {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+    }
+
+    .process-number {
+        display: grid;
+        width: 55px;
+        height: 55px;
+        margin: 0 auto 20px;
+        place-items: center;
+        color: #031019;
+        font-family: monospace;
+        font-weight: 900;
+        border: 5px solid #07101d;
+        border-radius: 50%;
+        background: linear-gradient( 135deg, #00e5ff, #60a5fa);
+        box-shadow: 0 0 23px rgba(0, 229, 255, 0.22);
+    }
+
+    .process-card h3 {
+        color: #f8fafc;
+        font-size: 1rem;
+        font-weight: 750;
+    }
+
+    .process-card p {
+        color: #8291a7;
+        font-size: 0.84rem;
+        line-height: 1.6;
+    }
+
+    .security-panel {
+        padding: 36px;
+        border: 1px solid rgba(0, 229, 255, 0.18);
+        border-radius: 21px;
+        background: linear-gradient( 135deg, rgba(13, 23, 38, 0.94), rgba(8, 15, 27, 0.96));
+        box-shadow: 0 28px 70px rgba(0, 0, 0, 0.22);
+    }
+
+    .security-list {
+        display: grid;
+        gap: 15px;
+        margin-top: 28px;
+    }
+
+    .security-item {
+        display: grid;
+        grid-template-columns: 37px 1fr;
+        gap: 13px;
+        align-items: start;
+    }
+
+    .security-item-icon {
+        display: grid;
+        width: 37px;
+        height: 37px;
+        place-items: center;
+        color: #00e5ff;
+        font-weight: 900;
+        border: 1px solid rgba(0, 229, 255, 0.25);
+        border-radius: 10px;
+        background: rgba(0, 229, 255, 0.07);
+    }
+
+    .security-item h4 {
+        margin: 0 0 5px;
+        color: #f8fafc;
+        font-size: 0.96rem;
+    }
+
+    .security-item p {
+        margin: 0;
+        color: #8999af;
+        font-size: 0.84rem;
+        line-height: 1.55;
+    }
+
+    .security-visual {
+        position: relative;
+        display: grid;
+        min-height: 390px;
+        place-items: center;
+    }
+
+    .security-ring {
+        position: absolute;
+        width: 310px;
+        height: 310px;
+        border: 1px solid rgba(0, 229, 255, 0.15);
+        border-radius: 50%;
+    }
+
+        .security-ring::before,
+        .security-ring::after {
+            position: absolute;
+            inset: 35px;
+            content: "";
+            border: 1px dashed rgba(96, 165, 250, 0.2);
+            border-radius: 50%;
+        }
+
+        .security-ring::after {
+            inset: 78px;
+            border-style: solid;
+            border-color: rgba(139, 92, 246, 0.24);
+        }
+
+    .security-core {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        width: 125px;
+        height: 125px;
+        place-items: center;
+        text-align: center;
+        color: #dffcff;
+        font-family: monospace;
+        font-size: 0.75rem;
+        font-weight: 800;
+        line-height: 1.4;
+        border: 1px solid rgba(0, 229, 255, 0.4);
+        border-radius: 28px;
+        background: linear-gradient( 145deg, rgba(0, 229, 255, 0.16), rgba(37, 99, 235, 0.12));
+        box-shadow: 0 0 55px rgba(0, 229, 255, 0.15);
+    }
+
+    .home-cta {
+        position: relative;
+        padding: 65px 45px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 229, 255, 0.2);
+        border-radius: 24px;
+        background: linear-gradient( 120deg, rgba(13, 23, 38, 0.96), rgba(22, 45, 85, 0.88));
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25);
+    }
+
+        .home-cta::after {
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            top: -190px;
+            right: -90px;
+            content: "";
+            border-radius: 50%;
+            background: rgba(0, 229, 255, 0.18);
+            filter: blur(60px);
+        }
+
+    .home-cta-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .home-cta h2 {
+        max-width: 700px;
+        margin-bottom: 15px;
+        color: #ffffff;
+        font-size: clamp(1.9rem, 4vw, 3rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+    }
+
+    .home-cta p {
+        max-width: 650px;
+        margin-bottom: 26px;
+        color: #a7b5c9;
+        line-height: 1.75;
+    }
+
+    @@media (max-width: 991px) {
+        .home-hero {
+            min-height: auto;
+            padding-top: 70px;
+        }
+
+        .repair-console {
+            margin: 55px auto 0;
+        }
+
+        .process-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+            .process-grid::before {
+                display: none;
+            }
+
+        .security-visual {
+            min-height: 330px;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .home-hero {
+            padding: 55px 0 60px;
+        }
+
+        .hero-title {
+            font-size: 2.65rem;
+        }
+
+        .hero-actions {
+            display: grid;
+        }
+
+        .hero-primary-button,
+        .hero-secondary-button {
+            width: 100%;
+        }
+
+        .hero-features {
+            display: grid;
+            gap: 12px;
+        }
+
+        .console-body {
+            padding: 19px;
+        }
+
+        .device-summary {
+            grid-template-columns: 43px 1fr;
+        }
+
+        .device-status {
+            grid-column: 1 / -1;
+            text-align: center;
+        }
+
+        .home-section {
+            padding: 70px 0;
+        }
+
+        .process-grid {
+            grid-template-columns: 1fr;
+            gap: 28px;
+        }
+
+        .security-panel {
+            padding: 25px;
+        }
+
+        .security-ring {
+            width: 260px;
+            height: 260px;
+        }
+
+        .home-cta {
+            padding: 40px 25px;
+        }
+    }
+</style>
+
+<div class="home-page">
+
+    <!-- HERO -->
+    <section class="home-hero">
+
+        <div class="home-grid" aria-hidden="true"></div>
+        <div class="home-orb" aria-hidden="true"></div>
+
+        <div class="container">
+
+            <div class="row align-items-center">
+
+                <div class="col-lg-7">
+
+                    <div class="hero-badge">
+                        <span class="hero-badge-dot"></span>
+                        Secure Repair Management
+                    </div>
+
+                    <h1 class="hero-title">
+
+                        Expert device repair.
+
+                        <span class="hero-gradient">
+                            Transparent at every stage.
+                        </span>
+
+                    </h1>
+
+                    <p class="hero-description">
+
+                        Professional laptop, desktop and device
+                        repair supported by secure customer records,
+                        real-time status tracking and a complete
+                        digital repair workflow.
+
+                    </p>
+
+                    <div class="hero-actions">
+
+                        <a asp-controller="Tracking"
+                           asp-action="Index"
+                           class="hero-primary-button">
+
+                            Track Your Repair
+                            <span aria-hidden="true">→</span>
+
+                        </a>
+
+                        <a href="#services"
+                           class="hero-secondary-button">
+
+                            Explore Services
+
+                        </a>
+
+                    </div>
+
+                    <div class="hero-features">
+
+                        <div class="hero-feature">
+                            <span class="hero-check">✓</span>
+                            Secure customer information
+                        </div>
+
+                        <div class="hero-feature">
+                            <span class="hero-check">✓</span>
+                            Transparent repair progress
+                        </div>
+
+                        <div class="hero-feature">
+                            <span class="hero-check">✓</span>
+                            Complete service history
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-lg-5">
+
+                    <!-- REPAIR STATUS VISUAL -->
+                    <div class="repair-console">
+
+                        <div class="repair-console-inner">
+
+                            <div class="console-header">
+
+                                <div class="console-dots">
+                                    <span class="console-dot red"></span>
+                                    <span class="console-dot yellow"></span>
+                                    <span class="console-dot green"></span>
+                                </div>
+
+                                <div class="console-state">
+                                    System Online
+                                </div>
+
+                            </div>
+
+                            <div class="console-body">
+
+                                <div class="console-label">
+                                    Repair Workflow
+                                </div>
+
+                                <div class="console-ticket">
+                                    RPR-SECURE-OKCS
+                                </div>
+
+                                <div class="device-summary">
+
+                                    <div class="device-icon">
+                                        PC
+                                    </div>
+
+                                    <div>
+                                        <div class="device-name">
+                                            Customer Device
+                                        </div>
+
+                                        <div class="device-model">
+                                            Secure service tracking
+                                        </div>
+                                    </div>
+
+                                    <div class="device-status">
+                                        IN PROGRESS
+                                    </div>
+
+                                </div>
+
+                                <div class="console-progress">
+
+                                    <div class="progress-item">
+
+                                        <div class="progress-marker">
+                                            ✓
+                                        </div>
+
+                                        <div class="progress-name">
+                                            Device Received
+                                        </div>
+
+                                        <div class="progress-time">
+                                            Complete
+                                        </div>
+
+                                    </div>
+
+                                    <div class="progress-item">
+
+                                        <div class="progress-marker">
+                                            ✓
+                                        </div>
+
+                                        <div class="progress-name">
+                                            Technical Inspection
+                                        </div>
+
+                                        <div class="progress-time">
+                                            Complete
+                                        </div>
+
+                                    </div>
+
+                                    <div class="progress-item">
+
+                                        <div class="progress-marker">
+                                            3
+                                        </div>
+
+                                        <div class="progress-name">
+                                            Repair in Progress
+                                        </div>
+
+                                        <div class="progress-time">
+                                            Active
+                                        </div>
+
+                                    </div>
+
+                                    <div class="progress-item pending">
+
+                                        <div class="progress-marker">
+                                            4
+                                        </div>
+
+                                        <div class="progress-name">
+                                            Quality Check
+                                        </div>
+
+                                        <div class="progress-time">
+                                            Pending
+                                        </div>
+
+                                    </div>
+
+                                    <div class="progress-item pending">
+
+                                        <div class="progress-marker">
+                                            5
+                                        </div>
+
+                                        <div class="progress-name">
+                                            Ready for Pickup
+                                        </div>
+
+                                        <div class="progress-time">
+                                            Pending
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="console-footer">
+                                    &gt; Repair information is updated
+                                    through the Secure OKCS system.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- TRUST FEATURES -->
+    <section class="trust-strip">
+
+        <div class="container">
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <div class="trust-card">
+
+                        <div class="trust-value">
+                            Live Status Tracking
+                        </div>
+
+                        <p class="trust-label">
+                            Follow every repair status change using
+                            your secure tracking code and ticket number.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <div class="trust-card">
+
+                        <div class="trust-value">
+                            Protected Information
+                        </div>
+
+                        <p class="trust-label">
+                            Sensitive customer information is encrypted
+                            and access is controlled by user role.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <div class="trust-card">
+
+                        <div class="trust-value">
+                            Auditable Workflow
+                        </div>
+
+                        <p class="trust-label">
+                            Important system activity and repair
+                            changes are recorded for accountability.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- SERVICES -->
+    <section id="services"
+             class="home-section home-section-soft">
+
+        <div class="container">
+
+            <div class="section-eyebrow">
+                Our Services
+            </div>
+
+            <h2 class="section-title">
+                Technical support for the devices
+                that keep you connected.
+            </h2>
+
+            <p class="section-description mb-5">
+                From diagnostics to component upgrades,
+                each repair follows a structured and
+                transparent service process.
+            </p>
+
+            <div class="row g-4">
+
+                <div class="col-md-6 col-xl-4">
+
+                    <article class="service-card">
+
+                        <div class="service-icon">
+                            LT
+                        </div>
+
+                        <h3>Laptop Repair</h3>
+
+                        <p>
+                            Hardware diagnosis, screen replacement,
+                            keyboard repair, battery issues and
+                            performance troubleshooting.
+                        </p>
+
+                    </article>
+
+                </div>
+
+                <div class="col-md-6 col-xl-4">
+
+                    <article class="service-card">
+
+                        <div class="service-icon">
+                            PC
+                        </div>
+
+                        <h3>Desktop and PC Repair</h3>
+
+                        <p>
+                            Component testing, system repair,
+                            hardware replacement and complete
+                            desktop performance checks.
+                        </p>
+
+                    </article>
+
+                </div>
+
+                <div class="col-md-6 col-xl-4">
+
+                    <article class="service-card">
+
+                        <div class="service-icon">
+                            MAC
+                        </div>
+
+                        <h3>Apple Device Support</h3>
+
+                        <p>
+                            Professional inspection and repair
+                            support for compatible Mac and
+                            Apple computer devices.
+                        </p>
+
+                    </article>
+
+                </div>
+
+                <div class="col-md-6 col-xl-4">
+
+                    <article class="service-card">
+
+                        <div class="service-icon">
+                            UP
+                        </div>
+
+                        <h3>Hardware Upgrades</h3>
+
+                        <p>
+                            Memory, storage and compatible component
+                            upgrades designed to improve device
+                            performance and reliability.
+                        </p>
+
+                    </article>
+
+                </div>
+
+                <div class="col-md-6 col-xl-4">
+
+                    <article class="service-card">
+
+                        <div class="service-icon">
+                            DX
+                        </div>
+
+                        <h3>System Diagnostics</h3>
+
+                        <p>
+                            Detailed technical inspection to identify
+                            hardware faults, software issues and
+                            performance problems.
+                        </p>
+
+                    </article>
+
+                </div>
+
+                <div class="col-md-6 col-xl-4">
+
+                    <article class="service-card">
+
+                        <div class="service-icon">
+                            SW
+                        </div>
+
+                        <h3>Software Support</h3>
+
+                        <p>
+                            Operating system troubleshooting,
+                            software configuration and system
+                            optimisation assistance.
+                        </p>
+
+                    </article>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- REPAIR PROCESS -->
+    <section id="process"
+             class="home-section">
+
+        <div class="container">
+
+            <div class="text-center mb-5">
+
+                <div class="section-eyebrow">
+                    Repair Process
+                </div>
+
+                <h2 class="section-title mx-auto">
+                    A clear workflow from check-in
+                    to collection.
+                </h2>
+
+                <p class="section-description mx-auto">
+                    Every device moves through a structured
+                    process so customers can understand its
+                    current repair stage.
+                </p>
+
+            </div>
+
+            <div class="process-grid">
+
+                <div class="process-card">
+
+                    <div class="process-number">01</div>
+
+                    <h3>Device Received</h3>
+
+                    <p>
+                        The device and reported problem
+                        are registered securely.
+                    </p>
+
+                </div>
+
+                <div class="process-card">
+
+                    <div class="process-number">02</div>
+
+                    <h3>Inspection</h3>
+
+                    <p>
+                        A technician checks and identifies
+                        the source of the issue.
+                    </p>
+
+                </div>
+
+                <div class="process-card">
+
+                    <div class="process-number">03</div>
+
+                    <h3>Repair</h3>
+
+                    <p>
+                        Approved repair work and component
+                        replacement are completed.
+                    </p>
+
+                </div>
+
+                <div class="process-card">
+
+                    <div class="process-number">04</div>
+
+                    <h3>Quality Check</h3>
+
+                    <p>
+                        The repaired device is tested
+                        before completion.
+                    </p>
+
+                </div>
+
+                <div class="process-card">
+
+                    <div class="process-number">05</div>
+
+                    <h3>Ready for Pickup</h3>
+
+                    <p>
+                        The customer can review the latest
+                        status and collect the device.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- SECURITY -->
+    <section id="about"
+             class="home-section home-section-soft">
+
+        <div class="container">
+
+            <div class="security-panel">
+
+                <div class="row align-items-center g-5">
+
+                    <div class="col-lg-7">
+
+                        <div class="section-eyebrow">
+                            Security by Design
+                        </div>
+
+                        <h2 class="section-title">
+                            Repair management built around
+                            privacy and accountability.
+                        </h2>
+
+                        <p class="section-description">
+                            Secure OKCS protects customer information
+                            while providing staff with the tools
+                            required to manage repair operations.
+                        </p>
+
+                        <div class="security-list">
+
+                            <div class="security-item">
+
+                                <div class="security-item-icon">
+                                    01
+                                </div>
+
+                                <div>
+                                    <h4>Encrypted Customer Records</h4>
+
+                                    <p>
+                                        Sensitive customer information
+                                        is stored in protected form.
+                                    </p>
+                                </div>
+
+                            </div>
+
+                            <div class="security-item">
+
+                                <div class="security-item-icon">
+                                    02
+                                </div>
+
+                                <div>
+                                    <h4>Role-Based System Access</h4>
+
+                                    <p>
+                                        Admin, staff and customer
+                                        functions are separated securely.
+                                    </p>
+                                </div>
+
+                            </div>
+
+                            <div class="security-item">
+
+                                <div class="security-item-icon">
+                                    03
+                                </div>
+
+                                <div>
+                                    <h4>Face ID and Intrusion Protection</h4>
+
+                                    <p>
+                                        Protected accounts can use
+                                        identity verification and
+                                        suspicious login monitoring.
+                                    </p>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-lg-5">
+
+                        <div class="security-visual"
+                             aria-hidden="true">
+
+                            <div class="security-ring"></div>
+
+                            <div class="security-core">
+                                SECURE<br />
+                                OKCS<br />
+                                VERIFIED
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="home-section">
+
+        <div class="container">
+
+            <div class="home-cta">
+
+                <div class="home-cta-content">
+
+                    <h2>
+                        Already submitted your device
+                        for repair?
+                    </h2>
+
+                    <p>
+                        Use your tracking code and ticket number
+                        to view the latest repair status, progress
+                        history and completion information.
+                    </p>
+
+                    <div class="hero-actions mb-0">
+
+                        <a asp-controller="Tracking"
+                           asp-action="Index"
+                           class="hero-primary-button">
+
+                            Check Repair Status
+                            <span aria-hidden="true">→</span>
+
+                        </a>
+
+                        @if (User.Identity?.IsAuthenticated != true)
+                        {
+                            <a asp-controller="Account"
+                               asp-action="Login"
+                               class="hero-secondary-button">
+
+                                Sign In to Secure OKCS
+
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Dashboard"
+                               asp-action="Index"
+                               class="hero-secondary-button">
+
+                                Open Dashboard
+
+                            </a>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
